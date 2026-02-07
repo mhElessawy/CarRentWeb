@@ -135,13 +135,13 @@ namespace CarRentWeb.Migrations
                         column: x => x.TakeUserId,
                         principalTable: "PasswordData",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
                     table.ForeignKey(
                         name: "FK_EmployeeTakeMoneyUser_PasswordData",
                         column: x => x.UserId,
                         principalTable: "PasswordData",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
                 });
 
             migrationBuilder.CreateTable(

@@ -2044,14 +2044,14 @@ namespace CarRentWeb.Migrations
                     b.HasOne("CarRentWeb.Models.PasswordDatum", "TakeUser")
                         .WithMany("EmployeeTakeMoneyTakeUser")
                         .HasForeignKey("TakeUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("FK_EmployeeTakeMoneyTakeUser_PasswordData");
 
                     b.HasOne("CarRentWeb.Models.PasswordDatum", "User")
                         .WithMany("EmployeeTakeMoneyUser")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("FK_EmployeeTakeMoneyUser_PasswordData");
 

@@ -638,12 +638,14 @@ public partial class CarRentWebContext : DbContext
             entity.HasOne(d => d.TakeUser)
                   .WithMany(p => p.EmployeeTakeMoneyTakeUser)
                   .HasForeignKey(d => d.TakeUserId)
+                  .OnDelete(DeleteBehavior.NoAction)
                   .HasConstraintName("FK_EmployeeTakeMoneyTakeUser_PasswordData");
 
             // Configure User relationship
             entity.HasOne(d => d.User)
                   .WithMany(p => p.EmployeeTakeMoneyUser)
                   .HasForeignKey(d => d.UserId)
+                  .OnDelete(DeleteBehavior.NoAction)
                   .HasConstraintName("FK_EmployeeTakeMoneyUser_PasswordData");
         });
         OnModelCreatingPartial(modelBuilder);
