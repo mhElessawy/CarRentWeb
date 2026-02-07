@@ -33,7 +33,7 @@ namespace CarRentWeb.Controllers
 
                 var userCompanyData = TempData["UserCompanyData"]?.ToString();
                 var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
-                var companyIdsString = string.Join(",", companyIds);
+                var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
 
                 // Get companies for dropdown
                 ViewBag.Companies = new SelectList(
@@ -127,7 +127,7 @@ namespace CarRentWeb.Controllers
 
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
             var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
 
             ViewData["CompanyId"] = new SelectList(_context.CompanyInfos
                  .FromSqlRaw($"SELECT * FROM CompanyInfo WHERE DeleteFlag = 0 AND Id IN ({companyIdsString})")
@@ -155,7 +155,7 @@ namespace CarRentWeb.Controllers
 
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
             var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
 
             if (ModelState.IsValid)
             {
@@ -216,7 +216,7 @@ namespace CarRentWeb.Controllers
 
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
             var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
 
 
             var employeeInfo = await _context.EmployeeInfos.FindAsync(id);
@@ -254,7 +254,7 @@ namespace CarRentWeb.Controllers
 
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
             var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
 
             if (ModelState.IsValid)
             {

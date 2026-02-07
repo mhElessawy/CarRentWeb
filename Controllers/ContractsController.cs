@@ -320,7 +320,7 @@ namespace CarRentWeb.Controllers
 
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
             var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
 
             if (companyIds.Any())
             {
@@ -407,7 +407,7 @@ namespace CarRentWeb.Controllers
 
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
             var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
 
            
 
@@ -431,7 +431,7 @@ namespace CarRentWeb.Controllers
 
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
             var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
 
             // check if the credit start date > start date make it error and not save the contract 
             if (contract.CreditStartDate < contract.StartDate)
@@ -675,7 +675,7 @@ namespace CarRentWeb.Controllers
 
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
             var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
 
             var contract = await _context.Contracts
                 .Include(c => c.Car)
@@ -815,7 +815,7 @@ namespace CarRentWeb.Controllers
 
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
             var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
              
             ViewBag.Companies = new SelectList(
               await _context.CompanyInfos
@@ -951,7 +951,7 @@ namespace CarRentWeb.Controllers
 
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
             var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
 
             var contract = await _context.Contracts
                 .Include(c => c.Car)
@@ -1180,7 +1180,7 @@ namespace CarRentWeb.Controllers
 
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
             var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
 
             int maxContractNo = _context.Contracts.Max(a => Convert.ToInt32(a.ContractNo));
 
@@ -1337,7 +1337,7 @@ namespace CarRentWeb.Controllers
 
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
             var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
 
             var contract = await _context.Contracts
                 .Include(c => c.Car)

@@ -25,7 +25,7 @@ namespace CarRentWeb.Controllers
             TempData["UserCompanyData"] = HttpContext.Session.GetString("UserCompanyData");
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
             var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
             // Get companies for dropdown
             ViewBag.Companies = new SelectList(
                 await _context.CompanyInfos
@@ -140,7 +140,7 @@ namespace CarRentWeb.Controllers
             TempData["UserCompanyData"] = HttpContext.Session.GetString("UserCompanyData");
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
             var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
             ViewData["CarShapeId"] = new SelectList(_context.Deffs.Where(a => a.DeffType == 24), "Id", "DeffName");
             ViewData["CarTypeId"] = new SelectList(_context.Deffs.Where(a => a.DeffType == 21), "Id", "DeffName");
             ViewData["CompanyId"] = new SelectList(_context.CompanyInfos
@@ -170,7 +170,7 @@ namespace CarRentWeb.Controllers
             TempData["UserCompanyData"] = HttpContext.Session.GetString("UserCompanyData");
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
             var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
             ViewData["CarShapeId"] = new SelectList(_context.Deffs, "Id", "DeffName", carInfo.CarShapeId);
             ViewData["CarTypeId"] = new SelectList(_context.Deffs, "Id", "DeffName", carInfo.CarTypeId);
             ViewData["CompanyId"] = new SelectList(_context.CompanyInfos
@@ -198,7 +198,7 @@ namespace CarRentWeb.Controllers
             TempData["UserCompanyData"] = HttpContext.Session.GetString("UserCompanyData");
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
             var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
             ViewData["CarShapeId"] = new SelectList(_context.Deffs.Where(a => a.DeffType == 24), "Id", "DeffName", carInfo.CarShapeId);
             ViewData["CarTypeId"] = new SelectList(_context.Deffs.Where(a => a.DeffType == 21), "Id", "DeffName", carInfo.CarTypeId);
             ViewData["CompanyId"] = new SelectList(_context.CompanyInfos
@@ -227,7 +227,7 @@ namespace CarRentWeb.Controllers
 
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
             var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
 
             if (ModelState.IsValid)
             {

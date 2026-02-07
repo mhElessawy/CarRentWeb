@@ -40,7 +40,7 @@ namespace CarRentWeb.Controllers
             //// Get the user's company data from TempData
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
             var companyIds = userCompanyData!.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
 
 
 

@@ -29,7 +29,7 @@ namespace CarRentWeb.Controllers
 
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
             var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
 
 
             ViewBag.Companies = new SelectList(
@@ -160,7 +160,7 @@ namespace CarRentWeb.Controllers
 
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
             var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
 
             int maxBillNo = _context.Purshases.Max(a => a.PurshaseNo)!.Value;
             ViewBag.maxPurshaseNo = maxBillNo + 1;
@@ -199,7 +199,7 @@ namespace CarRentWeb.Controllers
 
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
             var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
             if (ModelState.IsValid)
             {
 
@@ -248,7 +248,7 @@ namespace CarRentWeb.Controllers
 
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
             var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
 
             var purshase = await _context.Purshases.FindAsync(id);
             if (purshase == null)
@@ -291,7 +291,7 @@ namespace CarRentWeb.Controllers
 
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
             var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
             if (ModelState.IsValid)
             {
                 try
@@ -397,7 +397,7 @@ namespace CarRentWeb.Controllers
             //// Get the user's company data from TempData
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
             var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
 
             if (companyIds.Any())
             {
