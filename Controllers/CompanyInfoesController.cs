@@ -27,13 +27,26 @@ namespace CarRentWeb.Controllers
 
             TempData["UserCompanyData"] = HttpContext.Session.GetString("UserCompanyData");
 
-            var userCompanyData = TempData["UserCompanyData"]?.ToString();
-            var companyIds = userCompanyData.Split(',').Select(int.Parse).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var userCompanyData = TempData["UserCompanyData"]?.ToString() ?? "0";
+            var companyIds = userCompanyData.Split(',')
+                .Where(x => int.TryParse(x.Trim(), out _))
+                .Select(x => int.Parse(x.Trim()))
+                .ToList();
 
-            var rahalWebContext = _context.CompanyInfos
-                 .FromSqlRaw($"SELECT * FROM CompanyInfo WHERE DeleteFlag = 0 AND Id IN ({companyIdsString})")
-                .Include(c => c.City).Include(c => c.CompActivate).Include(c => c.Location);
+            IQueryable<CompanyInfo> rahalWebContext;
+            if (companyIds.Any())
+            {
+                var companyIdsString = string.Join(",", companyIds);
+                rahalWebContext = _context.CompanyInfos
+                    .FromSqlRaw($"SELECT * FROM CompanyInfo WHERE DeleteFlag = 0 AND Id IN ({companyIdsString})")
+                    .Include(c => c.City).Include(c => c.CompActivate).Include(c => c.Location);
+            }
+            else
+            {
+                rahalWebContext = _context.CompanyInfos
+                    .Where(c => c.DeleteFlag == 0)
+                    .Include(c => c.City).Include(c => c.CompActivate).Include(c => c.Location);
+            }
             return View(await rahalWebContext.ToListAsync());
         }
 
