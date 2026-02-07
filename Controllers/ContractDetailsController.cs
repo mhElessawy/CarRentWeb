@@ -33,7 +33,7 @@ namespace CarRentWeb.Controllers
             //// Get the user's company data from TempData
             //// Get the user's company data from TempData
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
-            var companyIds = userCompanyData.Split(',').Select(int.Parse).ToList();
+            var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
             var companyIdsString = string.Join(",", companyIds);
 
             if (companyIds.Any())
@@ -639,7 +639,7 @@ namespace CarRentWeb.Controllers
             TempData["UserCompanyData"] = HttpContext.Session.GetString("UserCompanyData");
 
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
-            var companyIds = userCompanyData.Split(',').Select(int.Parse).ToList();
+            var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
             var companyIdsString = string.Join(",", companyIds);
 
             if (companyIds.Any())

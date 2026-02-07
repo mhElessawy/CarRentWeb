@@ -32,7 +32,7 @@ namespace CarRentWeb.Controllers
                 TempData["UserCompanyData"] = HttpContext.Session.GetString("UserCompanyData");
 
                 var userCompanyData = TempData["UserCompanyData"]?.ToString();
-                var companyIds = userCompanyData.Split(',').Select(int.Parse).ToList();
+                var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
                 var companyIdsString = string.Join(",", companyIds);
 
                 // Get companies for dropdown
@@ -126,7 +126,7 @@ namespace CarRentWeb.Controllers
             TempData["UserCompanyData"] = HttpContext.Session.GetString("UserCompanyData");
 
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
-            var companyIds = userCompanyData.Split(',').Select(int.Parse).ToList();
+            var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
             var companyIdsString = string.Join(",", companyIds);
 
             ViewData["CompanyId"] = new SelectList(_context.CompanyInfos
@@ -154,7 +154,7 @@ namespace CarRentWeb.Controllers
             TempData["UserCompanyData"] = HttpContext.Session.GetString("UserCompanyData");
 
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
-            var companyIds = userCompanyData.Split(',').Select(int.Parse).ToList();
+            var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
             var companyIdsString = string.Join(",", companyIds);
 
             if (ModelState.IsValid)
@@ -215,7 +215,7 @@ namespace CarRentWeb.Controllers
             TempData["UserCompanyData"] = HttpContext.Session.GetString("UserCompanyData");
 
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
-            var companyIds = userCompanyData.Split(',').Select(int.Parse).ToList();
+            var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
             var companyIdsString = string.Join(",", companyIds);
 
 
@@ -253,7 +253,7 @@ namespace CarRentWeb.Controllers
             TempData["UserCompanyData"] = HttpContext.Session.GetString("UserCompanyData");
 
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
-            var companyIds = userCompanyData.Split(',').Select(int.Parse).ToList();
+            var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
             var companyIdsString = string.Join(",", companyIds);
 
             if (ModelState.IsValid)
