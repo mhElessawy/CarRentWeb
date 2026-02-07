@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 
 namespace CarRentWeb.Models;
@@ -40,7 +41,7 @@ public partial class CarInfo
     public int? UserId { get; set; }
 
     public string? CarPaper { get; set; }
-
+    [Precision(18, 2)]
     public decimal CarCredit { get; set; }
     public int NoOfCredit { get; set; }
 

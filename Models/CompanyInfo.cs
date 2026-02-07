@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
@@ -47,6 +48,7 @@ public partial class CompanyInfo
     [Display(Name = " الرقم الآلي")]
     public string ? AddressAutoNo { get; set; }
     [Display(Name = " الإيجار")]
+    [Precision(18, 2)]
     public decimal AddressRent { get; set; }
     [Display(Name = " بداية الإيجار")]
     public DateOnly StartRent { get; set; }
