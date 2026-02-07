@@ -1,192 +1,368 @@
-﻿@model CarRentWeb.Models.CompanyInfo
+@model CarRentWeb.Models.CompanyInfo
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "تعديل بيانات شركة";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-<h1 dir="rtl">تعديل بيانات شركة </h1>
-<hr />
-<form asp-action="Edit" class="professional-form" dir="rtl" enctype="multipart/form-data">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Id" />
-            <input type="hidden" asp-for="DeleteFlag" />
-            <div class="form-group">
-                <label  class="control-label">كود الشركة</label>
+
+<div class="page-header" dir="rtl">
+    <h2><i class="bi bi-building-gear"></i> تعديل بيانات شركة</h2>
+</div>
+
+<form asp-action="Edit" dir="rtl" enctype="multipart/form-data">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="DeleteFlag" />
+
+    <!-- ===== القسم 1: بيانات الشركة الأساسية ===== -->
+    <div class="form-section">
+        <div class="form-section-title"><i class="bi bi-building"></i> بيانات الشركة الأساسية</div>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label asp-for="CompCode" class="form-label">كود الشركة</label>
                 <input asp-for="CompCode" class="form-control" required />
                 <span asp-validation-for="CompCode" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="CompNameAr" class="control-label">اسم الشركة</label>
+            <div class="col-md-4">
+                <label asp-for="CompNameAr" class="form-label">اسم الشركة بالعربي</label>
                 <input asp-for="CompNameAr" class="form-control" required />
                 <span asp-validation-for="CompNameAr" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="CompNameEn" class="control-label">Company name</label>
+            <div class="col-md-4">
+                <label asp-for="CompNameEn" class="form-label">اسم الشركة بالإنجليزي</label>
                 <input asp-for="CompNameEn" class="form-control" />
                 <span asp-validation-for="CompNameEn" class="text-danger"></span>
             </div>
-
-             <div class="col-md-3" style="padding: 5px;">
-                <div class="col-md-12">
-                    <!-- Camera icon button with transparent background and no border -->
-                    <label for="ImageFile1" class="custom-file-upload">
-                        <i class="fas fa-camera" style="font-size: 30px; color: #007bff;"></i>
-                        <span style="color: #007bff;">اللوجو</span>
-                    </label>
-                    <input type="file"
-						   name="ImageFile1"
-						   id="ImageFile1"
-						   accept="image/*"
-						   style="display: none;"
-						   onchange="previewImage(event)" />
-                    <img src="~/UploadCompLogo/@Model.CompLogo" style="max-width: 100%; max-height: 150px;">
-                    <!-- Image preview area -->
-                    <div id="imagePreview" style="margin-top: 10px;">
-                        <img id="previewImg" src="" alt="Image Preview" style="max-width: 100%; max-height: 150px; display: none;" />
-                    </div>
-                    <canvas id="canvas" style="display: none;"></canvas>
+            <div class="col-md-4">
+                <label class="form-label">شعار الشركة</label>
+                <label for="ImageFile1" class="logo-upload-btn">
+                    <i class="bi bi-camera-fill"></i> تغيير الصورة
+                </label>
+                <input type="file" name="ImageFile1" id="ImageFile1" accept="image/*" style="display: none;" onchange="previewImage(event)" />
+                <div class="mt-2">
+                    @if (!string.IsNullOrEmpty(Model.CompLogo))
+                    {
+                        <img id="currentLogo" src="~/UploadCompLogo/@Model.CompLogo" style="max-width: 150px; max-height: 100px; border-radius: 6px; border: 1px solid #ddd;" />
+                    }
+                    <img id="previewImg" src="" alt="" style="max-width: 150px; max-height: 100px; display: none; border-radius: 6px; border: 1px solid #ddd;" />
                 </div>
             </div>
+        </div>
+    </div>
 
-
-            @* <div class="form-group">
-                <label asp-for="CompLogo" class="control-label"></label>
-                <input type="file" asp-for="CompLogo" class="form-control" id="compLogoInput" />
-                <span asp-validation-for="CompLogo" class="text-danger"></span>
-                
-                <!-- Image preview container -->
-                <div class="mt-2">
-                    <img id="compLogoPreview" src="#" alt="Company Logo Preview" style="max-height: 200px; display: none;" />
-                </div>
-            </div> *@
-
-            <div class="form-group">
-                <label asp-for="OwnerName1" class="control-label">اسم الشريك الأول</label>
+    <!-- ===== القسم 2: بيانات الشركاء ===== -->
+    <div class="form-section">
+        <div class="form-section-title"><i class="bi bi-people-fill"></i> بيانات الشركاء</div>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label asp-for="OwnerName1" class="form-label">اسم صاحب العمل</label>
                 <input asp-for="OwnerName1" class="form-control" required />
                 <span asp-validation-for="OwnerName1" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="OwnerCivilId1" class="control-label">رقم المدني الشريك الأول</label>
+            <div class="col-md-6">
+                <label asp-for="OwnerCivilId1" class="form-label">الرقم المدني</label>
                 <input asp-for="OwnerCivilId1" class="form-control" required />
                 <span asp-validation-for="OwnerCivilId1" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="OwnerName2" class="control-label">اسم الشريك الثاني</label>
+            <div class="col-md-6">
+                <label asp-for="OwnerName2" class="form-label">اسم صاحب الشركة 2</label>
                 <input asp-for="OwnerName2" class="form-control" />
                 <span asp-validation-for="OwnerName2" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="OwnerCivilId2" class="control-label">رقم المدني الشريك الثاني</label>
+            <div class="col-md-6">
+                <label asp-for="OwnerCivilId2" class="form-label">الرقم المدني 2</label>
                 <input asp-for="OwnerCivilId2" class="form-control" />
                 <span asp-validation-for="OwnerCivilId2" class="text-danger"></span>
             </div>
-            <div class="form-group">
-        <label asp-for="OwnerName3" class="control-label">اسم الشريك الثالث</label>
+            <div class="col-md-6">
+                <label asp-for="OwnerName3" class="form-label">اسم صاحب الشركة 3</label>
                 <input asp-for="OwnerName3" class="form-control" />
                 <span asp-validation-for="OwnerName3" class="text-danger"></span>
             </div>
-            <div class="form-group">
-        <label asp-for="OwnerCivilId3" class="control-label">رقم المدني الشريك الثالث</label>
+            <div class="col-md-6">
+                <label asp-for="OwnerCivilId3" class="form-label">الرقم المدني 3</label>
                 <input asp-for="OwnerCivilId3" class="form-control" />
                 <span asp-validation-for="OwnerCivilId3" class="text-danger"></span>
             </div>
-            @* <div class="form-group">
-                <label asp-for="CompOwnerNumber" class="control-label">الرقم الموحد</label>
-        <input asp-for="CompOwnerNumber" class="form-control" required />
-                <span asp-validation-for="CompOwnerNumber" class="text-danger"></span>
-            </div> *@
-            <div class="form-group">
-                <label asp-for="CompLicenseNo" class="control-label">رقم الرخصة</label>
-        <input asp-for="CompLicenseNo" class="form-control" required />
-                <span asp-validation-for="CompLicenseNo" class="text-danger"></span>
+        </div>
+    </div>
+
+    <!-- ===== القسم 3: بيانات عقد الإيجار ===== -->
+    <div class="form-section">
+        <div class="form-section-title"><i class="bi bi-house-door-fill"></i> بيانات عقد الإيجار</div>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label asp-for="AddressLocation" class="form-label">المنطقة</label>
+                <input asp-for="AddressLocation" class="form-control" />
+                <span asp-validation-for="AddressLocation" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="CompFileNo" class="control-label">رقم الملف </label>
-        <input asp-for="CompFileNo" class="form-control" required />
+            <div class="col-md-3">
+                <label asp-for="AddressArea" class="form-label">القطعة</label>
+                <input asp-for="AddressArea" class="form-control" />
+                <span asp-validation-for="AddressArea" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="AddressQasima" class="form-label">القسيمة</label>
+                <input asp-for="AddressQasima" class="form-control" />
+                <span asp-validation-for="AddressQasima" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="AddressLevel" class="form-label">الدور</label>
+                <input asp-for="AddressLevel" class="form-control" />
+                <span asp-validation-for="AddressLevel" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="AddressType" class="form-label">نوع المبنى</label>
+                <input asp-for="AddressType" class="form-control" />
+                <span asp-validation-for="AddressType" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="AddressTypeNo" class="form-label">رقم المبني</label>
+                <input asp-for="AddressTypeNo" class="form-control" />
+                <span asp-validation-for="AddressTypeNo" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="AddressAutoNo" class="form-label">الرقم الآلي</label>
+                <input asp-for="AddressAutoNo" class="form-control" />
+                <span asp-validation-for="AddressAutoNo" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="AddressRent" class="form-label">الإيجار</label>
+                <input asp-for="AddressRent" class="form-control" />
+                <span asp-validation-for="AddressRent" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="StartRent" class="form-label">بداية الإيجار</label>
+                <input asp-for="StartRent" type="date" class="form-control" />
+                <span asp-validation-for="StartRent" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="EndRent" class="form-label">نهاية الإيجار</label>
+                <input asp-for="EndRent" type="date" class="form-control" />
+                <span asp-validation-for="EndRent" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== القسم 4: بيانات مدنية ===== -->
+    <div class="form-section">
+        <div class="form-section-title"><i class="bi bi-card-heading"></i> بيانات مدنية</div>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label asp-for="CivilID" class="form-label">الرقم المدني</label>
+                <input asp-for="CivilID" class="form-control" />
+                <span asp-validation-for="CivilID" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="CompActivateId" class="form-label">نوع النشاط</label>
+                <select asp-for="CompActivateId" class="form-control" asp-items="ViewBag.CompActivateId">
+                    <option value="">-- اختر --</option>
+                </select>
+                <span asp-validation-for="CompActivateId" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="CompFileNo" class="form-label">رقم الملف</label>
+                <input asp-for="CompFileNo" class="form-control" required />
                 <span asp-validation-for="CompFileNo" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="LocationId" class="control-label">المحافظة</label>
-                <select asp-for="LocationId" class="form-control" asp-items="ViewBag.LocationId"></select>
+            <div class="col-md-3">
+                <label asp-for="CompLicenseNo" class="form-label">رقم الرخصة</label>
+                <input asp-for="CompLicenseNo" class="form-control" required />
+                <span asp-validation-for="CompLicenseNo" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== القسم 5: رخصة تجارية + مستخرج ===== -->
+    <div class="form-section">
+        <div class="form-section-title"><i class="bi bi-file-earmark-text-fill"></i> رخصة تجارية</div>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label asp-for="StartLicense" class="form-label">تاريخ بداية الترخيص</label>
+                <input asp-for="StartLicense" type="date" class="form-control" />
+                <span asp-validation-for="StartLicense" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="EndLicense" class="form-label">تاريخ نهاية الترخيص</label>
+                <input asp-for="EndLicense" type="date" class="form-control" />
+                <span asp-validation-for="EndLicense" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="CenterNo" class="form-label">الرقم المركزي</label>
+                <input asp-for="CenterNo" class="form-control" />
+                <span asp-validation-for="CenterNo" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="CommercialRegistrationNo" class="form-label">رقم السجل التجاري</label>
+                <input asp-for="CommercialRegistrationNo" class="form-control" />
+                <span asp-validation-for="CommercialRegistrationNo" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== القسم 6: بيانات التواصل ===== -->
+    <div class="form-section">
+        <div class="form-section-title"><i class="bi bi-telephone-fill"></i> بيانات التواصل</div>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label asp-for="LocationId" class="form-label">المحافظة</label>
+                <select asp-for="LocationId" class="form-control" asp-items="ViewBag.LocationId">
+                    <option value="">-- اختر --</option>
+                </select>
                 <span asp-validation-for="LocationId" class="text-danger"></span>
             </div>
-            @* <div class="form-group">
-                <label asp-for="CityId" class="control-label">المنطقة السكنية</label>
-                <select asp-for="CityId" class="form-control" asp-items="ViewBag.CityId"></select>
-                <span asp-validation-for="CityId" class="text-danger"></span>
-            </div> *@
-           @*  <div class="form-group">
-                <label asp-for="Address" class="control-label">العنوان</label>
-                <input asp-for="Address" class="form-control" />
-                <span asp-validation-for="Address" class="text-danger"></span>
-            </div> *@
-            <div class="form-group">
-                <label asp-for="Tel1" class="control-label">رقم الهاتف 1</label>
+            <div class="col-md-3">
+                <label asp-for="Tel1" class="form-label">رقم الهاتف 1</label>
                 <input asp-for="Tel1" class="form-control" />
                 <span asp-validation-for="Tel1" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Tel2" class="control-label">رقم الهاتف 2</label>
+            <div class="col-md-3">
+                <label asp-for="Tel2" class="form-label">رقم الهاتف 2</label>
                 <input asp-for="Tel2" class="form-control" />
                 <span asp-validation-for="Tel2" class="text-danger"></span>
             </div>
-            <div class="form-group">
-        <label asp-for="CompReleaseDate" class="control-label">تاريخ الاصدار</label>
-        <input asp-for="CompReleaseDate" type="date" class="form-control" />
+            <div class="col-md-3">
+                <label asp-for="CompReleaseDate" class="form-label">تاريخ الاصدار</label>
+                <input asp-for="CompReleaseDate" type="date" class="form-control" />
                 <span asp-validation-for="CompReleaseDate" class="text-danger"></span>
             </div>
-           @*  <div class="form-group">
-        <label asp-for="CompEndDate" class="control-label">تاريخ انتهاء الترخيص</label>
-        <input asp-for="CompEndDate" type="date"  class="form-control" />
-                <span asp-validation-for="CompEndDate" class="text-danger"></span>
-            </div> *@
-           @*  <div class="form-group">
-        <label asp-for="AddressNo" class="control-label">رقم العنوان</label>
-                <input asp-for="AddressNo" class="form-control" />
-                <span asp-validation-for="AddressNo" class="text-danger"></span>
-            </div> *@
-           @*  <div class="form-group">
-        <label asp-for="AcceptNewerDate" class="control-label">تاريخ تجديد الاعتماد</label>
-                <input asp-for="AcceptNewerDate" class="form-control" />
-                <span asp-validation-for="AcceptNewerDate" class="text-danger"></span>
-            </div> *@
-@*             <div class="form-group">
-                <label asp-for="RegDate" class="control-label">تاريخ التسجيل</label>
-        <input asp-for="RegDate" type="date"  class="form-control" />
-                <span asp-validation-for="RegDate" class="text-danger"></span>
-            </div> *@
-            
-          @*   <div class="form-group">
-        <label asp-for="CompAutoNo" class="control-label">الرقم الآلي</label>
-                <input asp-for="CompAutoNo" class="form-control" />
-                <span asp-validation-for="CompAutoNo" class="text-danger"></span>
-            </div> *@
-            <div class="form-group">
-        <label asp-for="CompActivateId" class="control-label">نوع النشاط</label>
-                <select asp-for="CompActivateId" class="form-control" asp-items="ViewBag.CompActivateId"></select>
-                <span asp-validation-for="CompActivateId" class="text-danger"></span>
-            </div>
-            <div class="professional-form-footer">
-                <div>
-                    <a asp-action="Index" class="btn btn-danger">إالغاء</a>
-                    @*    <a asp-action="Index">العوده لصفحة الشركات</a> *@
-                </div>
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
-@* <div>
-    <a asp-action="Index">Back to List</a>
-</div> *@
+        </div>
+    </div>
+
+    <!-- ===== أزرار الحفظ والإلغاء ===== -->
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary btn-lg">
+            <i class="bi bi-check-circle"></i> حفظ التعديلات
+        </button>
+        <a asp-action="Index" class="btn btn-secondary btn-lg">
+            <i class="bi bi-x-circle"></i> إلغاء
+        </a>
+    </div>
+</form>
 
 <script>
     function previewImage(event) {
         const reader = new FileReader();
-        reader.onload = function() {
+        reader.onload = function () {
             const previewImg = document.getElementById('previewImg');
             previewImg.src = reader.result;
             previewImg.style.display = 'block';
+            var currentLogo = document.getElementById('currentLogo');
+            if (currentLogo) currentLogo.style.display = 'none';
         }
         reader.readAsDataURL(event.target.files[0]);
     }
-
 </script>
+
+<style>
+    .page-header {
+        margin-bottom: 25px;
+        padding-bottom: 10px;
+        border-bottom: 3px solid #1565c0;
+    }
+
+    .page-header h2 {
+        color: #1a237e;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .page-header h2 i {
+        margin-left: 8px;
+        color: #1565c0;
+    }
+
+    .form-section {
+        background: #fff;
+        border-radius: 8px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e8e8e8;
+    }
+
+    .form-section-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1565c0;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e3f2fd;
+    }
+
+    .form-section-title i {
+        margin-left: 8px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #37474f;
+        font-size: 0.9rem;
+        margin-bottom: 4px;
+    }
+
+    .form-control {
+        border: 1px solid #cfd8dc;
+        border-radius: 6px;
+        padding: 8px 12px;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-control:focus {
+        border-color: #1565c0;
+        box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.12);
+    }
+
+    .logo-upload-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        background: #e3f2fd;
+        color: #1565c0;
+        border: 2px dashed #1565c0;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+    .logo-upload-btn:hover {
+        background: #bbdefb;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-start;
+        margin-top: 10px;
+        margin-bottom: 30px;
+    }
+
+    .form-actions .btn {
+        padding: 10px 30px;
+        font-weight: 600;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .form-actions .btn-primary {
+        background: #1565c0;
+        border-color: #1565c0;
+    }
+
+    .form-actions .btn-primary:hover {
+        background: #0d47a1;
+    }
+
+    .form-actions .btn-secondary {
+        background: #78909c;
+        border-color: #78909c;
+    }
+
+    .form-actions .btn-secondary:hover {
+        background: #546e7a;
+    }
+</style>
