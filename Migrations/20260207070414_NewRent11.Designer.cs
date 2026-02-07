@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CarRentWeb.Migrations
 {
     [DbContext(typeof(CarRentWebContext))]
-    [Migration("20260206210442_NewCarRent1")]
-    partial class NewCarRent1
+    [Migration("20260207070414_NewRent11")]
+    partial class NewRent11
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1169,6 +1169,7 @@ namespace CarRentWeb.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("DeductAdvance")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("DeductPenality")
@@ -1246,6 +1247,7 @@ namespace CarRentWeb.Migrations
                         .HasColumnType("date");
 
                     b.Property<decimal>("TakeMoney")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("TakeMoneyNo")
@@ -2058,14 +2060,14 @@ namespace CarRentWeb.Migrations
                     b.HasOne("CarRentWeb.Models.PasswordDatum", "TakeUser")
                         .WithMany("EmployeeTakeMoneyTakeUser")
                         .HasForeignKey("TakeUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("FK_EmployeeTakeMoneyTakeUser_PasswordData");
 
                     b.HasOne("CarRentWeb.Models.PasswordDatum", "User")
                         .WithMany("EmployeeTakeMoneyUser")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("FK_EmployeeTakeMoneyUser_PasswordData");
 

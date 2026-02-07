@@ -1166,6 +1166,7 @@ namespace CarRentWeb.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("DeductAdvance")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("DeductPenality")
@@ -1243,6 +1244,7 @@ namespace CarRentWeb.Migrations
                         .HasColumnType("date");
 
                     b.Property<decimal>("TakeMoney")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("TakeMoneyNo")
@@ -2055,14 +2057,14 @@ namespace CarRentWeb.Migrations
                     b.HasOne("CarRentWeb.Models.PasswordDatum", "TakeUser")
                         .WithMany("EmployeeTakeMoneyTakeUser")
                         .HasForeignKey("TakeUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("FK_EmployeeTakeMoneyTakeUser_PasswordData");
 
                     b.HasOne("CarRentWeb.Models.PasswordDatum", "User")
                         .WithMany("EmployeeTakeMoneyUser")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("FK_EmployeeTakeMoneyUser_PasswordData");
 

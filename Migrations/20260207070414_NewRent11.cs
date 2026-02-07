@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace CarRentWeb.Migrations
 {
     /// <inheritdoc />
-    public partial class NewCarRent : Migration
+    public partial class NewRent11 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -120,7 +120,7 @@ namespace CarRentWeb.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     TakeUserId = table.Column<int>(type: "int", nullable: false),
-                    TakeMoney = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    TakeMoney = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     TakeDate = table.Column<DateOnly>(type: "date", nullable: false),
                     DeleteFlag = table.Column<int>(type: "int", nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: false),
@@ -134,14 +134,12 @@ namespace CarRentWeb.Migrations
                         name: "FK_EmployeeTakeMoneyTakeUser_PasswordData",
                         column: x => x.TakeUserId,
                         principalTable: "PasswordData",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_EmployeeTakeMoneyUser_PasswordData",
                         column: x => x.UserId,
                         principalTable: "PasswordData",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -167,7 +165,7 @@ namespace CarRentWeb.Migrations
                     AddressType = table.Column<int>(type: "int", nullable: true),
                     AddressTypeNo = table.Column<int>(type: "int", nullable: true),
                     AddressAutoNo = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    AddressRent = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    AddressRent = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     StartRent = table.Column<DateOnly>(type: "date", nullable: false),
                     EndRent = table.Column<DateOnly>(type: "date", nullable: false),
                     CivilID = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -275,7 +273,7 @@ namespace CarRentWeb.Migrations
                     CarEndDate = table.Column<DateOnly>(type: "date", nullable: true),
                     UserId = table.Column<int>(type: "int", nullable: true),
                     CarPaper = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    CarCredit = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    CarCredit = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     NoOfCredit = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -618,19 +616,19 @@ namespace CarRentWeb.Migrations
                     EmpSalaryYear = table.Column<int>(type: "int", nullable: false),
                     EmpSalaryMonth = table.Column<int>(type: "int", nullable: false),
                     EntryDate = table.Column<DateOnly>(type: "date", nullable: false),
-                    EmpSalary = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    EmpSpecial = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    AddBasicSalary = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    AddFood = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    AddSpecial = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    AddTravel = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    AddRoom = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    DeductPenality = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    DeductAdvance = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    DeductRoom = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    TotalPayed = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    TotalDeduuct = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Net = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    EmpSalary = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    EmpSpecial = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    AddBasicSalary = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    AddFood = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    AddSpecial = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    AddTravel = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    AddRoom = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    DeductPenality = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    DeductAdvance = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    DeductRoom = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    TotalPayed = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    TotalDeduuct = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    Net = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     Approve = table.Column<int>(type: "int", nullable: false),
                     SalaryRecieved = table.Column<int>(type: "int", nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: false)

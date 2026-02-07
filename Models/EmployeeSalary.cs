@@ -27,6 +27,7 @@ namespace CarRentWeb.Models
 
         [Precision(18, 2)]
         public decimal DeductPenality { get; set; }
+        [Precision(18, 2)]
         public decimal DeductAdvance { get; set; }
         [Precision(18, 2)]
         public decimal DeductRoom { get; set; }

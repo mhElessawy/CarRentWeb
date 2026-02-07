@@ -632,18 +632,20 @@ public partial class CarRentWebContext : DbContext
         modelBuilder.Entity<EmployeeTakeMoney>(entity =>
         {
             entity.Property(e => e.TakeMoney)
-                .HasColumnType("decimal(18,2)"); // Add this line
+                .HasColumnType("decimal(18,2)");
 
             // Configure TakeUser relationship
             entity.HasOne(d => d.TakeUser)
                   .WithMany(p => p.EmployeeTakeMoneyTakeUser)
                   .HasForeignKey(d => d.TakeUserId)
+                  .OnDelete(DeleteBehavior.NoAction)
                   .HasConstraintName("FK_EmployeeTakeMoneyTakeUser_PasswordData");
 
             // Configure User relationship
             entity.HasOne(d => d.User)
                   .WithMany(p => p.EmployeeTakeMoneyUser)
                   .HasForeignKey(d => d.UserId)
+                  .OnDelete(DeleteBehavior.NoAction)
                   .HasConstraintName("FK_EmployeeTakeMoneyUser_PasswordData");
         });
         OnModelCreatingPartial(modelBuilder);
