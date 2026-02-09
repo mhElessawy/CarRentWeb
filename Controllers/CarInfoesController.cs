@@ -24,8 +24,8 @@ namespace CarRentWeb.Controllers
             TempData.Keep();
             TempData["UserCompanyData"] = HttpContext.Session.GetString("UserCompanyData");
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
-            var companyIds = userCompanyData.Split(',').Select(int.Parse).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
             // Get companies for dropdown
             ViewBag.Companies = new SelectList(
                 await _context.CompanyInfos
@@ -84,7 +84,7 @@ namespace CarRentWeb.Controllers
                     PayedCredit = (decimal)(_context.ContractDetails
                         .Where(cd => cd.Contract!.CarId == car.Id && cd.Status == 3)
                         .Sum(cd => (decimal?)cd.CarCredit) ?? 0),
-                    RemainingCredit =( car.NoOfCredit * car.CarCredit ) - ((decimal)(_context.ContractDetails
+                    RemainingCredit = (car.NoOfCredit * car.CarCredit) - ((decimal)(_context.ContractDetails
                         .Where(cd => cd.Contract!.CarId == car.Id && cd.Status == 3)
                         .Sum(cd => (decimal?)cd.CarCredit) ?? 0))
                 });
@@ -111,7 +111,7 @@ namespace CarRentWeb.Controllers
                 .Include(c => c.CarShape)
                 .Include(c => c.CarType)
                 .Include(c => c.Company)
-                .Include (C=>C.CarKind)
+                .Include(C => C.CarKind)
                 .Include(c => c.User)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (carInfo == null)
@@ -127,7 +127,7 @@ namespace CarRentWeb.Controllers
         {
 
             var branches = _context.Deffs
-                                  .Where(b => b.DeffParent  == Id)
+                                  .Where(b => b.DeffParent == Id)
                                   .Select(b => new { Id = b.Id, KindName = b.DeffName })
                                   .ToList();
             return Json(branches);
@@ -139,8 +139,8 @@ namespace CarRentWeb.Controllers
             TempData.Keep(); // Keeps all TempData values
             TempData["UserCompanyData"] = HttpContext.Session.GetString("UserCompanyData");
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
-            var companyIds = userCompanyData.Split(',').Select(int.Parse).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
             ViewData["CarShapeId"] = new SelectList(_context.Deffs.Where(a => a.DeffType == 24), "Id", "DeffName");
             ViewData["CarTypeId"] = new SelectList(_context.Deffs.Where(a => a.DeffType == 21), "Id", "DeffName");
             ViewData["CompanyId"] = new SelectList(_context.CompanyInfos
@@ -169,8 +169,8 @@ namespace CarRentWeb.Controllers
             TempData.Keep(); // Keeps all TempData values
             TempData["UserCompanyData"] = HttpContext.Session.GetString("UserCompanyData");
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
-            var companyIds = userCompanyData.Split(',').Select(int.Parse).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
             ViewData["CarShapeId"] = new SelectList(_context.Deffs, "Id", "DeffName", carInfo.CarShapeId);
             ViewData["CarTypeId"] = new SelectList(_context.Deffs, "Id", "DeffName", carInfo.CarTypeId);
             ViewData["CompanyId"] = new SelectList(_context.CompanyInfos
@@ -197,14 +197,14 @@ namespace CarRentWeb.Controllers
             TempData.Keep(); // Keeps all TempData values
             TempData["UserCompanyData"] = HttpContext.Session.GetString("UserCompanyData");
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
-            var companyIds = userCompanyData.Split(',').Select(int.Parse).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
             ViewData["CarShapeId"] = new SelectList(_context.Deffs.Where(a => a.DeffType == 24), "Id", "DeffName", carInfo.CarShapeId);
             ViewData["CarTypeId"] = new SelectList(_context.Deffs.Where(a => a.DeffType == 21), "Id", "DeffName", carInfo.CarTypeId);
             ViewData["CompanyId"] = new SelectList(_context.CompanyInfos
                 .FromSqlRaw($"SELECT * FROM CompanyInfo WHERE DeleteFlag = 0 AND Id IN ({companyIdsString})")
                 , "Id", "CompNameAr", carInfo.CompanyId);
-            ViewData["CarKindId"] = new SelectList(_context.Deffs.Where(a=>a.DeffParent== carInfo.CarTypeId), "Id", "DeffName", carInfo.CarKindId);
+            ViewData["CarKindId"] = new SelectList(_context.Deffs.Where(a => a.DeffParent == carInfo.CarTypeId), "Id", "DeffName", carInfo.CarKindId);
             ViewData["UserId"] = new SelectList(_context.PasswordData, "Id", "UserFullName", carInfo.UserId);
             return View(carInfo);
         }
@@ -226,8 +226,8 @@ namespace CarRentWeb.Controllers
             TempData["UserCompanyData"] = HttpContext.Session.GetString("UserCompanyData");
 
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
-            var companyIds = userCompanyData.Split(',').Select(int.Parse).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
 
             if (ModelState.IsValid)
             {
@@ -270,7 +270,7 @@ namespace CarRentWeb.Controllers
                 .Include(c => c.CarShape)
                 .Include(c => c.CarType)
                 .Include(c => c.Company)
-                .Include(c=>c.CarKind )
+                .Include(c => c.CarKind)
                 .Include(c => c.User)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (carInfo == null)
@@ -318,7 +318,7 @@ namespace CarRentWeb.Controllers
             ViewBag.CarId = CarId;
             ViewBag.CarAtts = _context.CarInfoAtts.Where(a => a.Car!.Id == CarId).ToList();
             ViewBag.CarData = _context.CarInfos.FirstOrDefault(a => a.Id == CarId);
-            
+
             return View();
         }
 

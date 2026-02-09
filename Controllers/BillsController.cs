@@ -28,7 +28,7 @@ namespace CarRentWeb.Controllers
             _context = context;
         }
         // GET: Bills
-        public async Task<IActionResult> Index(string sortField,string sortOrder, string? CarNoSearch, int? EmpNoSearch, string? ContractNoSearch, int? companyId, int? pageNumber, DateTime? FromDateSearch, DateTime? ToDateSearch, string? EmpNameSearch, int? UserId)
+        public async Task<IActionResult> Index(string sortField, string sortOrder, string? CarNoSearch, int? EmpNoSearch, string? ContractNoSearch, int? companyId, int? pageNumber, DateTime? FromDateSearch, DateTime? ToDateSearch, string? EmpNameSearch, int? UserId)
         {
             TempData["Username"] = HttpContext.Session.GetString("Username");
             ViewData["UserId"] = HttpContext.Session.GetInt32("UserId");
@@ -39,8 +39,8 @@ namespace CarRentWeb.Controllers
             //// Get the user's company data from TempData
             //// Get the user's company data from TempData
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
-            var companyIds = userCompanyData!.Split(',').Select(int.Parse).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIds = userCompanyData!.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
 
 
 
@@ -65,19 +65,19 @@ namespace CarRentWeb.Controllers
                 .FromSqlRaw($"Select * from Bill where EmployeeId In ( Select Id From EmployeeInfo where CompanyId  IN ({companyIdsString}))")
                 .Include(c => c.Employee)
                 .Include(c => c.Contract)
-                .Include(c => c.Contract!.Car).Where(a=>a.DeleteFlag == 0 )
+                .Include(c => c.Contract!.Car).Where(a => a.DeleteFlag == 0)
                 .OrderByDescending(c => c.Id);
- 
-           //.Select(car => new
-           //{
-           //    Car = car,
-           //    PaidCredits = _context.ContractDetails
-           //    .Where(cd => cd.Contract!.CarId == car.Id && cd.Status == 3)
-           //    .Sum(cd => (decimal?)cd.CarCredit) ?? 0,
-           //    RemainingCredits = _context.ContractDetails
-           //    .Where(cd => cd.Contract!.CarId == car.Id && cd.Status == 0)
-           //    .Sum(cd => (decimal?)cd.CarCredit) ?? 0,
-           //});
+
+            //.Select(car => new
+            //{
+            //    Car = car,
+            //    PaidCredits = _context.ContractDetails
+            //    .Where(cd => cd.Contract!.CarId == car.Id && cd.Status == 3)
+            //    .Sum(cd => (decimal?)cd.CarCredit) ?? 0,
+            //    RemainingCredits = _context.ContractDetails
+            //    .Where(cd => cd.Contract!.CarId == car.Id && cd.Status == 0)
+            //    .Sum(cd => (decimal?)cd.CarCredit) ?? 0,
+            //});
 
 
             ViewBag.UserId = new SelectList(
@@ -192,7 +192,7 @@ namespace CarRentWeb.Controllers
         }
         #region "Daily"
 
-        public async Task<IActionResult> IndexDaily(string? CarNoSearch, int? EmpNoSearch, string? ContractNoSearch, int? companyId, int? pageNumber, DateTime? FromDateSearch, DateTime? ToDateSearch , string? EmpNameSearch)
+        public async Task<IActionResult> IndexDaily(string? CarNoSearch, int? EmpNoSearch, string? ContractNoSearch, int? companyId, int? pageNumber, DateTime? FromDateSearch, DateTime? ToDateSearch, string? EmpNameSearch)
         {
 
             ViewBag.Companies = new SelectList(
@@ -205,11 +205,11 @@ namespace CarRentWeb.Controllers
                companyId);
 
 
-           
+
             var query = _context.Bills
                 .Include(c => c.Employee)
-                .Include(c=>c.Contract)
-                .Include(c=>c.User)
+                .Include(c => c.Contract)
+                .Include(c => c.User)
                 .Where(a => a.Contract!.ContractType == 0);
 
             if (!string.IsNullOrEmpty(CarNoSearch))
@@ -282,8 +282,8 @@ namespace CarRentWeb.Controllers
             {
                 ViewData["ToDateFilter"] = ToDateSearch.Value.ToString("yyyy-MM-dd");
             }
-                // Convert to string
-               
+            // Convert to string
+
             @ViewData["EmpNameFilter"] = EmpNameSearch;
 
             // Pagination
@@ -292,7 +292,7 @@ namespace CarRentWeb.Controllers
 
         }
 
- 
+
         public IActionResult GetLastBillForEmployee(int employeeId)
         {
             // Query your database to get the last bill number for this employee
@@ -313,7 +313,7 @@ namespace CarRentWeb.Controllers
                 ViewBag.billCost = "";
             }
 
-                return Json(lastBillNumber);
+            return Json(lastBillNumber);
         }
         public IActionResult GetLastBillForEmployeeMonthly(int employeeId)
         {
@@ -362,12 +362,12 @@ namespace CarRentWeb.Controllers
             int maxBillNo = _context.Bills.Max(a => a.BillNo)!.Value;
             ViewBag.maxBillNo = maxBillNo + 1;
 
-            var contract = await _context.Contracts.Include(c=>c.Employee).Where(a=>a.Id == id).FirstOrDefaultAsync();
-            
-            
+            var contract = await _context.Contracts.Include(c => c.Employee).Where(a => a.Id == id).FirstOrDefaultAsync();
+
+
             ViewBag.EmployeeId = contract?.Employee?.FullNameAr ?? "Not available";
             ViewBag.EmpId = contract!.EmployeeId;
-            
+
             ViewBag.dailyCost = contract.DailyCredit;
 
             var lastBillNumber = _context.Bills
@@ -375,11 +375,11 @@ namespace CarRentWeb.Controllers
                             .OrderByDescending(b => b.Id)
                             .FirstOrDefault();
 
-            ViewBag.LastBill = lastBillNumber; 
+            ViewBag.LastBill = lastBillNumber;
             if (lastBillNumber == null)
             {
                 ViewBag.fromDate = contract.StartDate;
-                
+
             }
             else
             {
@@ -387,7 +387,7 @@ namespace CarRentWeb.Controllers
                 ViewBag.fromDate = toDate.AddDays(1);
             }
 
-                var bank = _context.Deffs.Where(a => a.DeffType == 9).ToList();
+            var bank = _context.Deffs.Where(a => a.DeffType == 9).ToList();
 
             ViewBag.BankId = new SelectList(bank, "Id", "DeffName");
 
@@ -399,7 +399,7 @@ namespace CarRentWeb.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateDaily( Bill bill)
+        public async Task<IActionResult> CreateDaily(Bill bill)
         {
             if (ModelState.IsValid)
             {
@@ -409,19 +409,19 @@ namespace CarRentWeb.Controllers
                     bill.BankIntNo = 568;
                 }
 
-                DateOnly currentDate = DateOnly.FromDateTime( DateTime.Now);
-                int daysDifference =  currentDate.DayNumber - bill.ToDate!.Value.DayNumber;
+                DateOnly currentDate = DateOnly.FromDateTime(DateTime.Now);
+                int daysDifference = currentDate.DayNumber - bill.ToDate!.Value.DayNumber;
 
                 bill.LateDays = daysDifference;
 
 
-                bill.BillTime= TimeOnly .FromDateTime(DateTime.Now);
+                bill.BillTime = TimeOnly.FromDateTime(DateTime.Now);
                 var contractid = _context.Contracts.Where(a => a.EmployeeId == bill.EmployeeId && a.DeleteFlag == 0 && a.Status == 0)
                       .Select(a => a.Id)
                       .FirstOrDefault(); // or .SingleOrDefault() if you expect exactly one
 
                 bill.ContractId = contractid;
-                
+
                 bill.BillHent = "إيجار يومي";
 
                 _context.Add(bill);
@@ -600,7 +600,7 @@ namespace CarRentWeb.Controllers
             ViewBag.maxBillNo = maxBillNo + 1;
 
             var employeesWithContracts = _context.EmployeeInfos.Where(employee =>
-                                         _context.Contracts.Any(contract => contract.EmployeeId == employee.Id && contract.DeleteFlag == 0 && contract.Status == 0 && contract.ContractType==1))
+                                         _context.Contracts.Any(contract => contract.EmployeeId == employee.Id && contract.DeleteFlag == 0 && contract.Status == 0 && contract.ContractType == 1))
                                         .OrderBy(a => a.FullNameAr)
                                         .ToList();
 
@@ -624,8 +624,8 @@ namespace CarRentWeb.Controllers
                 }
 
                 DateOnly currentDate = DateOnly.FromDateTime(DateTime.Now);
-                int daysDifference = currentDate.Month  - bill.ToDate!.Value.Month;
-                if (daysDifference >0 )
+                int daysDifference = currentDate.Month - bill.ToDate!.Value.Month;
+                if (daysDifference > 0)
                 {
                     bill.LateDays = daysDifference;
                 }
@@ -633,7 +633,7 @@ namespace CarRentWeb.Controllers
                 {
                     bill.LateDays = 0;
                 }
-   
+
                 bill.BillTime = TimeOnly.FromDateTime(DateTime.Now);
                 var contractid = _context.Contracts.Where(a => a.EmployeeId == bill.EmployeeId && a.DeleteFlag == 0 && a.Status == 0)
                       .Select(a => a.Id)
@@ -674,14 +674,14 @@ namespace CarRentWeb.Controllers
                 return NotFound();
             }
 
-            var bill = await _context.Bills.Include(e=>e.Employee).Include(c=>c.Contract)
+            var bill = await _context.Bills.Include(e => e.Employee).Include(c => c.Contract)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (bill == null)
             {
                 return NotFound();
             }
 
-            var contraactDetails = _context.ContractDetails.Where(e => e.ContractId == bill.ContractId && e.Status == 3 
+            var contraactDetails = _context.ContractDetails.Where(e => e.ContractId == bill.ContractId && e.Status == 3
                                                                     && e.DailyCreditDate > bill.ToDate);
             if (!contraactDetails.Any())
             {
@@ -703,7 +703,7 @@ namespace CarRentWeb.Controllers
             {
                 Id = bill.Id,
                 DeleteFlag = 1,
-               
+
             };
 
             _context.Attach(BillToUpdate);
@@ -714,7 +714,7 @@ namespace CarRentWeb.Controllers
             await _context.SaveChangesAsync();
 
             var contractDetails = _context.ContractDetails
-            .Where(c => c.ContractId == bill.ContractId && c.BillId == bill.Id  && c.Status !=2);
+            .Where(c => c.ContractId == bill.ContractId && c.BillId == bill.Id && c.Status != 2);
 
             if (contractDetails.Any())
             {
@@ -771,7 +771,7 @@ namespace CarRentWeb.Controllers
             try
             {
                 // Get filtered data (reuse your existing filtering logic)
-                var bills = GetFilteredBills( CarNoSearch, EmpNoSearch, ContractNoSearch, companyId, pageNumber, FromDateSearch, ToDateSearch, EmpNameSearch, UserId);
+                var bills = GetFilteredBills(CarNoSearch, EmpNoSearch, ContractNoSearch, companyId, pageNumber, FromDateSearch, ToDateSearch, EmpNameSearch, UserId);
 
                 using (var workbook = new XLWorkbook())
                 {

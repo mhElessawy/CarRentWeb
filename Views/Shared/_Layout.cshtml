@@ -1,6 +1,6 @@
-﻿@using Microsoft.AspNetCore.Http
+@using Microsoft.AspNetCore.Http
 @using CarRentWeb.Models.MyModel
-@using CarRentWeb.Models // Add this line if PasswordDatum is defined in this namespace
+@using CarRentWeb.Models
 @inject IHttpContextAccessor HttpContextAccessor
 
 <!DOCTYPE html>
@@ -8,11 +8,11 @@
     var user = HttpContextAccessor.HttpContext!.Session.GetObjectFromJson<PasswordDatum>("CurrentUser");
 }
 
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <title>Index</title>
+    <title>شركة أجرة الزاجل  الدولي الجوال</title>
     <meta name="description" content="">
     <meta name="keywords" content="">
 
@@ -23,230 +23,284 @@
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com" rel="preconnect">
     <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Poppins:wght@300;400;500;600;700&family=Raleway:wght@300;400;500;600;700&family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Vendor CSS Files -->
     <link href="~/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="~/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
-    <link href="~/assets/vendor/aos/aos.css" rel="stylesheet">
     <link href="~/assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet">
-    <link href="~/assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
-    <link href="~/assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
 
     <!-- Main CSS File -->
-    <link href="~/assets/css/main.css" rel="stylesheet">
     <link href="~/assets/css/mhStyle.css" rel="stylesheet">
-
-
-    <!-- =======================================================
-    * Template Name: Medilab
-    * Template URL: https://bootstrapmade.com/medilab-free-medical-bootstrap-theme/
-    * Updated: Aug 07 2024 with Bootstrap v5.3.3
-    * Author: BootstrapMade.com
-    * License: https://bootstrapmade.com/license/
-    ======================================================== -->
 </head>
-<body class="index-page">
-    <header id="header" class="header sticky-top">
-        <div class="topbar d-flex align-items-center">
-            <div class="container d-flex justify-content-center justify-content-md-between">
-                <div class="contact-info d-flex align-items-center">
-                    <i class="bi bi-envelope d-flex align-items-center"><a href="mailto:contact@example.com">contact@example.com</a></i>
-                    <i class="bi bi-phone d-flex align-items-center ms-4"><span>+1 5589 55488 55</span></i>
-                </div>
-                <div class="social-links d-none d-md-flex align-items-center">
-                    <a href="#" class="twitter"><i class="bi bi-twitter-x"></i></a>
-                    <a href="#" class="facebook"><i class="bi bi-facebook"></i></a>
-                    <a href="#" class="instagram"><i class="bi bi-instagram"></i></a>
-                    <a href="#" class="linkedin"><i class="bi bi-linkedin"></i></a>
+<body>
+    <!-- ===== FIRST BAR: Logo + User Info + Logout ===== -->
+    <nav class="navbar-top-first">
+        <div class="container-fluid px-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <!-- Logo / Brand -->
+                <a asp-action="Index" asp-controller="Home" class="brand-link">
+                    <i class="bi bi-car-front-fill brand-icon"></i>
+                    <span class="brand-name">شركة أجرة الزاجل  الدولي الجوال</span>
+                </a>
+                <!-- User Info + Logout -->
+                <div class="d-flex align-items-center gap-3">
+                    <span class="user-info">
+                        <i class="bi bi-person-circle"></i>
+                        @TempData["Username"]
+                    </span>
+                    <a asp-action="Login" asp-controller="PasswordDatums" class="btn-logout">
+                        <i class="bi bi-box-arrow-left"></i>
+                        تسجيل خروج
+                    </a>
                 </div>
             </div>
-        </div><!-- End Top Bar -->
-        <div class="branding d-flex align-items-center">
-            <div class="container position-relative d-flex align-items-center justify-content-between">
-                <a asp-action="index" asp-controller="Home" class="logo d-flex align-items-center me-auto">
-                    <!-- Uncomment the line below if you also wish to use an image logo -->
-                    <!-- <img src="assets/img/logo.png" alt=""> -->
-                    <h1 class="sitename"> رحال للأجره الجوال </h1>
-                    
-                </a>
-                <nav id="navmenu" class="navmenu" dir="rtl">
-                    <ul>
-                        <li class="dropdown">
-                            <a href="#"><strong><span>الموظفين</span></strong> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
-                            <ul>
-                                @if (user!.EmpView == true)
-                                {
-                                    <li><a asp-action="Index" asp-controller="EmployeeInfoes"><strong>بيانات الموظفين</strong></a></li>
-                                }
-                      
-                                @if (user!.DebitView == true)
-                                {
-                                    <li class="dropdown">
-                                            <a href="#"><strong><span>الديون</span></strong> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
-                                        <ul>
-                                           @*  <li><a asp-action="Index" asp-controller="DebitPayInfoes"><strong>تحصيل ديون</strong></a></li> *@
-                                            <li><a asp-action="Index" asp-controller="DebitInfoes"><strong>إضافة وإستلام دين</strong></a></li>
-                                            <li><a href="#"><strong>إضافة ديون جماعية</strong></a></li>
-                                        </ul>
-                                    </li>
-                                }
-                                 @if (user.PayView == true)
-                                {
-                                    <li><a asp-action="Index" asp-controller="ContractDetails"><strong> الإيجار الشهري و المتأخر</strong></a></li>
-                                }
-                                @if (user.VacationView == true)
-                                {
-                                    <li><a asp-action="Index" asp-controller="Vacations"><strong>الأجازات</strong></a></li>
-                                }
-                                 @if (user.EmpTakeMoney == true)
-                                {
-                                    <li><a asp-action="Index" asp-controller="EmployeeTakeMoneys"><strong>العهد</strong></a></li>
-                                }
-                                @if (user.EmpArchive == true)
-                                {
-                                 <li><a asp-action="Index" asp-controller="EmployeeInfoes"><strong>أرشيف الموظفين</strong></a></li>
-                                }
-                                 @if (user.RecievedMoney == true)
-                                {
-                                    <li><a asp-action="RecievedMoney" asp-controller="EmployeeInfoes"><strong>استلام المبالغ</strong></a></li>
-                                }
-                                @if (user.CompDebitView== true)
-                                {
-                                    <li><a asp-action="Index" asp-controller="CompanyDebits"><strong>ديون الشركات </strong></a></li>
-                                }
-                               
-                                    <li class="dropdown">
-                                        <a href="#"><strong><span>الرواتب</span></strong> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
-                                        <ul>
-                                        <li><a asp-action="Index" asp-controller="EmployeeSalaries"><strong>إضافة راتب</strong></a></li>
+        </div>
+    </nav>
 
-                                            
-                                        </ul>
-                                    </li>
-                                
-
-                            </ul>
-                        </li>
-                        <li class="dropdown">
-                            <a href="#"><strong><span>السيارات</span></strong> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
-                            <ul>
-                                @if (user!.CarView == true)
-                                {
-                                    <li><a asp-action="Index" asp-controller="CarInfoes"><strong>بيانات السيارات</strong></a></li>
-                                }
-
-                                <li><a asp-action="IndexCredit" asp-controller="Contracts"><strong>أقساط السيارات</strong></a></li>
-                                @if(user.ViolationView == true)
-                                {
-                                    <li><a asp-action="Index" asp-controller="ViolationInfoes"><strong>المخالفات</strong></a></li>
-                                }
-                               
-                                <li><a asp-action="IndexCredit" asp-controller="Contracts"><strong>أرشيف السيارات</strong></a></li>
-                            </ul>
-                        </li>
-                        <li class="dropdown">
-                            <a href="#"><strong><span>العقود</span></strong> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
-                            <ul>
-                                @if (user!.ContractDailyView == true)
-                                {
-                                    <li><a asp-action="IndexDaily" asp-controller="Contracts"><strong>العقود اليومية</strong></a></li>
-                                }
-                                @if (user!.ContractMonthlyView == true)
-                                {
-                                    <li><a asp-action="IndexMonthly" asp-controller="Contracts"><strong>العقود الشهرية</strong></a></li>
-                                }
-                                @if (user!.ContractArchive == true)
-                                {
-                                    <li><a asp-action ="IndexArchive" asp-controller="Contracts"><strong>أرشبف العقود</strong></a></li>
-                                }
-                            </ul>
-                        </li>
-                       @if (user.CompView == true)
+    <!-- ===== SECOND BAR: Menu Categories (Horizontal Tabs) ===== -->
+    <nav class="navbar-top-second">
+        <div class="container-fluid px-4">
+            <!-- Mobile Toggle Button -->
+            <button class="mobile-menu-toggle d-xl-none" onclick="toggleMobileMenu()">
+                <i class="bi bi-list"></i>
+                القائمة
+            </button>
+            <ul class="nav-menu" id="navMenu">
+                <!-- الموظفين -->
+                <li class="nav-item has-dropdown">
+                    <a href="#" class="nav-tab">
+                        <i class="bi bi-people-fill"></i>
+                        الموظفين
+                        <i class="bi bi-chevron-down arrow"></i>
+                    </a>
+                    <ul class="dropdown-menu-custom">
+                        @if (user!.EmpView == true)
                         {
-                            <li><a asp-action="Index" asp-controller="CompanyInfoes"><strong>الشركات</strong></a></li>
+                            <li><a asp-action="Index" asp-controller="EmployeeInfoes"><i class="bi bi-person-lines-fill"></i> بيانات الموظفين</a></li>
                         }
-                         @if (user.PurshaseView== true)
+                        @if (user!.DebitView == true)
                         {
-                            <li><a asp-action="Index" asp-controller="Purshases"><strong> المصروفات</strong></a></li>
-                        }
-                         @if (user.UserAdmin == true)
-                        {
-                            <li class="dropdown">
-                                <a href="#"><strong><span>مسئول البرنامج</span></strong> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
-                                <ul>
-                                    <li><a asp-action="Index" asp-controller="PasswordDatums"><strong>المستخدمين</strong></a></li>
-                                    <li><a ><strong>متابعة المستخدمين</strong></a></li>
-                                    <li><a asp-controller="Home" asp-action="DeffTypeIndex" asp-route-pageIndex="1"><strong>التعريفات</strong></a></li>
-                                    <li><a asp-controller="DeffInformations" asp-action="Edit" asp-route-Id="1"><strong>البيانات العامة </strong></a></li>
+                            <li class="has-submenu">
+                                <a href="#"><i class="bi bi-cash-stack"></i> الديون <i class="bi bi-chevron-left submenu-arrow"></i></a>
+                                <ul class="submenu">
+                                    <li><a asp-action="Index" asp-controller="DebitInfoes">إضافة وإستلام دين</a></li>
+                                    <li><a href="#">إضافة ديون جماعية</a></li>
                                 </ul>
                             </li>
                         }
-                        <li class="dropdown">
-                            <a href="#"><strong><span>التقارير</span></strong> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
-                            <ul>
-                                <li><a asp-action="Index" asp-controller="Bills"><strong>التحصيل</strong></a></li>
-                                <li><a asp-action="IndexReport" asp-controller="DebitPayInfoes"><strong>تحصيل الديون</strong></a></li>
-                                <li><a asp-action="IndexReport" asp-controller="DebitInfoes"><strong>إضافة ديون</strong></a></li>
-                                <li><a asp-action="IndexReport" asp-controller="Purshases"><strong>المصاريف</strong></a></li>
-                                <li><a asp-action="IndexReportAudit" asp-controller="ContractDetails"><strong>متابعة التحصيل</strong></a></li>
-                                <li><a asp-action="IndexReportTakeMoney" asp-controller="EmployeeTakeMoneys"><strong>العهد</strong></a></li>
-                                <li><a asp-action="IndexPrint" asp-controller="CompanyDebits"><strong>ديون الشركات مجمع</strong></a></li>
-                                <li><a asp-action="Index" asp-controller="CompanyDebitDetails"><strong>ديون الشركات تفصيلي</strong></a></li>
+                        @if (user.PayView == true)
+                        {
+                            <li><a asp-action="Index" asp-controller="ContractDetails"><i class="bi bi-calendar-month"></i> الإيجار الشهري و المتأخر</a></li>
+                        }
+                        @if (user.VacationView == true)
+                        {
+                            <li><a asp-action="Index" asp-controller="Vacations"><i class="bi bi-calendar-check"></i> الأجازات</a></li>
+                        }
+                        @if (user.EmpTakeMoney == true)
+                        {
+                            <li><a asp-action="Index" asp-controller="EmployeeTakeMoneys"><i class="bi bi-wallet2"></i> العهد</a></li>
+                        }
+                        @if (user.EmpArchive == true)
+                        {
+                            <li><a asp-action="Index" asp-controller="EmployeeInfoes"><i class="bi bi-archive"></i> أرشيف الموظفين</a></li>
+                        }
+                        @if (user.RecievedMoney == true)
+                        {
+                            <li><a asp-action="RecievedMoney" asp-controller="EmployeeInfoes"><i class="bi bi-cash-coin"></i> استلام المبالغ</a></li>
+                        }
+                        @if (user.CompDebitView == true)
+                        {
+                            <li><a asp-action="Index" asp-controller="CompanyDebits"><i class="bi bi-building-exclamation"></i> ديون الشركات</a></li>
+                        }
+                        <li class="has-submenu">
+                            <a href="#"><i class="bi bi-currency-dollar"></i> الرواتب <i class="bi bi-chevron-left submenu-arrow"></i></a>
+                            <ul class="submenu">
+                                <li><a asp-action="Index" asp-controller="EmployeeSalaries">إضافة راتب</a></li>
                             </ul>
                         </li>
-                        <li class="dropdown">
-                            <a href="#"><strong><span>طباعة</span></strong> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
-                            <ul>
-                                <li class="nav-item">
-                                    <a class="nav-link" asp-controller="PermitGeneration" asp-action="Index">
-                                        <i class="fas fa-taxi"></i> تصريح إجرة جوالة
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" asp-controller="PermitGeneration" asp-action="IndexRenewal">
-                                        <i class="fas fa-id-card"></i> تجديد رخصة سوق
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" asp-controller="PermitGeneration" asp-action="CheckTemplate">
-                                        <i class="fas fa-file-check"></i> فحص القوالب
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-
-                        
-                        <li><a asp-action="login" asp-controller="PasswordDatums"><strong>تسجيل خروج</strong></a></li>
                     </ul>
-                    <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
-                </nav>
-           
-            </div>
+                </li>
+
+                <!-- السيارات -->
+                <li class="nav-item has-dropdown">
+                    <a href="#" class="nav-tab">
+                        <i class="bi bi-car-front"></i>
+                        السيارات
+                        <i class="bi bi-chevron-down arrow"></i>
+                    </a>
+                    <ul class="dropdown-menu-custom">
+                        @if (user!.CarView == true)
+                        {
+                            <li><a asp-action="Index" asp-controller="CarInfoes"><i class="bi bi-car-front-fill"></i> بيانات السيارات</a></li>
+                        }
+                        <li><a asp-action="IndexCredit" asp-controller="Contracts"><i class="bi bi-credit-card"></i> أقساط السيارات</a></li>
+                        @if (user.ViolationView == true)
+                        {
+                            <li><a asp-action="Index" asp-controller="ViolationInfoes"><i class="bi bi-exclamation-triangle"></i> المخالفات</a></li>
+                        }
+                        <li><a asp-action="IndexCredit" asp-controller="Contracts"><i class="bi bi-archive"></i> أرشيف السيارات</a></li>
+                    </ul>
+                </li>
+
+                <!-- العقود -->
+                <li class="nav-item has-dropdown">
+                    <a href="#" class="nav-tab">
+                        <i class="bi bi-file-earmark-text"></i>
+                        العقود
+                        <i class="bi bi-chevron-down arrow"></i>
+                    </a>
+                    <ul class="dropdown-menu-custom">
+                        @if (user!.ContractDailyView == true)
+                        {
+                            <li><a asp-action="IndexDaily" asp-controller="Contracts"><i class="bi bi-calendar-day"></i> العقود اليومية</a></li>
+                        }
+                        @if (user!.ContractMonthlyView == true)
+                        {
+                            <li><a asp-action="IndexMonthly" asp-controller="Contracts"><i class="bi bi-calendar-month"></i> العقود الشهرية</a></li>
+                        }
+                        @if (user!.ContractArchive == true)
+                        {
+                            <li><a asp-action="IndexArchive" asp-controller="Contracts"><i class="bi bi-archive"></i> أرشبف العقود</a></li>
+                        }
+                    </ul>
+                </li>
+
+                <!-- الشركات -->
+                @if (user.CompView == true)
+                {
+                    <li class="nav-item">
+                        <a asp-action="Index" asp-controller="CompanyInfoes" class="nav-tab">
+                            <i class="bi bi-building"></i>
+                            الشركات
+                        </a>
+                    </li>
+                }
+
+                <!-- المصروفات -->
+                @if (user.PurshaseView == true)
+                {
+                    <li class="nav-item">
+                        <a asp-action="Index" asp-controller="Purshases" class="nav-tab">
+                            <i class="bi bi-receipt"></i>
+                            المصروفات
+                        </a>
+                    </li>
+                }
+
+                <!-- مسئول البرنامج -->
+                @if (user.UserAdmin == true)
+                {
+                    <li class="nav-item has-dropdown">
+                        <a href="#" class="nav-tab">
+                            <i class="bi bi-gear-fill"></i>
+                            مسئول البرنامج
+                            <i class="bi bi-chevron-down arrow"></i>
+                        </a>
+                        <ul class="dropdown-menu-custom">
+                            <li><a asp-action="Index" asp-controller="PasswordDatums"><i class="bi bi-people"></i> المستخدمين</a></li>
+                            <li><a href="#"><i class="bi bi-eye"></i> متابعة المستخدمين</a></li>
+                            <li><a asp-controller="Home" asp-action="DeffTypeIndex" asp-route-pageIndex="1"><i class="bi bi-list-check"></i> التعريفات</a></li>
+                            <li><a asp-controller="DeffInformations" asp-action="Edit" asp-route-Id="1"><i class="bi bi-info-circle"></i> البيانات العامة</a></li>
+                        </ul>
+                    </li>
+                }
+
+                <!-- التقارير -->
+                <li class="nav-item has-dropdown">
+                    <a href="#" class="nav-tab">
+                        <i class="bi bi-bar-chart-line"></i>
+                        التقارير
+                        <i class="bi bi-chevron-down arrow"></i>
+                    </a>
+                    <ul class="dropdown-menu-custom">
+                        <li><a asp-action="Index" asp-controller="Bills"><i class="bi bi-cash"></i> التحصيل</a></li>
+                        <li><a asp-action="IndexReport" asp-controller="DebitPayInfoes"><i class="bi bi-cash-stack"></i> تحصيل الديون</a></li>
+                        <li><a asp-action="IndexReport" asp-controller="DebitInfoes"><i class="bi bi-plus-circle"></i> إضافة ديون</a></li>
+                        <li><a asp-action="IndexReport" asp-controller="Purshases"><i class="bi bi-receipt-cutoff"></i> المصاريف</a></li>
+                        <li><a asp-action="IndexReportAudit" asp-controller="ContractDetails"><i class="bi bi-clipboard-check"></i> متابعة التحصيل</a></li>
+                        <li><a asp-action="IndexReportTakeMoney" asp-controller="EmployeeTakeMoneys"><i class="bi bi-wallet"></i> العهد</a></li>
+                        <li><a asp-action="IndexPrint" asp-controller="CompanyDebits"><i class="bi bi-building-check"></i> ديون الشركات مجمع</a></li>
+                        <li><a asp-action="Index" asp-controller="CompanyDebitDetails"><i class="bi bi-building-down"></i> ديون الشركات تفصيلي</a></li>
+                    </ul>
+                </li>
+
+                <!-- طباعة -->
+                <li class="nav-item has-dropdown">
+                    <a href="#" class="nav-tab">
+                        <i class="bi bi-printer"></i>
+                        طباعة
+                        <i class="bi bi-chevron-down arrow"></i>
+                    </a>
+                    <ul class="dropdown-menu-custom">
+                        <li><a asp-controller="PermitGeneration" asp-action="Index"><i class="fas fa-taxi"></i> تصريح إجرة جوالة</a></li>
+                        <li><a asp-controller="PermitGeneration" asp-action="IndexRenewal"><i class="fas fa-id-card"></i> تجديد رخصة سوق</a></li>
+                        <li><a asp-controller="PermitGeneration" asp-action="CheckTemplate"><i class="bi bi-file-check"></i> فحص القوالب</a></li>
+                    </ul>
+                </li>
+            </ul>
         </div>
-        
-    </header>
-    <div class="container">
-        <h3 dir="rtl"> اسم المستخدم  @TempData["Username"] </h3>
+    </nav>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <div class="container-fluid px-4 mt-3">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - RahalWeb - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="main-footer">
+        <div class="container-fluid px-4">
+            &copy; 2026 - شركة أجرة الزاجل  الدولي الجوال
         </div>
     </footer>
-    <!-- Preloader -->
-    <div id="preloader"></div>
+
     <!-- Vendor JS Files -->
     <script src="~/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script src="~/assets/vendor/php-email-form/validate.js"></script>
-    <script src="~/assets/vendor/aos/aos.js"></script>
-    <script src="~/assets/vendor/glightbox/js/glightbox.min.js"></script>
-    <script src="~/assets/vendor/purecounter/purecounter_vanilla.js"></script>
-    <script src="~/assets/vendor/swiper/swiper-bundle.min.js"></script>
-    <!-- Main JS File -->
-    <script src="~/assets/js/main.js"></script>
+    <script src="~/assets/vendor/fontawesome-free/js/all.min.js"></script>
+
+    <!-- Menu Script -->
+    <script>
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            var menu = document.getElementById('navMenu');
+            menu.classList.toggle('show');
+        }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function (e) {
+            if (!e.target.closest('.nav-item')) {
+                document.querySelectorAll('.has-dropdown').forEach(function (item) {
+                    item.classList.remove('open');
+                });
+            }
+        });
+
+        // Handle dropdown click on mobile
+        document.querySelectorAll('.has-dropdown > .nav-tab').forEach(function (tab) {
+            tab.addEventListener('click', function (e) {
+                if (window.innerWidth < 1200) {
+                    e.preventDefault();
+                    var parent = this.parentElement;
+                    // Close other open dropdowns
+                    document.querySelectorAll('.has-dropdown').forEach(function (item) {
+                        if (item !== parent) item.classList.remove('open');
+                    });
+                    parent.classList.toggle('open');
+                }
+            });
+        });
+
+        // Handle submenu click on mobile
+        document.querySelectorAll('.has-submenu > a').forEach(function (link) {
+            link.addEventListener('click', function (e) {
+                if (window.innerWidth < 1200) {
+                    e.preventDefault();
+                    this.parentElement.classList.toggle('open');
+                }
+            });
+        });
+    </script>
 </body>
 </html>

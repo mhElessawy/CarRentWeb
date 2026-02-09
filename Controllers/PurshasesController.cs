@@ -28,8 +28,8 @@ namespace CarRentWeb.Controllers
             TempData["PurshaseShowAll"] = HttpContext.Session.GetString("PurshaseShowAll");
 
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
-            var companyIds = userCompanyData.Split(',').Select(int.Parse).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
 
 
             ViewBag.Companies = new SelectList(
@@ -52,7 +52,7 @@ namespace CarRentWeb.Controllers
                 "DeffName",
                 DefTypeId);
 
-            var query = _context.Purshases.Include(c=>c.PurshaseNavigation)
+            var query = _context.Purshases.Include(c => c.PurshaseNavigation)
                 .Where(a => a.DeleteFlag == 0);
 
 
@@ -60,10 +60,10 @@ namespace CarRentWeb.Controllers
             {
                 query = (IOrderedQueryable<Purshase>)query.Where(e => e.UserId == (int)ViewData["UserId"]!);
             }
-   
 
 
-                if (DefTypeId.HasValue)
+
+            if (DefTypeId.HasValue)
             {
                 query = (IOrderedQueryable<Purshase>)query.Where(e => e.PurshaseId == DefTypeId.Value);
             }
@@ -94,7 +94,7 @@ namespace CarRentWeb.Controllers
             // Store current search values for the view
             ViewData["CarNoFilter"] = CarNoSearch;
             ViewData["EmpNoFilter"] = EmpNoSearch;
-           
+
             ViewData["CompanyFilter"] = companyId;
 
             if (FromDateSearch == null)
@@ -126,7 +126,7 @@ namespace CarRentWeb.Controllers
             // Pagination
             int pageSize = 50; // Set your page size
             return View(await PaginatedList<Purshase>.CreateAsync(query.AsNoTracking(), pageNumber ?? 1, pageSize));
-         
+
         }
 
         // GET: Purshases/Details/5
@@ -138,7 +138,7 @@ namespace CarRentWeb.Controllers
             }
 
             var purshase = await _context.Purshases
-               
+
                 .Include(p => p.PurshaseNavigation)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (purshase == null)
@@ -159,8 +159,8 @@ namespace CarRentWeb.Controllers
             TempData["UserCompanyData"] = HttpContext.Session.GetString("UserCompanyData");
 
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
-            var companyIds = userCompanyData.Split(',').Select(int.Parse).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
 
             int maxBillNo = _context.Purshases.Max(a => a.PurshaseNo)!.Value;
             ViewBag.maxPurshaseNo = maxBillNo + 1;
@@ -168,14 +168,14 @@ namespace CarRentWeb.Controllers
 
             ViewData["CarId"] = new SelectList(_context.CarInfos
                 .FromSqlRaw($"Select * from CarInfo where CompanyId in ({companyIdsString})")
-                .Where(a=>a.DeleteFlag ==0 ), "Id", "CarNo");
+                .Where(a => a.DeleteFlag == 0), "Id", "CarNo");
             ViewData["CompId"] = new SelectList(_context.CompanyInfos
                 .FromSqlRaw($"SELECT * FROM CompanyInfo WHERE DeleteFlag = 0 AND Id IN ({companyIdsString})")
                 .Where(a => a.DeleteFlag == 0), "Id", "CompNameAr");
             ViewData["EmpId"] = new SelectList(_context.EmployeeInfos
                 .FromSqlRaw($"Select * from EmployeeInfo where CompanyId in ({companyIdsString})")
                 .Where(a => a.DeleteFlag == 0), "Id", "FullNameAr");
-            ViewData["PurshaseId"] = new SelectList(await _context.Deffs.Where(c => c.DeffType == 17 && c.DeleteFlag==0)
+            ViewData["PurshaseId"] = new SelectList(await _context.Deffs.Where(c => c.DeffType == 17 && c.DeleteFlag == 0)
                     .OrderBy(c => c.DeffName)
                     .ToListAsync(),
                 "Id",
@@ -189,7 +189,7 @@ namespace CarRentWeb.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create( Purshase purshase)
+        public async Task<IActionResult> Create(Purshase purshase)
         {
             TempData["Username"] = HttpContext.Session.GetString("Username");
             ViewData["UserId"] = HttpContext.Session.GetInt32("UserId");
@@ -198,8 +198,8 @@ namespace CarRentWeb.Controllers
             TempData["UserCompanyData"] = HttpContext.Session.GetString("UserCompanyData");
 
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
-            var companyIds = userCompanyData.Split(',').Select(int.Parse).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
             if (ModelState.IsValid)
             {
 
@@ -213,7 +213,7 @@ namespace CarRentWeb.Controllers
                 _context.Add(purshase);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
-            
+
             }
             ViewData["CarId"] = new SelectList(_context.CarInfos
                .FromSqlRaw($"Select * from CarInfo where CompanyId in ({companyIdsString})")
@@ -247,8 +247,8 @@ namespace CarRentWeb.Controllers
             TempData["UserCompanyData"] = HttpContext.Session.GetString("UserCompanyData");
 
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
-            var companyIds = userCompanyData.Split(',').Select(int.Parse).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
 
             var purshase = await _context.Purshases.FindAsync(id);
             if (purshase == null)
@@ -277,7 +277,7 @@ namespace CarRentWeb.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id,Purshase purshase)
+        public async Task<IActionResult> Edit(int id, Purshase purshase)
         {
             if (id != purshase.Id)
             {
@@ -290,8 +290,8 @@ namespace CarRentWeb.Controllers
             TempData["UserCompanyData"] = HttpContext.Session.GetString("UserCompanyData");
 
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
-            var companyIds = userCompanyData.Split(',').Select(int.Parse).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
             if (ModelState.IsValid)
             {
                 try
@@ -354,7 +354,7 @@ namespace CarRentWeb.Controllers
             {
                 try
                 {
-                    purshase.DeleteFlag = 1; 
+                    purshase.DeleteFlag = 1;
                     _context.Update(purshase);
                     await _context.SaveChangesAsync();
                 }
@@ -370,7 +370,7 @@ namespace CarRentWeb.Controllers
                     }
                 }
                 return RedirectToAction(nameof(Index));
-                
+
             }
 
             await _context.SaveChangesAsync();
@@ -396,8 +396,8 @@ namespace CarRentWeb.Controllers
             //// Get the user's company data from TempData
             //// Get the user's company data from TempData
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
-            var companyIds = userCompanyData.Split(',').Select(int.Parse).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
 
             if (companyIds.Any())
             {
@@ -482,7 +482,7 @@ namespace CarRentWeb.Controllers
             // Store current search values for the view
             ViewData["CarNoFilter"] = CarNoSearch;
             ViewData["EmpNoFilter"] = EmpNoSearch;
-            
+
             ViewData["UserFilter"] = UserId;
             ViewData["CompanyFilter"] = companyId;
 

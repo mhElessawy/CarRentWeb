@@ -27,13 +27,26 @@ namespace CarRentWeb.Controllers
 
             TempData["UserCompanyData"] = HttpContext.Session.GetString("UserCompanyData");
 
-            var userCompanyData = TempData["UserCompanyData"]?.ToString();
-            var companyIds = userCompanyData.Split(',').Select(int.Parse).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var userCompanyData = TempData["UserCompanyData"]?.ToString() ?? "0";
+            var companyIds = userCompanyData.Split(',')
+                .Where(x => int.TryParse(x.Trim(), out _))
+                .Select(x => int.Parse(x.Trim()))
+                .ToList();
 
-            var rahalWebContext = _context.CompanyInfos
-                 .FromSqlRaw($"SELECT * FROM CompanyInfo WHERE DeleteFlag = 0 AND Id IN ({companyIdsString})")
-                .Include(c => c.City).Include(c => c.CompActivate).Include(c => c.Location);
+            IQueryable<CompanyInfo> rahalWebContext;
+            if (companyIds.Any())
+            {
+                var companyIdsString = string.Join(",", companyIds);
+                rahalWebContext = _context.CompanyInfos
+                    .FromSqlRaw($"SELECT * FROM CompanyInfo WHERE DeleteFlag = 0 AND Id IN ({companyIdsString})")
+                    .Include(c => c.City).Include(c => c.CompActivate).Include(c => c.Location);
+            }
+            else
+            {
+                rahalWebContext = _context.CompanyInfos
+                    .Where(c => c.DeleteFlag == 0)
+                    .Include(c => c.City).Include(c => c.CompActivate).Include(c => c.Location);
+            }
             return View(await rahalWebContext.ToListAsync());
         }
 
@@ -61,7 +74,7 @@ namespace CarRentWeb.Controllers
         // GET: CompanyInfoes/Create
         public IActionResult Create()
         {
-            ViewData["CityId"] = new SelectList(_context.Deffs.Where(a=>a.DeffType == 4), "Id", "DeffName");
+            ViewData["CityId"] = new SelectList(_context.Deffs.Where(a => a.DeffType == 4), "Id", "DeffName");
             ViewData["CompActivateId"] = new SelectList(_context.Deffs.Where(a => a.DeffType == 30), "Id", "DeffName");
             ViewData["LocationId"] = new SelectList(_context.Deffs.Where(a => a.DeffType == 3), "Id", "DeffName");
             return View();
@@ -82,7 +95,7 @@ namespace CarRentWeb.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create( CompanyInfo model)
+        public async Task<IActionResult> Create(CompanyInfo model)
         {
             if (ModelState.IsValid)
             {
@@ -106,7 +119,7 @@ namespace CarRentWeb.Controllers
                 _context.Add(model);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
-            
+
             }
             ViewData["CityId"] = new SelectList(_context.Deffs.Where(a => a.DeffType == 4), "Id", "DeffName");
             ViewData["CompActivateId"] = new SelectList(_context.Deffs.Where(a => a.DeffType == 30), "Id", "DeffName");
@@ -138,7 +151,7 @@ namespace CarRentWeb.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id,  CompanyInfo model)
+        public async Task<IActionResult> Edit(int id, CompanyInfo model)
         {
             if (id != model.Id)
             {
@@ -161,7 +174,7 @@ namespace CarRentWeb.Controllers
                         return View(model);
                     }
 
-                    var latestId = model.Id ;
+                    var latestId = model.Id;
                     var tasks = new List<System.Threading.Tasks.Task>();
                     //if (model.ImageFile1 != null)
                     //{
@@ -233,12 +246,12 @@ namespace CarRentWeb.Controllers
         {
             return _context.CompanyInfos.Any(e => e.Id == id);
         }
-   
+
         public async Task<IActionResult> Attatchment(int? id)
         {
 
             TempData.Keep();
-            var CompAtt = _context.CompanyInfoAtts.Include(c => c.Comp).Where(c=>c.CompId == id);
+            var CompAtt = _context.CompanyInfoAtts.Include(c => c.Comp).Where(c => c.CompId == id);
             if (CompAtt != null)
             {
                 ViewBag.CompName = CompAtt.First().Comp!.CompNameAr;
@@ -305,7 +318,7 @@ namespace CarRentWeb.Controllers
                     catch (Exception ex)
                     {
                         // Log the error
-                       // _logger.LogError(ex, "Error uploading file");
+                        // _logger.LogError(ex, "Error uploading file");
                         ModelState.AddModelError("", "An error occurred while uploading the file.");
                         return View(model);
                     }

@@ -33,8 +33,8 @@ namespace CarRentWeb.Controllers
             //// Get the user's company data from TempData
             //// Get the user's company data from TempData
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
-            var companyIds = userCompanyData.Split(',').Select(int.Parse).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
 
             if (companyIds.Any())
             {
@@ -70,10 +70,10 @@ namespace CarRentWeb.Controllers
                  .FromSqlRaw($"SELECT * FROM DebitPayInfo where DebitInfoId IN(Select Id from DebitInfo where EmpId IN (Select ID From EmployeeInfo where CompanyId IN({companyIdsString})))")
                 .Include(c => c.DebitInfo)
                 .Include(c => c.DebitInfo!.Emp)
-                .Include(c=>c.DebitInfo!.DebitType)
+                .Include(c => c.DebitInfo!.DebitType)
                 .Include(c => c.User)
                 .Include(c => c.UserRecieved)
-                .Where(m => m.DeleteFlag == 0 && m.DebitInfo!.Emp!.DeleteFlag==0)
+                .Where(m => m.DeleteFlag == 0 && m.DebitInfo!.Emp!.DeleteFlag == 0)
                 .OrderBy(e => e.DebitPayNo);
 
 
@@ -160,7 +160,7 @@ namespace CarRentWeb.Controllers
                 .Include(d => d.DebitInfo)
                 .Include(d => d.User)
                 .Include(d => d.UserRecieved)
-                .Include(d => d.ViolationInfo )
+                .Include(d => d.ViolationInfo)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (debitPayInfo == null)
             {
@@ -314,8 +314,8 @@ namespace CarRentWeb.Controllers
             //// Get the user's company data from TempData
             //// Get the user's company data from TempData
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
-            var companyIds = userCompanyData.Split(',').Select(int.Parse).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
 
             if (companyIds.Any())
             {
@@ -354,7 +354,7 @@ namespace CarRentWeb.Controllers
                 .Include(c => c.DebitInfo!.DebitType)
                 .Include(c => c.User)
                 .Include(c => c.UserRecieved)
-                .Where(m => m.DeleteFlag == 0 && m.DebitInfo!.Emp!.DeleteFlag==0)
+                .Where(m => m.DeleteFlag == 0 && m.DebitInfo!.Emp!.DeleteFlag == 0)
                 .OrderBy(e => e.DebitPayNo);
 
 

@@ -4,9 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
-
-
-
 namespace CarRentWeb.Controllers
 {
     public class ViolationInfoesController : Controller
@@ -17,7 +14,6 @@ namespace CarRentWeb.Controllers
         {
             _context = context;
         }
-
         // GET: ViolationInfoes
         public async Task<IActionResult> Index(int? CarCodeSearch, int? EmpCodeSearch, int? pageNumber, DateTime? FromDateSearch, DateTime? ToDateSearch)
         {
@@ -27,9 +23,8 @@ namespace CarRentWeb.Controllers
 
             TempData["UserCompanyData"] = HttpContext.Session.GetString("UserCompanyData");
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
-            var companyIds = userCompanyData!.Split(',').Select(int.Parse).ToList();
-            var companyIdsString = string.Join(",", companyIds);
-
+            var companyIds = userCompanyData!.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
 
             var query = _context.ViolationInfos
              .FromSqlRaw($"SELECT * FROM ViolationInfo where EmpID IN (Select Id from EmployeeInfo where CompanyId IN({companyIdsString}))")
@@ -70,7 +65,7 @@ namespace CarRentWeb.Controllers
             ViewData["CarCodeFilter"] = CarCodeSearch;
             ViewData["EmpNoFilter"] = EmpCodeSearch;
 
-           
+
 
             if (FromDateSearch == null)
             {
@@ -90,12 +85,12 @@ namespace CarRentWeb.Controllers
             }
             // Convert to string
 
-        
+
 
             // Pagination
             int pageSize = 50; // Set your page size
             return View(await PaginatedList<ViolationInfo>.CreateAsync(query.AsNoTracking(), pageNumber ?? 1, pageSize));
-       }
+        }
 
         // GET: ViolationInfoes/Details/5
         public async Task<IActionResult> Details(int? id)
@@ -126,16 +121,16 @@ namespace CarRentWeb.Controllers
                        .Where(b => _context.Contracts
                         .Where(c => c.DeleteFlag == 0 && c.Status == 0)
                         .Any(c => c.CarId == b.Id))
-                       ,"Id","CarNo");
+                       , "Id", "CarNo");
 
-            
-           
+
+
             ViewBag.EmpId = new SelectList(_context.EmployeeInfos, "Id", "FullNameAr");
             ViewBag.UserId = new SelectList(_context.PasswordData, "Id", "UserFullName");
             ViewBag.ViolationGuideId = new SelectList(_context.Deffs
-                                            .Where (a=>a.DeffType==26 ), "Id", "DeffName");
+                                            .Where(a => a.DeffType == 26), "Id", "DeffName");
             return View();
-        
+
         }
 
         // POST: ViolationInfoes/Create
@@ -143,12 +138,12 @@ namespace CarRentWeb.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create( ViolationInfo violationInfo)
+        public async Task<IActionResult> Create(ViolationInfo violationInfo)
         {
             if (ModelState.IsValid)
             {
                 var empId = _context.Contracts
-                             .Where(a => a.Car!.Id == violationInfo.CarId && a.DeleteFlag==0 && a.Status==0)
+                             .Where(a => a.Car!.Id == violationInfo.CarId && a.DeleteFlag == 0 && a.Status == 0)
                              .Select(a => a.EmployeeId)
                              .SingleOrDefault();
                 violationInfo.EmpId = empId;
@@ -164,7 +159,7 @@ namespace CarRentWeb.Controllers
                 var maxDebitNo = 1;
                 var newDebitInfos = new DebitInfo
                 {
-                    DebitNo = maxDebitNo+1,
+                    DebitNo = maxDebitNo + 1,
                     EmpId = empId,
                     DebitTypeId = 0,
                     DebitDate = DateOnly.FromDateTime(DateTime.Now),
@@ -172,7 +167,7 @@ namespace CarRentWeb.Controllers
                     DeleteFlag = 0,
                     DebitDescrp = "مخالفة",
                     UserId = violationInfo.UserId,
-                    ViolationId = maxDebitId ,
+                    ViolationId = maxDebitId,
                     DebitPayed = 0,
                     DebitRemaining = violationInfo.ViolationCost
                 };

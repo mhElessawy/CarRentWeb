@@ -26,13 +26,13 @@ namespace CarRentWeb.Controllers
             TempData["UserCompanyData"] = HttpContext.Session.GetString("UserCompanyData");
 
             var userCompanyData = TempData["UserCompanyData"]?.ToString();
-            var companyIds = userCompanyData.Split(',').Select(int.Parse).ToList();
-            var companyIdsString = string.Join(",", companyIds);
+            var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
             // Base query with includes
             var query = _context.Vacations
                 .FromSqlRaw($"Select * from Vacation where EmpId in(Select Id from EmployeeInfo where CompanyId in ({companyIdsString}))")
                 .Include(c => c.Emp)
-                .Where(a=>a.DeleteFlag==0)
+                .Where(a => a.DeleteFlag == 0)
                 .OrderBy(e => e.FromDate);
 
             if (EmpNoSearch.HasValue)
@@ -46,10 +46,10 @@ namespace CarRentWeb.Controllers
             }
 
             // Store current search values for the view
-           
+
             ViewData["EmpCodeFilter"] = EmpNoSearch;
             ViewData["EmpNameFilter"] = EmpNameSearch;
-           
+
             // Pagination
             int pageSize = 50; // Set your page size
             return View(await PaginatedList<Vacation>.CreateAsync(query.AsNoTracking(), pageNumber ?? 1, pageSize));
@@ -64,7 +64,7 @@ namespace CarRentWeb.Controllers
                 return NotFound();
             }
 
-            var vacation = await _context.Vacations.Include(c=>c.Emp)
+            var vacation = await _context.Vacations.Include(c => c.Emp)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (vacation == null)
             {
@@ -174,7 +174,7 @@ namespace CarRentWeb.Controllers
                         await _context.SaveChangesAsync();
 
                     }
-                   // vacation.FromDate = NewVacation.DailyCreditDate;
+                    // vacation.FromDate = NewVacation.DailyCreditDate;
                     DateOnly tempDate = (DateOnly)vacation.FromDate!;
                     vacation.NoOfDays = (tempDate.AddMonths(1).DayNumber - tempDate.DayNumber);
                     vacation.Emp = null;

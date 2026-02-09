@@ -155,11 +155,31 @@
         display: flex;
         align-items: center;
         gap: 15px;
-        flex-wrap: nowrap;
+        flex-wrap: wrap;
         justify-content: flex-start;
+          width: 100%;              /* ياخد عرض الشاشة كلها */
     }
 
+    .form-field {
+        flex: 1; /* كل حقل يتمدد بالتساوي */
+        min-width: 150px;
+    }
 
+        .form-field label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-field .form-control {
+            width: 100% !important; /* الانبوت ياخد عرض الحقل كله */
+        }
+
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        align-items: flex-end;
+        padding-bottom: 2px;
+    }
     .form-group {
         display: flex;
         flex-wrap: wrap;
@@ -355,17 +375,17 @@
             <div class="form-group single-line-form">
                 <div class="form-field">
                     <label for="searchString">بحث برقم الموظف:</label>
-                    <input type="number" name="searchString" value="@ViewData["CurrentFilter"]" placeholder=" رقم الموظف" class="form-control" style="width:120px" />
+                    <input type="number" name="searchString" value="@ViewData["CurrentFilter"]" placeholder=" رقم الموظف" class="form-control" />
                 </div>
 
                 <div class="form-field">
                     <label for="nameSearch">بحث باسم الموظف:</label>
-                    <input type="text" name="nameSearch" value="@ViewData["NameFilter"]" placeholder="ابحث باسم الموظف" class="form-control" style="width:150px" />
+                    <input type="text" name="nameSearch" value="@ViewData["NameFilter"]" placeholder="ابحث باسم الموظف" class="form-control"  />
                 </div>
 
                 <div class="form-field">
                     <label for="companyId">بحث باسم الشركة:</label>
-                    <select name="companyId" asp-items="ViewBag.Companies" class="form-control" style="width:180px">
+                    <select name="companyId" asp-items="ViewBag.Companies" class="form-control" >
                         <option value="">-- جميع الشركات --</option>
                     </select>
                 </div>
