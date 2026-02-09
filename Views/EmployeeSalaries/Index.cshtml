@@ -150,10 +150,32 @@
 
     .single-line-form {
         display: flex;
-        align-items: center;
+        align-items: flex-end;
         gap: 15px;
-        flex-wrap: nowrap;
+        flex-wrap: wrap;
         justify-content: flex-start;
+        width: 100%;
+    }
+
+    .form-field {
+        flex: 1;
+        min-width: 150px;
+    }
+
+    .form-field label {
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    .form-field .form-control {
+        width: 100% !important;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        align-items: flex-end;
+        padding-bottom: 2px;
     }
 
 
@@ -346,12 +368,12 @@
             <div class="form-group single-line-form">
                 <div class="form-field">
                     <label for="searchString">بحث برقم الموظف:</label>
-                    <input type="number" name="searchString" value="@ViewData["CurrentFilter"]" placeholder=" رقم الموظف" class="form-control" style="width:120px" />
+                    <input type="number" name="searchString" value="@ViewData["CurrentFilter"]" placeholder=" رقم الموظف" class="form-control" />
                 </div>
 
                 <div class="form-field">
                     <label for="nameSearch">بحث باسم الموظف:</label>
-                    <input type="text" name="nameSearch" value="@ViewData["NameFilter"]" placeholder="ابحث باسم الموظف" class="form-control" style="width:150px" />
+                    <input type="text" name="nameSearch" value="@ViewData["NameFilter"]" placeholder="ابحث باسم الموظف" class="form-control" />
                 </div>
 
                 <div class="form-actions">
