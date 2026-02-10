@@ -16,6 +16,7 @@
         border-radius: 12px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
         width: 200px;
+        min-width: 140px;
         padding: 20px;
         text-align: center;
         transition: transform 0.3s ease;
@@ -65,6 +66,32 @@
     }
 
     /* Responsive design */
+    @@media (max-width: 576px) {
+        .cards-container {
+            gap: 12px;
+        }
+
+        .card {
+            width: calc(50% - 12px);
+            min-width: 0;
+            padding: 12px;
+        }
+
+        .count-badge {
+            width: 55px;
+            height: 55px;
+            font-size: 20px;
+        }
+
+        .image-container {
+            width: 55px;
+            height: 55px;
+        }
+
+        .card-title {
+            font-size: 13px;
+        }
+    }
 
 </style>
 
@@ -129,5 +156,5 @@
 <br />
 
 <section class="hero" style="text-align:center">
-    <img src="~/assets/img/hero.jpg" alt="Hero Image" class="hero-image">
+    <img src="~/assets/img/hero.jpg" alt="Hero Image" class="hero-image" style="max-width:100%; height:auto;">
 </section>

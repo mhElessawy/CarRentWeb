@@ -47,11 +47,11 @@
                 <div class="d-flex align-items-center gap-3">
                     <span class="user-info">
                         <i class="bi bi-person-circle"></i>
-                        @TempData["Username"]
+                        <span class="d-none d-sm-inline">@TempData["Username"]</span>
                     </span>
                     <a asp-action="Login" asp-controller="PasswordDatums" class="btn-logout">
                         <i class="bi bi-box-arrow-left"></i>
-                        تسجيل خروج
+                        <span class="d-none d-sm-inline">تسجيل خروج</span>
                     </a>
                 </div>
             </div>

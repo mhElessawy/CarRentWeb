@@ -879,3 +879,117 @@ main[role="main"] {
         padding: 8px 15px;
         margin-right: 5px;
     }
+
+/* ============================================
+   MOBILE RESPONSIVE OVERRIDES
+   ============================================ */
+
+/* --- Tables: make scrollable on mobile --- */
+@media (max-width: 992px) {
+    .bordered-table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .bordered-table th,
+    .bordered-table td {
+        white-space: nowrap;
+    }
+}
+
+/* --- Search forms: stack fields vertically on mobile --- */
+@media (max-width: 768px) {
+    .search-container .form-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-container input[type="text"],
+    .search-container input[type="number"],
+    .search-container select,
+    .search-container .form-control {
+        width: 100% !important;
+    }
+
+    .single-line-form {
+        flex-wrap: wrap !important;
+    }
+
+    .search-container .btn {
+        width: 100%;
+    }
+}
+
+/* --- Top navbar: handle small screens --- */
+@media (max-width: 576px) {
+    .brand-name {
+        font-size: 0.95rem;
+        white-space: normal;
+        line-height: 1.3;
+    }
+
+    .brand-icon {
+        font-size: 1.2rem;
+    }
+
+    .navbar-top-first .container-fluid {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+    }
+
+    .btn-logout {
+        padding: 4px 10px;
+        font-size: 0.75rem;
+    }
+
+    .btn-logout span,
+    .btn-logout:not(i) {
+        font-size: 0.75rem;
+    }
+
+    .user-info {
+        font-size: 0.75rem;
+    }
+
+    .d-flex.align-items-center.gap-3 {
+        gap: 0.5rem !important;
+    }
+}
+
+/* --- Hero image responsive --- */
+.hero-image {
+    max-width: 100%;
+    height: auto;
+}
+
+/* --- Professional form responsive --- */
+@media (max-width: 576px) {
+    .professional-form {
+        margin: 15px auto;
+        padding: 20px 15px;
+    }
+
+    .professional-form-footer {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .professional-form .btn-primary {
+        width: 100%;
+    }
+}
+
+/* --- Pagination responsive --- */
+@media (max-width: 576px) {
+    .pagination-container {
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    .pagination-container .btn,
+    .pagination-container a {
+        font-size: 0.8rem;
+        padding: 4px 8px;
+    }
+}
