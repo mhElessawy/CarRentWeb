@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شرح موقع شركة أجرة الزاجل الدولي - دليل المستخدم</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+            direction: rtl;
+            text-align: right;
+            color: #2c3e50;
+            background: #fff;
+            margin: 0;
+            padding: 20px 40px;
+            line-height: 1.8;
+            font-size: 14px;
+        }
+
+        /* Cover Page */
+        .cover-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 90vh;
+            text-align: center;
+            page-break-after: always;
+        }
+
+        .cover-page img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            margin-bottom: 30px;
+            border: 4px solid #2c6fbb;
+        }
+
+        .cover-page h1 {
+            font-size: 32px;
+            color: #2c6fbb;
+            margin-bottom: 10px;
+        }
+
+        .cover-page h2 {
+            font-size: 22px;
+            color: #555;
+            font-weight: normal;
+            margin-bottom: 40px;
+        }
+
+        .cover-page .info-box {
+            background: #f0f6ff;
+            border: 2px solid #2c6fbb;
+            border-radius: 12px;
+            padding: 20px 40px;
+            margin-top: 20px;
+        }
+
+        .cover-page .info-box p {
+            margin: 8px 0;
+            font-size: 16px;
+            color: #333;
+        }
+
+        /* Table of Contents */
+        .toc {
+            page-break-after: always;
+        }
+
+        .toc h2 {
+            text-align: center;
+            color: #2c6fbb;
+            font-size: 26px;
+            border-bottom: 3px solid #2c6fbb;
+            padding-bottom: 10px;
+            margin-bottom: 25px;
+        }
+
+        .toc-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .toc-list li {
+            padding: 10px 15px;
+            border-bottom: 1px dashed #ccc;
+            font-size: 16px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .toc-list li:hover {
+            background: #f5f8ff;
+        }
+
+        .toc-list .section-num {
+            color: #2c6fbb;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        /* Section Styling */
+        .section {
+            page-break-inside: avoid;
+            margin-bottom: 35px;
+        }
+
+        h2.section-title {
+            color: #fff;
+            background: linear-gradient(135deg, #2c6fbb, #1a4a8a);
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 20px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        h3.sub-title {
+            color: #2c6fbb;
+            font-size: 17px;
+            border-right: 4px solid #2c6fbb;
+            padding-right: 12px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            margin: 8px 0;
+            text-align: justify;
+        }
+
+        /* Feature Cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .feature-card {
+            background: #f8fbff;
+            border: 1px solid #d4e3f5;
+            border-radius: 10px;
+            padding: 15px;
+            page-break-inside: avoid;
+        }
+
+        .feature-card h4 {
+            color: #2c6fbb;
+            margin: 0 0 8px 0;
+            font-size: 15px;
+        }
+
+        .feature-card p {
+            margin: 0;
+            font-size: 13px;
+            color: #555;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 13px;
+        }
+
+        table thead {
+            background: #2c6fbb;
+            color: #fff;
+        }
+
+        table th, table td {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            text-align: right;
+        }
+
+        table tbody tr:nth-child(even) {
+            background: #f5f8ff;
+        }
+
+        /* Bullet Lists */
+        ul {
+            padding-right: 20px;
+        }
+
+        ul li {
+            margin-bottom: 6px;
+        }
+
+        /* Info Boxes */
+        .info-note {
+            background: #e8f4fd;
+            border-right: 5px solid #2c6fbb;
+            padding: 12px 18px;
+            border-radius: 0 8px 8px 0;
+            margin: 12px 0;
+            font-size: 13px;
+        }
+
+        .warning-note {
+            background: #fff3e0;
+            border-right: 5px solid #ff9800;
+            padding: 12px 18px;
+            border-radius: 0 8px 8px 0;
+            margin: 12px 0;
+            font-size: 13px;
+        }
+
+        /* Steps */
+        .steps {
+            counter-reset: step-counter;
+            list-style: none;
+            padding: 0;
+        }
+
+        .steps li {
+            counter-increment: step-counter;
+            padding: 10px 15px 10px 10px;
+            margin-bottom: 8px;
+            background: #f9fbff;
+            border-radius: 8px;
+            border: 1px solid #e0e8f5;
+            position: relative;
+            padding-right: 50px;
+        }
+
+        .steps li::before {
+            content: counter(step-counter);
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #2c6fbb;
+            color: #fff;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        /* Screenshot placeholder */
+        .screenshot-placeholder {
+            background: #f0f0f0;
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            color: #999;
+            margin: 15px 0;
+        }
+
+        /* Footer */
+        .page-footer {
+            text-align: center;
+            color: #999;
+            font-size: 11px;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+            margin-top: 40px;
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                padding: 0;
+                font-size: 12px;
+            }
+
+            .section {
+                page-break-inside: avoid;
+            }
+
+            h2.section-title {
+                page-break-after: avoid;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .no-print {
+                display: none;
+            }
+        }
+
+        .print-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: #2c6fbb;
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+
+        .print-btn:hover {
+            background: #1a4a8a;
+        }
+
+        .tech-badge {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #2c6fbb;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin: 3px;
+            border: 1px solid #c5d8f0;
+        }
+    </style>
+</head>
+<body>
+
+    <button class="print-btn no-print" onclick="window.print()">🖨️ طباعة / حفظ PDF</button>
+
+    <!-- ==================== صفحة الغلاف ==================== -->
+    <div class="cover-page">
+        <img src="assets/img/logo.png" alt="شعار الشركة" onerror="this.style.display='none'">
+        <h1>شركة أجرة الزاجل الدولي الجوال</h1>
+        <h2>دليل شرح الموقع الإلكتروني</h2>
+        <div class="info-box">
+            <p><strong>نظام إدارة تأجير السيارات</strong></p>
+            <p>دليل شامل لجميع وظائف ومميزات النظام</p>
+            <p>الإصدار: 1.0 | التاريخ: فبراير 2026</p>
+        </div>
+    </div>
+
+    <!-- ==================== فهرس المحتويات ==================== -->
+    <div class="toc">
+        <h2>فهرس المحتويات</h2>
+        <ol class="toc-list">
+            <li><span class="section-num">1</span> نظرة عامة على النظام</li>
+            <li><span class="section-num">2</span> التقنيات المستخدمة</li>
+            <li><span class="section-num">3</span> تسجيل الدخول والصلاحيات</li>
+            <li><span class="section-num">4</span> لوحة التحكم الرئيسية</li>
+            <li><span class="section-num">5</span> إدارة الموظفين</li>
+            <li><span class="section-num">6</span> إدارة السيارات</li>
+            <li><span class="section-num">7</span> إدارة العقود</li>
+            <li><span class="section-num">8</span> إدارة الشركات</li>
+            <li><span class="section-num">9</span> إدارة الفواتير والمالية</li>
+            <li><span class="section-num">10</span> إدارة المديونيات</li>
+            <li><span class="section-num">11</span> إدارة المخالفات</li>
+            <li><span class="section-num">12</span> إدارة الإجازات</li>
+            <li><span class="section-num">13</span> التقارير</li>
+            <li><span class="section-num">14</span> طباعة التصاريح والمستندات</li>
+            <li><span class="section-num">15</span> إعدادات مسئول البرنامج</li>
+            <li><span class="section-num">16</span> هيكل قاعدة البيانات</li>
+        </ol>
+    </div>
+
+    <!-- ==================== 1. نظرة عامة ==================== -->
+    <div class="section">
+        <h2 class="section-title">1. نظرة عامة على النظام</h2>
+        <p>
+            نظام <strong>أجرة الزاجل الدولي</strong> هو نظام متكامل لإدارة شركات تأجير السيارات وخدمات التاكسي.
+            يوفر النظام حلولاً شاملة لإدارة جميع جوانب العمل اليومي بما في ذلك إدارة الموظفين، السيارات، العقود،
+            الفواتير، المديونيات، المخالفات، والتصاريح الرسمية.
+        </p>
+
+        <h3 class="sub-title">أهم مميزات النظام</h3>
+        <div class="features-grid">
+            <div class="feature-card">
+                <h4>📋 إدارة الموظفين</h4>
+                <p>إدارة شاملة لبيانات الموظفين والوثائق والرواتب والإجازات والسُلف</p>
+            </div>
+            <div class="feature-card">
+                <h4>🚗 إدارة السيارات</h4>
+                <p>تتبع المركبات وتراخيصها وأقساطها ومخالفاتها والمرفقات</p>
+            </div>
+            <div class="feature-card">
+                <h4>📝 إدارة العقود</h4>
+                <p>عقود يومية وشهرية مع تتبع الأقساط والتعديلات</p>
+            </div>
+            <div class="feature-card">
+                <h4>💰 إدارة مالية</h4>
+                <p>فواتير ومديونيات ورواتب وتقارير مالية شاملة</p>
+            </div>
+            <div class="feature-card">
+                <h4>🏢 إدارة الشركات</h4>
+                <p>بيانات الشركات وتراخيصها وإيجاراتها ومديونياتها</p>
+            </div>
+            <div class="feature-card">
+                <h4>📊 التقارير</h4>
+                <p>تقارير تفصيلية للتحصيل والمصروفات والرواتب والديون</p>
+            </div>
+            <div class="feature-card">
+                <h4>🖨️ طباعة المستندات</h4>
+                <p>إنشاء تصاريح التاكسي ورخص القيادة من قوالب Word</p>
+            </div>
+            <div class="feature-card">
+                <h4>🔐 نظام صلاحيات</h4>
+                <p>صلاحيات دقيقة لكل مستخدم تشمل أكثر من 40 إذن مختلف</p>
+            </div>
+        </div>
+
+        <div class="info-note">
+            <strong>ملاحظة:</strong> النظام مصمم بالكامل باللغة العربية ويدعم واجهة من اليمين لليسار (RTL) لتجربة مستخدم مريحة.
+        </div>
+    </div>
+
+    <!-- ==================== 2. التقنيات ==================== -->
+    <div class="section">
+        <h2 class="section-title">2. التقنيات المستخدمة</h2>
+
+        <h3 class="sub-title">تقنيات الواجهة الخلفية (Backend)</h3>
+        <table>
+            <thead>
+                <tr><th>التقنية</th><th>الإصدار</th><th>الوصف</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>ASP.NET Core</td><td>8.0</td><td>إطار العمل الأساسي للتطبيق</td></tr>
+                <tr><td>Entity Framework Core</td><td>8.0.23</td><td>إدارة قاعدة البيانات (ORM)</td></tr>
+                <tr><td>SQL Server</td><td>-</td><td>قاعدة البيانات الرئيسية</td></tr>
+                <tr><td>ASP.NET Core Identity</td><td>-</td><td>إدارة المستخدمين والمصادقة</td></tr>
+            </tbody>
+        </table>
+
+        <h3 class="sub-title">تقنيات الواجهة الأمامية (Frontend)</h3>
+        <table>
+            <thead>
+                <tr><th>التقنية</th><th>الوصف</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Razor Pages & Views</td><td>قوالب العرض (CSHTML)</td></tr>
+                <tr><td>Bootstrap 5</td><td>إطار تصميم الواجهة المتجاوبة</td></tr>
+                <tr><td>Bootstrap Icons</td><td>مكتبة الأيقونات</td></tr>
+                <tr><td>FontAwesome</td><td>مكتبة أيقونات إضافية</td></tr>
+                <tr><td>CSS مخصص</td><td>تصميم خاص بالعلامة التجارية</td></tr>
+            </tbody>
+        </table>
+
+        <h3 class="sub-title">مكتبات إضافية</h3>
+        <div style="margin: 10px 0;">
+            <span class="tech-badge">DocumentFormat.OpenXml 3.4.1</span>
+            <span class="tech-badge">ClosedXML 0.105.0</span>
+            <span class="tech-badge">SixLabors.ImageSharp 3.1.12</span>
+            <span class="tech-badge">Newtonsoft.Json 13.0.4</span>
+        </div>
+    </div>
+
+    <!-- ==================== 3. تسجيل الدخول ==================== -->
+    <div class="section">
+        <h2 class="section-title">3. تسجيل الدخول والصلاحيات</h2>
+
+        <h3 class="sub-title">تسجيل الدخول</h3>
+        <p>
+            يعمل النظام بنظام مصادقة قائم على الجلسات (Session-based Authentication).
+            يجب على كل مستخدم تسجيل الدخول باستخدام اسم المستخدم وكلمة المرور الخاصة به للوصول إلى النظام.
+        </p>
+
+        <ol class="steps">
+            <li>فتح صفحة تسجيل الدخول</li>
+            <li>إدخال اسم المستخدم وكلمة المرور</li>
+            <li>الضغط على زر تسجيل الدخول</li>
+            <li>يتم توجيه المستخدم إلى لوحة التحكم الرئيسية</li>
+        </ol>
+
+        <h3 class="sub-title">نظام الصلاحيات</h3>
+        <p>
+            يتمتع النظام بنظام صلاحيات دقيق يشمل أكثر من <strong>40 إذن مختلف</strong>. يمكن لمسئول البرنامج
+            تخصيص صلاحيات كل مستخدم بشكل فردي. تشمل الصلاحيات:
+        </p>
+        <table>
+            <thead>
+                <tr><th>الفئة</th><th>الصلاحيات المتاحة</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>الموظفين</td><td>عرض، حفظ، حذف، أرشفة</td></tr>
+                <tr><td>السيارات</td><td>عرض، حفظ، حذف، أرشفة</td></tr>
+                <tr><td>العقود</td><td>عرض، حفظ، حذف، أرشفة</td></tr>
+                <tr><td>الشركات</td><td>عرض، حفظ، حذف</td></tr>
+                <tr><td>الفواتير</td><td>عرض، حفظ، حذف</td></tr>
+                <tr><td>المديونيات</td><td>عرض، حفظ، حذف</td></tr>
+                <tr><td>المخالفات</td><td>عرض، حفظ، حذف</td></tr>
+                <tr><td>الإجازات</td><td>عرض، حفظ، حذف</td></tr>
+                <tr><td>التقارير</td><td>عرض التقارير المالية</td></tr>
+                <tr><td>الإدارة</td><td>إدارة المستخدمين، الإعدادات</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ==================== 4. لوحة التحكم ==================== -->
+    <div class="section">
+        <h2 class="section-title">4. لوحة التحكم الرئيسية (Dashboard)</h2>
+        <p>
+            عند تسجيل الدخول بنجاح، يتم عرض لوحة التحكم الرئيسية التي تحتوي على
+            <strong>4 بطاقات تنبيه</strong> تعرض حالة المستندات المنتهية الصلاحية:
+        </p>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <h4>🔴 انتهاء الإقامات</h4>
+                <p>عدد الموظفين الذين انتهت صلاحية إقاماتهم. يمكن النقر على البطاقة لعرض التفاصيل.</p>
+            </div>
+            <div class="feature-card">
+                <h4>🟠 انتهاء دفتر السيارة</h4>
+                <p>عدد السيارات التي انتهت صلاحية تراخيصها. يمكن النقر للاطلاع على القائمة الكاملة.</p>
+            </div>
+            <div class="feature-card">
+                <h4>🟡 انتهاء إذن العمل</h4>
+                <p>عدد أذون العمل المنتهية الصلاحية للموظفين.</p>
+            </div>
+            <div class="feature-card">
+                <h4>🔵 انتهاء رخصة السواق</h4>
+                <p>عدد رخص القيادة المنتهية الصلاحية.</p>
+            </div>
+        </div>
+
+        <div class="info-note">
+            <strong>نصيحة:</strong> تساعد هذه البطاقات في متابعة الوثائق المنتهية بسرعة واتخاذ الإجراءات اللازمة لتجديدها في الوقت المناسب.
+        </div>
+    </div>
+
+    <!-- ==================== 5. إدارة الموظفين ==================== -->
+    <div class="section">
+        <h2 class="section-title">5. إدارة الموظفين</h2>
+        <p>
+            قسم الموظفين هو أحد الأقسام الأساسية في النظام ويوفر إدارة شاملة لجميع بيانات الموظفين.
+        </p>
+
+        <h3 class="sub-title">5.1 بيانات الموظف الأساسية</h3>
+        <ul>
+            <li><strong>الاسم:</strong> اسم الموظف بالكامل</li>
+            <li><strong>الرقم المدني:</strong> رقم الهوية المدنية</li>
+            <li><strong>رقم جواز السفر:</strong> رقم جواز السفر</li>
+            <li><strong>تاريخ انتهاء الإقامة:</strong> لتتبع صلاحية الإقامة</li>
+            <li><strong>رقم رخصة القيادة:</strong> وتاريخ انتهائها</li>
+            <li><strong>إذن العمل:</strong> رقمه وتاريخ انتهائه</li>
+            <li><strong>رقم الهاتف:</strong> للتواصل</li>
+            <li><strong>الصورة الشخصية:</strong> يتم رفعها ومعالجتها تلقائياً</li>
+        </ul>
+
+        <h3 class="sub-title">5.2 الأقسام الفرعية للموظفين</h3>
+        <table>
+            <thead>
+                <tr><th>القسم</th><th>الوصف</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>مرفقات الموظف</td><td>رفع وتخزين المستندات والوثائق الخاصة بالموظف</td></tr>
+                <tr><td>رواتب الموظف</td><td>إدارة وتتبع رواتب الموظفين الشهرية</td></tr>
+                <tr><td>إجازات الموظف</td><td>تسجيل ومتابعة طلبات الإجازات</td></tr>
+                <tr><td>سلف الموظف</td><td>تسجيل السلف والمبالغ المأخوذة مقدماً</td></tr>
+                <tr><td>المبالغ المستلمة</td><td>تتبع المبالغ المسددة من الموظف</td></tr>
+                <tr><td>مديونيات الموظف</td><td>تسجيل ومتابعة ديون الموظفين</td></tr>
+                <tr><td>مخالفات الموظف</td><td>تسجيل المخالفات المرورية وغيرها</td></tr>
+                <tr><td>أرشيف الموظف</td><td>أرشفة الموظفين المنتهية خدمتهم</td></tr>
+            </tbody>
+        </table>
+
+        <h3 class="sub-title">5.3 البحث عن الموظفين</h3>
+        <p>
+            يوفر النظام خاصية بحث متقدمة تتيح البحث بالاسم أو الرقم المدني أو رقم الجواز.
+            يتم عرض النتائج في جدول مع إمكانية الترتيب والتصفح بنظام الصفحات (Pagination).
+        </p>
+    </div>
+
+    <!-- ==================== 6. إدارة السيارات ==================== -->
+    <div class="section">
+        <h2 class="section-title">6. إدارة السيارات</h2>
+        <p>
+            يتيح هذا القسم إدارة جميع مركبات الشركة بشكل متكامل مع تتبع الحالة والوثائق.
+        </p>
+
+        <h3 class="sub-title">6.1 بيانات السيارة</h3>
+        <ul>
+            <li><strong>الموديل:</strong> نوع وموديل السيارة</li>
+            <li><strong>اللون:</strong> لون السيارة</li>
+            <li><strong>رقم اللوحة:</strong> رقم لوحة السيارة</li>
+            <li><strong>تاريخ الترخيص:</strong> تاريخ بداية وانتهاء الترخيص</li>
+            <li><strong>صورة السيارة:</strong> يمكن رفع صورة للسيارة</li>
+        </ul>
+
+        <h3 class="sub-title">6.2 الأقسام الفرعية للسيارات</h3>
+        <table>
+            <thead>
+                <tr><th>القسم</th><th>الوصف</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>مرفقات السيارة</td><td>رفع المستندات والصور الخاصة بالسيارة</td></tr>
+                <tr><td>ترخيص السيارة</td><td>متابعة تراخيص السيارة وتجديدها</td></tr>
+                <tr><td>أقساط السيارة</td><td>تتبع أقساط شراء أو تمويل السيارة</td></tr>
+                <tr><td>مخالفات السيارة</td><td>تسجيل المخالفات المرورية للسيارة</td></tr>
+                <tr><td>أرشيف السيارة</td><td>أرشفة السيارات الخارجة من الخدمة</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ==================== 7. إدارة العقود ==================== -->
+    <div class="section">
+        <h2 class="section-title">7. إدارة العقود</h2>
+        <p>
+            قسم العقود هو القسم الأكبر والأكثر تعقيداً في النظام. يتيح إنشاء وإدارة عقود التأجير
+            بين الشركة والموظفين (السائقين) للسيارات.
+        </p>
+
+        <h3 class="sub-title">7.1 أنواع العقود</h3>
+        <div class="features-grid">
+            <div class="feature-card">
+                <h4>📄 عقود يومية</h4>
+                <p>عقود تأجير بنظام يومي مع حساب الإيجار اليومي والإجمالي</p>
+            </div>
+            <div class="feature-card">
+                <h4>📄 عقود شهرية</h4>
+                <p>عقود تأجير بنظام شهري مع حساب الإيجار الشهري والمتبقي</p>
+            </div>
+        </div>
+
+        <h3 class="sub-title">7.2 بيانات العقد</h3>
+        <ul>
+            <li><strong>الموظف (السائق):</strong> اختيار الموظف المستأجر</li>
+            <li><strong>السيارة:</strong> اختيار السيارة المؤجرة</li>
+            <li><strong>تاريخ بداية العقد:</strong> تاريخ بدء التأجير</li>
+            <li><strong>تاريخ نهاية العقد:</strong> تاريخ انتهاء التأجير</li>
+            <li><strong>قيمة الإيجار:</strong> المبلغ المتفق عليه</li>
+            <li><strong>نوع العقد:</strong> يومي أو شهري</li>
+        </ul>
+
+        <h3 class="sub-title">7.3 وظائف العقود</h3>
+        <table>
+            <thead>
+                <tr><th>الوظيفة</th><th>الوصف</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>تفاصيل العقد</td><td>عرض جميع تفاصيل العقد والمبالغ والحسابات</td></tr>
+                <tr><td>تعديل العقد</td><td>تعديل بيانات العقد (الإيجار، المدة، إلخ)</td></tr>
+                <tr><td>أقساط العقد</td><td>تتبع الأقساط والمدفوعات</td></tr>
+                <tr><td>تغيير الإيجار</td><td>تعديل قيمة الإيجار أثناء فترة العقد</td></tr>
+                <tr><td>أرشفة العقد</td><td>أرشفة العقود المنتهية</td></tr>
+                <tr><td>طباعة العقد</td><td>طباعة نسخة من العقد</td></tr>
+            </tbody>
+        </table>
+
+        <div class="info-note">
+            <strong>ملاحظة:</strong> يتم حساب ملخص العقد تلقائياً ويشمل: إجمالي الإيجار، المبالغ المدفوعة، المبالغ المتبقية، والخصومات.
+        </div>
+    </div>
+
+    <!-- ==================== 8. إدارة الشركات ==================== -->
+    <div class="section">
+        <h2 class="section-title">8. إدارة الشركات</h2>
+        <p>
+            يتيح هذا القسم إدارة بيانات الشركات المتعاملة مع المنشأة، بما في ذلك
+            بيانات التراخيص والتواصل والإيجارات.
+        </p>
+
+        <h3 class="sub-title">8.1 بيانات الشركة</h3>
+        <ul>
+            <li>اسم الشركة ورقم السجل التجاري</li>
+            <li>بيانات التراخيص وتواريخ انتهائها</li>
+            <li>بيانات التواصل (الهاتف، العنوان)</li>
+            <li>شعار الشركة (رفع صورة)</li>
+        </ul>
+
+        <h3 class="sub-title">8.2 الأقسام الفرعية</h3>
+        <table>
+            <thead>
+                <tr><th>القسم</th><th>الوصف</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>وثائق الشركة</td><td>تخزين وتتبع وثائق الشركة</td></tr>
+                <tr><td>تراخيص الشركة</td><td>متابعة تراخيص الشركة وتجديدها</td></tr>
+                <tr><td>جهات التواصل</td><td>أرقام الهواتف والعناوين</td></tr>
+                <tr><td>إيجارات الشركة</td><td>متابعة عقود إيجار المقرات والمرافق</td></tr>
+                <tr><td>مديونيات الشركة</td><td>تتبع ديون الشركة والمستحقات</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ==================== 9. الفواتير ==================== -->
+    <div class="section">
+        <h2 class="section-title">9. إدارة الفواتير والمالية</h2>
+        <p>
+            يوفر النظام نظام فوترة متكامل لإدارة جميع العمليات المالية.
+        </p>
+
+        <h3 class="sub-title">9.1 وظائف الفواتير</h3>
+        <ul>
+            <li><strong>إنشاء فاتورة:</strong> إنشاء فواتير جديدة للعقود والخدمات</li>
+            <li><strong>تسجيل الدفعات:</strong> تسجيل المبالغ المدفوعة على كل فاتورة</li>
+            <li><strong>تتبع المتأخرات:</strong> متابعة الفواتير المتأخرة السداد</li>
+            <li><strong>الربط البنكي:</strong> تسجيل بيانات التحويلات البنكية</li>
+            <li><strong>طباعة الفاتورة:</strong> طباعة نسخة رسمية من الفاتورة</li>
+        </ul>
+
+        <h3 class="sub-title">9.2 الإدارة المالية</h3>
+        <ul>
+            <li>رواتب الموظفين ومتابعتها</li>
+            <li>السلف والمبالغ المأخوذة مقدماً</li>
+            <li>أقساط السيارات والعقود</li>
+            <li>المصروفات العامة</li>
+        </ul>
+    </div>
+
+    <!-- ==================== 10. المديونيات ==================== -->
+    <div class="section">
+        <h2 class="section-title">10. إدارة المديونيات</h2>
+        <p>
+            يوفر النظام تتبعاً دقيقاً للمديونيات على مستوى الموظفين والشركات.
+        </p>
+
+        <h3 class="sub-title">الوظائف المتاحة</h3>
+        <ul>
+            <li>تسجيل دين جديد مع تحديد المبلغ وسبب الدين</li>
+            <li>تسجيل المدفوعات على الديون القائمة</li>
+            <li>عرض تقرير بجميع الديون المعلقة</li>
+            <li>حساب المبالغ المتبقية تلقائياً</li>
+            <li>ربط المديونيات بالموظف أو الشركة</li>
+        </ul>
+    </div>
+
+    <!-- ==================== 11. المخالفات ==================== -->
+    <div class="section">
+        <h2 class="section-title">11. إدارة المخالفات</h2>
+        <p>
+            تتبع المخالفات المرورية وغيرها سواء على مستوى الموظف أو السيارة.
+        </p>
+
+        <h3 class="sub-title">بيانات المخالفة</h3>
+        <ul>
+            <li>نوع المخالفة وتاريخها</li>
+            <li>المبلغ المطلوب والموظف أو السيارة المعنية</li>
+            <li>حالة المخالفة (مدفوعة / غير مدفوعة)</li>
+            <li>ملاحظات إضافية</li>
+        </ul>
+    </div>
+
+    <!-- ==================== 12. الإجازات ==================== -->
+    <div class="section">
+        <h2 class="section-title">12. إدارة الإجازات</h2>
+        <p>
+            يتيح النظام تسجيل ومتابعة إجازات الموظفين.
+        </p>
+        <ul>
+            <li>تسجيل طلب إجازة جديد مع تحديد التواريخ</li>
+            <li>تحديد نوع الإجازة</li>
+            <li>عرض سجل إجازات كل موظف</li>
+            <li>حساب أيام الإجازة المستخدمة</li>
+        </ul>
+    </div>
+
+    <!-- ==================== 13. التقارير ==================== -->
+    <div class="section">
+        <h2 class="section-title">13. التقارير</h2>
+        <p>
+            يوفر النظام مجموعة شاملة من التقارير المالية والإدارية لمساعدة الإدارة في اتخاذ القرارات.
+        </p>
+
+        <table>
+            <thead>
+                <tr><th>التقرير</th><th>الوصف</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>تقرير تحصيل الفواتير</td><td>عرض حالة تحصيل الفواتير خلال فترة محددة</td></tr>
+                <tr><td>تقرير تحصيل الديون</td><td>متابعة تحصيل المديونيات القائمة</td></tr>
+                <tr><td>تقرير المصروفات</td><td>تفصيل المصروفات حسب الفئة والفترة</td></tr>
+                <tr><td>تقرير الرواتب</td><td>ملخص رواتب الموظفين والمبالغ المصروفة</td></tr>
+                <tr><td>تقرير ديون الشركة (إجمالي)</td><td>إجمالي ديون الشركة المعلقة</td></tr>
+                <tr><td>تقرير ديون الشركة (تفصيلي)</td><td>تفاصيل كل دين مع المدفوعات</td></tr>
+                <tr><td>تقرير تدقيق التحصيل</td><td>مراجعة عمليات التحصيل والتدقيق عليها</td></tr>
+            </tbody>
+        </table>
+
+        <div class="info-note">
+            <strong>ملاحظة:</strong> يمكن تحديد فترة زمنية محددة لجميع التقارير للحصول على بيانات دقيقة حسب الحاجة.
+        </div>
+    </div>
+
+    <!-- ==================== 14. طباعة التصاريح ==================== -->
+    <div class="section">
+        <h2 class="section-title">14. طباعة التصاريح والمستندات</h2>
+        <p>
+            يوفر النظام إمكانية إنشاء مستندات رسمية تلقائياً من قوالب Word مسبقة التصميم.
+        </p>
+
+        <h3 class="sub-title">14.1 أنواع المستندات</h3>
+        <div class="features-grid">
+            <div class="feature-card">
+                <h4>🚕 تصريح تاكسي</h4>
+                <p>
+                    إنشاء تصريح تاكسي رسمي يتضمن بيانات الموظف والسيارة والشركة.
+                    يتم ملء البيانات تلقائياً من قاعدة البيانات في قالب Word محدد مسبقاً.
+                </p>
+            </div>
+            <div class="feature-card">
+                <h4>🪪 تجديد رخصة القيادة</h4>
+                <p>
+                    إنشاء طلب تجديد رخصة قيادة يتضمن بيانات الموظف.
+                    يمكن إضافة صورة الموظف للمستند تلقائياً.
+                </p>
+            </div>
+        </div>
+
+        <h3 class="sub-title">14.2 آلية العمل</h3>
+        <ol class="steps">
+            <li>اختيار نوع المستند المطلوب</li>
+            <li>اختيار الموظف والسيارة (حسب النوع)</li>
+            <li>يقوم النظام بملء القالب تلقائياً بالبيانات</li>
+            <li>تحميل المستند بصيغة Word جاهز للطباعة</li>
+        </ol>
+    </div>
+
+    <!-- ==================== 15. إعدادات المسئول ==================== -->
+    <div class="section">
+        <h2 class="section-title">15. إعدادات مسئول البرنامج</h2>
+        <p>
+            يتوفر لمسئول البرنامج مجموعة من الأدوات لإدارة النظام والمستخدمين.
+        </p>
+
+        <h3 class="sub-title">15.1 إدارة المستخدمين</h3>
+        <ul>
+            <li>إضافة مستخدم جديد مع تحديد اسم المستخدم وكلمة المرور</li>
+            <li>تعديل صلاحيات كل مستخدم بشكل تفصيلي</li>
+            <li>تعطيل أو تفعيل حسابات المستخدمين</li>
+            <li>إعادة تعيين كلمة المرور</li>
+        </ul>
+
+        <h3 class="sub-title">15.2 إدارة التعريفات</h3>
+        <p>
+            يمكن لمسئول البرنامج إدارة التعريفات العامة التي تستخدم في النظام مثل:
+        </p>
+        <ul>
+            <li>أنواع المخالفات</li>
+            <li>أنواع الإجازات</li>
+            <li>أنواع المصروفات</li>
+            <li>التصنيفات المختلفة المستخدمة في القوائم المنسدلة</li>
+        </ul>
+
+        <div class="warning-note">
+            <strong>تحذير:</strong> صلاحيات مسئول البرنامج حساسة جداً. يُنصح بتخصيصها فقط للأشخاص المسؤولين عن إدارة النظام.
+        </div>
+    </div>
+
+    <!-- ==================== 16. قاعدة البيانات ==================== -->
+    <div class="section">
+        <h2 class="section-title">16. هيكل قاعدة البيانات</h2>
+        <p>
+            يعتمد النظام على قاعدة بيانات SQL Server ويستخدم Entity Framework Core
+            لإدارة البيانات. فيما يلي الجداول الرئيسية:
+        </p>
+
+        <table>
+            <thead>
+                <tr><th>الجدول</th><th>الوصف</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>EmployeeInfo</td><td>بيانات الموظفين</td></tr>
+                <tr><td>CarInfo</td><td>بيانات السيارات</td></tr>
+                <tr><td>Contract</td><td>العقود</td></tr>
+                <tr><td>ContractDetails</td><td>تفاصيل العقود والدفعات</td></tr>
+                <tr><td>CompanyInfo</td><td>بيانات الشركات</td></tr>
+                <tr><td>Bill</td><td>الفواتير</td></tr>
+                <tr><td>DebitInfo</td><td>المديونيات</td></tr>
+                <tr><td>DebitPayment</td><td>مدفوعات الديون</td></tr>
+                <tr><td>ViolationInfo</td><td>المخالفات</td></tr>
+                <tr><td>Vacation</td><td>الإجازات</td></tr>
+                <tr><td>Salary</td><td>الرواتب</td></tr>
+                <tr><td>EmpTakeMoney</td><td>سلف الموظفين</td></tr>
+                <tr><td>ReceivedMoney</td><td>المبالغ المستلمة</td></tr>
+                <tr><td>PasswordDatum</td><td>بيانات المستخدمين والصلاحيات</td></tr>
+                <tr><td>Deff</td><td>التعريفات العامة</td></tr>
+                <tr><td>CarCredit</td><td>أقساط السيارات</td></tr>
+                <tr><td>ContractCredit</td><td>أقساط العقود</td></tr>
+                <tr><td>EmpAttach</td><td>مرفقات الموظفين</td></tr>
+                <tr><td>CarAttach</td><td>مرفقات السيارات</td></tr>
+                <tr><td>CompanyRent</td><td>إيجارات الشركة</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ==================== القائمة الجانبية ==================== -->
+    <div class="section">
+        <h2 class="section-title">ملحق: هيكل القوائم في الموقع</h2>
+        <p>يحتوي الموقع على قائمة تنقل رئيسية تشمل الأقسام التالية:</p>
+
+        <table>
+            <thead>
+                <tr><th>القائمة</th><th>القوائم الفرعية</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>الرئيسية</td><td>لوحة التحكم</td></tr>
+                <tr><td>الموظفين</td><td>بيانات الموظفين، مرفقات، رواتب، إجازات، سلف، مبالغ مستلمة، مديونيات، مخالفات، أرشيف</td></tr>
+                <tr><td>السيارات</td><td>بيانات السيارات، مرفقات، ترخيص، أقساط، مخالفات، أرشيف</td></tr>
+                <tr><td>العقود</td><td>عقود يومية، عقود شهرية، أقساط العقود، أرشيف</td></tr>
+                <tr><td>الشركات</td><td>بيانات الشركات، وثائق، تراخيص، جهات تواصل، إيجارات، مديونيات</td></tr>
+                <tr><td>الفواتير</td><td>إنشاء فاتورة، عرض الفواتير، المدفوعات</td></tr>
+                <tr><td>المخالفات</td><td>مخالفات الموظفين، مخالفات السيارات</td></tr>
+                <tr><td>التقارير</td><td>تحصيل فواتير، تحصيل ديون، مصروفات، رواتب، ديون الشركة</td></tr>
+                <tr><td>طباعة</td><td>تصريح تاكسي، تجديد رخصة</td></tr>
+                <tr><td>مسئول البرنامج</td><td>إدارة المستخدمين، الصلاحيات، التعريفات، الإعدادات</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ==================== Footer ==================== -->
+    <div class="page-footer">
+        <p>شركة أجرة الزاجل الدولي الجوال - دليل شرح الموقع الإلكتروني - فبراير 2026</p>
+        <p>تم إنشاء هذا الدليل تلقائياً | الإصدار 1.0</p>
+    </div>
+
+</body>
+</html>
