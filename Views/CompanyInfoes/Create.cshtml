@@ -86,6 +86,16 @@
         <div class="form-section-title"><i class="bi bi-house-door-fill"></i> بيانات عقد الإيجار</div>
         <div class="row g-3">
             <div class="col-md-3">
+                <label asp-for="OwnerHome" class="form-label">صاحب العقار</label>
+                <input asp-for="OwnerHome" class="form-control" />
+                <span asp-validation-for="OwnerHome" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="RentContractNo" class="form-label">رقم عقد الإيجار</label>
+                <input asp-for="RentContractNo" class="form-control" />
+                <span asp-validation-for="RentContractNo" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
                 <label asp-for="AddressLocation" class="form-label">المنطقة</label>
                 <input asp-for="AddressLocation" class="form-control" />
                 <span asp-validation-for="AddressLocation" class="text-danger"></span>
@@ -116,7 +126,22 @@
                 <span asp-validation-for="AddressTypeNo" class="text-danger"></span>
             </div>
             <div class="col-md-3">
-                <label asp-for="AddressAutoNo" class="form-label">الرقم الآلي</label>
+                <label asp-for="AddressStreet" class="form-label">الشارع</label>
+                <input asp-for="AddressStreet" class="form-control" />
+                <span asp-validation-for="AddressStreet" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="AddressBuildingName" class="form-label">اسم المبنى</label>
+                <input asp-for="AddressBuildingName" class="form-control" />
+                <span asp-validation-for="AddressBuildingName" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="AddressUnitNo" class="form-label">رقم الوحدة</label>
+                <input asp-for="AddressUnitNo" class="form-control" />
+                <span asp-validation-for="AddressUnitNo" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="AddressAutoNo" class="form-label">الرقم الآلي للعنوان</label>
                 <input asp-for="AddressAutoNo" class="form-control" />
                 <span asp-validation-for="AddressAutoNo" class="text-danger"></span>
             </div>
@@ -125,12 +150,12 @@
                 <input asp-for="AddressRent" class="form-control" />
                 <span asp-validation-for="AddressRent" class="text-danger"></span>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-3">
                 <label asp-for="StartRent" class="form-label">بداية الإيجار</label>
                 <input asp-for="StartRent" type="date" class="form-control" />
                 <span asp-validation-for="StartRent" class="text-danger"></span>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-3">
                 <label asp-for="EndRent" class="form-label">نهاية الإيجار</label>
                 <input asp-for="EndRent" type="date" class="form-control" />
                 <span asp-validation-for="EndRent" class="text-danger"></span>
@@ -138,14 +163,64 @@
         </div>
     </div>
 
-    <!-- ===== القسم 4: بيانات مدنية ===== -->
+    <!-- ===== القسم 4: بيانات المعلومات المدنية ===== -->
     <div class="form-section">
-        <div class="form-section-title"><i class="bi bi-card-heading"></i> بيانات مدنية</div>
+        <div class="form-section-title"><i class="bi bi-card-heading"></i> بيانات المعلومات المدنية</div>
         <div class="row g-3">
             <div class="col-md-3">
-                <label asp-for="CivilID" class="form-label">الرقم المدني</label>
+                <label asp-for="CivilInfoDate" class="form-label">تاريخ المعلومات المدنية</label>
+                <input asp-for="CivilInfoDate" type="date" class="form-control" />
+                <span asp-validation-for="CivilInfoDate" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="CivilInfoRef" class="form-label">المرجع</label>
+                <input asp-for="CivilInfoRef" class="form-control" />
+                <span asp-validation-for="CivilInfoRef" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="CivilSignboardName" class="form-label">اسم اللافتة</label>
+                <input asp-for="CivilSignboardName" class="form-control" />
+                <span asp-validation-for="CivilSignboardName" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="CivilLicenseName" class="form-label">اسم الرخصة</label>
+                <input asp-for="CivilLicenseName" class="form-control" />
+                <span asp-validation-for="CivilLicenseName" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="CivilLicenseHolder" class="form-label">اسم الحائز</label>
+                <input asp-for="CivilLicenseHolder" class="form-control" />
+                <span asp-validation-for="CivilLicenseHolder" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="CivilLatinName" class="form-label">الاسم اللاتيني</label>
+                <input asp-for="CivilLatinName" class="form-control" />
+                <span asp-validation-for="CivilLatinName" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="CivilID" class="form-label">الرقم المدني للجهة</label>
                 <input asp-for="CivilID" class="form-control" />
                 <span asp-validation-for="CivilID" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="CivilEconomicActivity" class="form-label">النشاط الاقتصادي</label>
+                <input asp-for="CivilEconomicActivity" class="form-control" />
+                <span asp-validation-for="CivilEconomicActivity" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="CivilLicenseAuthority" class="form-label">جهة الترخيص</label>
+                <input asp-for="CivilLicenseAuthority" class="form-control" />
+                <span asp-validation-for="CivilLicenseAuthority" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="CompFileNo" class="form-label">رقم ملف جهة الترخيص</label>
+                <input asp-for="CompFileNo" class="form-control" />
+                <span asp-validation-for="CompFileNo" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="CompLicenseNo" class="form-label">رقم الرخصة</label>
+                <input asp-for="CompLicenseNo" class="form-control" />
+                <span asp-validation-for="CompLicenseNo" class="text-danger"></span>
             </div>
             <div class="col-md-3">
                 <label asp-for="CompActivateId" class="form-label">نوع النشاط</label>
@@ -154,47 +229,206 @@
                 </select>
                 <span asp-validation-for="CompActivateId" class="text-danger"></span>
             </div>
-            <div class="col-md-3">
-                <label asp-for="CompFileNo" class="form-label">رقم الملف</label>
-                <input asp-for="CompFileNo" class="form-control" required />
-                <span asp-validation-for="CompFileNo" class="text-danger"></span>
-            </div>
-            <div class="col-md-3">
-                <label asp-for="CompLicenseNo" class="form-label">رقم الرخصة</label>
-                <input asp-for="CompLicenseNo" class="form-control" required />
-                <span asp-validation-for="CompLicenseNo" class="text-danger"></span>
-            </div>
         </div>
     </div>
 
-    <!-- ===== القسم 5: رخصة تجارية + مستخرج ===== -->
+    <!-- ===== القسم 5: رخصة تجارية + مستخرج السجل التجاري ===== -->
     <div class="form-section">
-        <div class="form-section-title"><i class="bi bi-file-earmark-text-fill"></i> رخصة تجارية</div>
+        <div class="form-section-title"><i class="bi bi-file-earmark-text-fill"></i> رخصة تجارية + مستخرج السجل التجاري</div>
         <div class="row g-3">
-            <div class="col-md-6">
-                <label asp-for="StartLicense" class="form-label">تاريخ بداية الترخيص</label>
-                <input asp-for="StartLicense" type="date" class="form-control" />
-                <span asp-validation-for="StartLicense" class="text-danger"></span>
+            <div class="col-md-3">
+                <label asp-for="TradeLicenseNo" class="form-label">رقم الترخيص</label>
+                <input asp-for="TradeLicenseNo" class="form-control" />
+                <span asp-validation-for="TradeLicenseNo" class="text-danger"></span>
             </div>
-            <div class="col-md-6">
-                <label asp-for="EndLicense" class="form-label">تاريخ نهاية الترخيص</label>
-                <input asp-for="EndLicense" type="date" class="form-control" />
-                <span asp-validation-for="EndLicense" class="text-danger"></span>
-            </div>
-            <div class="col-md-6">
+            <div class="col-md-3">
                 <label asp-for="CenterNo" class="form-label">الرقم المركزي</label>
                 <input asp-for="CenterNo" class="form-control" />
                 <span asp-validation-for="CenterNo" class="text-danger"></span>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-3">
                 <label asp-for="CommercialRegistrationNo" class="form-label">رقم السجل التجاري</label>
                 <input asp-for="CommercialRegistrationNo" class="form-control" />
                 <span asp-validation-for="CommercialRegistrationNo" class="text-danger"></span>
             </div>
+            <div class="col-md-3">
+                <label asp-for="LegalEntity" class="form-label">الكيان القانوني</label>
+                <input asp-for="LegalEntity" class="form-control" />
+                <span asp-validation-for="LegalEntity" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="TradeName" class="form-label">الاسم التجاري</label>
+                <input asp-for="TradeName" class="form-control" />
+                <span asp-validation-for="TradeName" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="Capital" class="form-label">رأس المال</label>
+                <input asp-for="Capital" class="form-control" />
+                <span asp-validation-for="Capital" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="RegistrationDate" class="form-label">تاريخ القيد في السجل</label>
+                <input asp-for="RegistrationDate" type="date" class="form-control" />
+                <span asp-validation-for="RegistrationDate" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="ActivityCode" class="form-label">رمز النشاط</label>
+                <input asp-for="ActivityCode" class="form-control" />
+                <span asp-validation-for="ActivityCode" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="CompanyStatus" class="form-label">حالة الشركة</label>
+                <input asp-for="CompanyStatus" class="form-control" />
+                <span asp-validation-for="CompanyStatus" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="MainLicenseStatus" class="form-label">حالة الترخيص الرئيسي</label>
+                <input asp-for="MainLicenseStatus" class="form-control" />
+                <span asp-validation-for="MainLicenseStatus" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="LicenseType" class="form-label">نوع الترخيص</label>
+                <input asp-for="LicenseType" class="form-control" />
+                <span asp-validation-for="LicenseType" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="PartnersCount" class="form-label">عدد الشركاء</label>
+                <input asp-for="PartnersCount" class="form-control" />
+                <span asp-validation-for="PartnersCount" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="ActivitiesCount" class="form-label">عدد الأنشطة</label>
+                <input asp-for="ActivitiesCount" class="form-control" />
+                <span asp-validation-for="ActivitiesCount" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="ManagersCount" class="form-label">عدد المديرين</label>
+                <input asp-for="ManagersCount" class="form-control" />
+                <span asp-validation-for="ManagersCount" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="FiscalYearStartMonth" class="form-label">بداية السنة المالية (شهر)</label>
+                <input asp-for="FiscalYearStartMonth" class="form-control" min="1" max="12" />
+                <span asp-validation-for="FiscalYearStartMonth" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="FiscalYearEndMonth" class="form-label">نهاية السنة المالية (شهر)</label>
+                <input asp-for="FiscalYearEndMonth" class="form-control" min="1" max="12" />
+                <span asp-validation-for="FiscalYearEndMonth" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="StartLicense" class="form-label">تاريخ بداية الترخيص</label>
+                <input asp-for="StartLicense" type="date" class="form-control" />
+                <span asp-validation-for="StartLicense" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="EndLicense" class="form-label">تاريخ نهاية الترخيص</label>
+                <input asp-for="EndLicense" type="date" class="form-control" />
+                <span asp-validation-for="EndLicense" class="text-danger"></span>
+            </div>
+            <div class="col-md-12">
+                <label asp-for="ManagerPermissions" class="form-label">صلاحيات المدير</label>
+                <textarea asp-for="ManagerPermissions" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="ManagerPermissions" class="text-danger"></span>
+            </div>
         </div>
     </div>
 
-    <!-- ===== القسم 6: بيانات التواصل ===== -->
+    <!-- ===== القسم 6: شهادة سداد التأمينات ===== -->
+    <div class="form-section">
+        <div class="form-section-title"><i class="bi bi-shield-check"></i> شهادة سداد التأمينات</div>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label asp-for="InsuranceRegNo" class="form-label">رقم التسجيل</label>
+                <input asp-for="InsuranceRegNo" class="form-control" />
+                <span asp-validation-for="InsuranceRegNo" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="InsuranceSector" class="form-label">القطاع</label>
+                <input asp-for="InsuranceSector" class="form-control" />
+                <span asp-validation-for="InsuranceSector" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="InsuranceRef" class="form-label">مرجع الشهادة</label>
+                <input asp-for="InsuranceRef" class="form-control" />
+                <span asp-validation-for="InsuranceRef" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="InsuranceCertDate" class="form-label">تاريخ الشهادة</label>
+                <input asp-for="InsuranceCertDate" type="date" class="form-control" />
+                <span asp-validation-for="InsuranceCertDate" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="InsuranceCertValidDate" class="form-label">صلاحية الشهادة</label>
+                <input asp-for="InsuranceCertValidDate" type="date" class="form-control" />
+                <span asp-validation-for="InsuranceCertValidDate" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== القسم 7: اعتماد توقيع - القوى العاملة ===== -->
+    <div class="form-section">
+        <div class="form-section-title"><i class="bi bi-person-badge-fill"></i> اعتماد توقيع - القوى العاملة</div>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label asp-for="ManpowerFileNo" class="form-label">رقم الملف</label>
+                <input asp-for="ManpowerFileNo" class="form-control" />
+                <span asp-validation-for="ManpowerFileNo" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="ManpowerFileType" class="form-label">نوع الملف</label>
+                <input asp-for="ManpowerFileType" class="form-control" />
+                <span asp-validation-for="ManpowerFileType" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="ManpowerFileClassification" class="form-label">تصنيف الملف</label>
+                <input asp-for="ManpowerFileClassification" class="form-control" />
+                <span asp-validation-for="ManpowerFileClassification" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="ManpowerWorkAdmin" class="form-label">إدارة العمل</label>
+                <input asp-for="ManpowerWorkAdmin" class="form-control" />
+                <span asp-validation-for="ManpowerWorkAdmin" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="UnifiedNo" class="form-label">الرقم الموحد</label>
+                <input asp-for="UnifiedNo" class="form-control" />
+                <span asp-validation-for="UnifiedNo" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="GovContractsCount" class="form-label">اجمالي العقود الحكومية</label>
+                <input asp-for="GovContractsCount" class="form-control" />
+                <span asp-validation-for="GovContractsCount" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="AuthorizedPersonName" class="form-label">اسم المفوض</label>
+                <input asp-for="AuthorizedPersonName" class="form-control" />
+                <span asp-validation-for="AuthorizedPersonName" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="AuthorizedPersonCivilId" class="form-label">الرقم المدني للمفوض</label>
+                <input asp-for="AuthorizedPersonCivilId" class="form-control" />
+                <span asp-validation-for="AuthorizedPersonCivilId" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="AuthorizationDate" class="form-label">تاريخ التفويض</label>
+                <input asp-for="AuthorizationDate" type="date" class="form-control" />
+                <span asp-validation-for="AuthorizationDate" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="ManpowerCertIssueDate" class="form-label">تاريخ إصدار الشهادة</label>
+                <input asp-for="ManpowerCertIssueDate" type="date" class="form-control" />
+                <span asp-validation-for="ManpowerCertIssueDate" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="ManpowerCertExpiryDate" class="form-label">تاريخ انتهاء الشهادة</label>
+                <input asp-for="ManpowerCertExpiryDate" type="date" class="form-control" />
+                <span asp-validation-for="ManpowerCertExpiryDate" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== القسم 8: بيانات التواصل ===== -->
     <div class="form-section">
         <div class="form-section-title"><i class="bi bi-telephone-fill"></i> بيانات التواصل</div>
         <div class="row g-3">
@@ -204,6 +438,13 @@
                     <option value="">-- اختر --</option>
                 </select>
                 <span asp-validation-for="LocationId" class="text-danger"></span>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="CityId" class="form-label">المدينة</label>
+                <select asp-for="CityId" class="form-control" asp-items="ViewBag.CityId">
+                    <option value="">-- اختر --</option>
+                </select>
+                <span asp-validation-for="CityId" class="text-danger"></span>
             </div>
             <div class="col-md-3">
                 <label asp-for="Tel1" class="form-label">رقم الهاتف 1</label>
