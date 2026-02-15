@@ -777,11 +777,22 @@ namespace CarRentWeb.Migrations
                     b.Property<DateOnly?>("EndDate")
                         .HasColumnType("date");
 
+                    b.Property<decimal?>("DiscountAmount")
+                        .HasColumnType("money");
+
+                    b.Property<DateOnly?>("DiscountDate")
+                        .HasColumnType("date");
+
                     b.Property<bool>("HaveVacation")
                         .HasColumnType("bit");
 
                     b.Property<int?>("NoOfDays")
                         .HasColumnType("int");
+
+                    b.Property<int?>("RentalType")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
 
                     b.Property<DateOnly?>("StartDate")
                         .HasColumnType("date");

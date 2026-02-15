@@ -251,6 +251,8 @@ public partial class CarRentWebContext : DbContext
             entity.Property(e => e.DeleteFlag).HasDefaultValue(0);
             entity.Property(e => e.Status).HasDefaultValue(0);
             entity.Property(e => e.TotalCost).HasColumnType("money");
+            entity.Property(e => e.RentalType).HasDefaultValue(0);
+            entity.Property(e => e.DiscountAmount).HasColumnType("money");
 
             entity.HasOne(d => d.Car).WithMany(p => p.Contracts)
                 .HasForeignKey(d => d.CarId)

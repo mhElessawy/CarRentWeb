@@ -49,6 +49,12 @@ public partial class Contract
 
     public bool HaveVacation { get; set; } = false;
 
+    public int? RentalType { get; set; }
+
+    public DateOnly? DiscountDate { get; set; }
+
+    public decimal? DiscountAmount { get; set; }
+
     public virtual ICollection<Bill> Bills { get; set; } = new List<Bill>();
 
     public virtual CarInfo? Car { get; set; }
