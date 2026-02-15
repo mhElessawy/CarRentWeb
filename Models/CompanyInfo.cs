@@ -32,12 +32,14 @@ public partial class CompanyInfo
     [Display(Name = "الرقم المدني 3")]
     public string? OwnerCivilId3 { get; set; }
 
+
     //  بيانات عقد الإيجار 
     [Display(Name = " صاحب العقار")]
     public string? OwnerHome { get; set; }
 
     [Display(Name = " المنطقه")]
     public int? AddressLocation { get; set; }
+
     [Display(Name = " القطعه")]
     public string? AddressArea { get; set; }
     [Display(Name = " القسيمه")]
@@ -48,7 +50,7 @@ public partial class CompanyInfo
     public int? AddressType { get; set; }
     [Display(Name = " رقم المبني")]
     public int? AddressTypeNo { get; set; }
-    [Display(Name = " الرقم الآلي")]
+    [Display(Name = " الرقم الآلي للعنوان")]
     public string ? AddressAutoNo { get; set; }
     [Display(Name = " الإيجار")]
     [Precision(18, 2)]
@@ -58,38 +60,59 @@ public partial class CompanyInfo
     [Display(Name = " نهاية الإيجار")]
     public DateOnly EndRent { get; set; }
 
-   //    end 
+    //    end 
 
     //  بيانات معلومات مدنيه 
+
+    [Display(Name = "تاريخ المعلومات المدنية")]
+    public DateOnly? CivilInfoDate { get; set; }
+    [Display(Name = "المرجع")]
+    public string? CivilInfoRef { get; set; }
+
+    [Display(Name = "اسم الرخصه")]
+    public string? CivilLicenseName { get; set; }
+   
+    [Display(Name = "اسم الحائز")]
+    public string? CivilLicenseHolder { get; set; }
+
+    [Display(Name = "الرقم المدني للجهة")]
     public string? CivilID { get; set; }
 
-    [Display(Name = "تاريخ بداية الترخيص")]
-    public int? CompActivateId { get; set; }
-    [Display(Name = "رقم الملف")]
+    [Display(Name = "النشاط الإقتصادي")]
+    public string? CivilEconomicActivity { get; set; }
+    [Display(Name = "رقم ملف جهة الترخيص")]
     public string? CompFileNo { get; set; }
-
     [Display(Name = "رقم الرخصه")]
     public string? CompLicenseNo { get; set; }
+
+
+    // وزارة التجارة والصناعة
+    [Display(Name = "رقم الترخيص")]
+    public string? TradeLicenseNo { get; set; }
+
+    [Display(Name = "تاريخ بداية الترخيص")]
+    public DateOnly StartLicense { get; set; }
+    [Display(Name = "تاريخ نهاية الترخيص")]
+    public DateOnly EndLicense { get; set; }
+    [Display(Name = "الرقم المركزي")]
+    public string? CenterNo { get; set; }
+    [Display(Name = "رقم السجل التجاري")]
+    public int CommercialRegistrationNo { get; set; }
+
+    [Display(Name = "المحافظة")]
+    public int? LocationId { get; set; }
 
 
     //  end
 
     // رخصه تجاريه+مستخرج
 
-    [Display(Name = "تاريخ بداية الترخيص")]
-    public DateOnly StartLicense { get; set; }
-    [Display(Name = "تاريخ نهاية الترخيص")]
-    public DateOnly EndLicense { get; set; }
 
-    [Display(Name = "الرقم المركزي")]
-    public string? CenterNo { get; set; }
-    [Display(Name = "رقم السجل التجاري")]
-    public int CommercialRegistrationNo { get; set; }
+
+
 
     // end
 
-    [Display(Name = "المحافظة")]
-    public int? LocationId { get; set; }
 
 
 

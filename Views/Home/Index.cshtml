@@ -64,63 +64,108 @@
         margin: 0;
     }
 
+    .card-link {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .hero-image {
+        max-width: 100%;
+        height: auto;
+    }
+
     /* Responsive design */
+    @@media (max-width: 768px) {
+        .cards-container {
+            gap: 12px;
+            padding: 0 8px;
+        }
+
+        .card {
+            width: calc(50% - 12px);
+            min-width: 0;
+            padding: 14px 10px;
+        }
+
+        .count-badge {
+            width: 56px;
+            height: 56px;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .image-container {
+            width: 56px;
+            height: 56px;
+            margin-bottom: 10px;
+        }
+
+        .card-title {
+            font-size: 13px;
+        }
+    }
+
+    @@media (max-width: 400px) {
+        .card {
+            width: 100%;
+        }
+    }
 
 </style>
 
 <section aria-label="Employee resignation statistics" dir="rtl">
     <div class="cards-container">
         <a href="@Url.Action("PrintData", "Home", new { id = 1 })" class="card-link">
-        <div class="card">
-            <div class="card-body">
-                <div class="count-badge" style="background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);">
-                    @ViewBag.ResignedEmployeeCount
+            <div class="card">
+                <div class="card-body">
+                    <div class="count-badge" style="background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);">
+                        @ViewBag.ResignedEmployeeCount
+                    </div>
+                    <div class="image-container">
+                        <img src="~/assets/img/res.jpeg" alt="إنتهاء فنرة الإقامات" />
+                    </div>
+                    <h3 class="card-title">إنتهاء الإقامات</h3>
                 </div>
-                <div class="image-container">
-                    <img src="~/assets/img/res.jpeg" alt="إنتهاء فنرة الإقامات" />
-                </div>
-                <h3 class="card-title">إنتهاء الإقامات</h3>
             </div>
-        </div>
         </a>
         <a href="@Url.Action("PrintData", "Home", new { id = 2 })" class="card-link">
-        <div class="card">
-            <div class="card-body">
-                <div class="count-badge" style="background: linear-gradient(135deg, #4e54c8 0%, #8f94fb 100%);">
-                    @ViewBag.EndLicenseCarCount
+            <div class="card">
+                <div class="card-body">
+                    <div class="count-badge" style="background: linear-gradient(135deg, #4e54c8 0%, #8f94fb 100%);">
+                        @ViewBag.EndLicenseCarCount
+                    </div>
+                    <div class="image-container">
+                        <img src="~/assets/img/License.jpeg" alt="إنتهاء الرخصة" />
+                    </div>
+                    <h3 class="card-title">إنتهاء  دفتر السيارة</h3>
                 </div>
-                <div class="image-container">
-                    <img src="~/assets/img/License.jpeg" alt="إنتهاء الرخصة" />
-                </div>
-                <h3 class="card-title">إنتهاء  دفتر السيارة</h3>
             </div>
-        </div>
         </a>
         <a href="@Url.Action("PrintData", "Home", new { id = 3 })" class="card-link">
-        <div class="card">
-            <div class="card-body">
-                <div class="count-badge" style="background: linear-gradient(135deg, #4e54c8 0%, #8f94fb 100%);">
-                    @ViewBag.EndPermEmpCount
+            <div class="card">
+                <div class="card-body">
+                    <div class="count-badge" style="background: linear-gradient(135deg, #4e54c8 0%, #8f94fb 100%);">
+                        @ViewBag.EndPermEmpCount
+                    </div>
+                    <div class="image-container">
+                        <img src="~/assets/img/PermEmp.jpeg" alt="إنتهاء الإذن" />
+                    </div>
+                    <h3 class="card-title">إنتهاء إذن العمل</h3>
                 </div>
-                <div class="image-container">
-                    <img src="~/assets/img/PermEmp.jpeg" alt="إنتهاء الإذن" />
-                </div>
-                <h3 class="card-title">إنتهاء إذن العمل</h3>
             </div>
-        </div>
         </a>
         <a href="@Url.Action("PrintData", "Home", new { id = 4 })" class="card-link">
-        <div class="card">
-            <div class="card-body">
-                <div class="count-badge" style="background: linear-gradient(135deg, #4e54c8 0%, #8f94fb 100%);">
-                    @ViewBag.EndLicenseEmpCount
+            <div class="card">
+                <div class="card-body">
+                    <div class="count-badge" style="background: linear-gradient(135deg, #4e54c8 0%, #8f94fb 100%);">
+                        @ViewBag.EndLicenseEmpCount
+                    </div>
+                    <div class="image-container">
+                        <img src="~/assets/img/LicenseEmp.jpeg" alt="رخصة السواق" />
+                    </div>
+                    <h3 class="card-title">إنتهاء رخصة سواق</h3>
                 </div>
-                <div class="image-container">
-                    <img src="~/assets/img/LicenseEmp.jpeg" alt="رخصة السواق" />
-                </div>
-                <h3 class="card-title">إنتهاء رخصة سواق</h3>
             </div>
-        </div>
         </a>
 
     </div>
