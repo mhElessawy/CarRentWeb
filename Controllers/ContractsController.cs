@@ -240,7 +240,9 @@ namespace CarRentWeb.Controllers
 
         {
 
-            int maxContractNo = _context.Contracts.Max(a => Convert.ToInt32(a.ContractNo));
+            int maxContractNo = _context.Contracts.Any()
+                ? _context.Contracts.Max(a => Convert.ToInt32(a.ContractNo))
+                : 0;
 
             ViewBag.MaxContractNo = maxContractNo + 1;
 
@@ -260,7 +262,9 @@ namespace CarRentWeb.Controllers
         {
             if (ModelState.IsValid)
             {
-                maxContractNo = _context.Contracts.Max(a => Convert.ToInt32(a.ContractNo));
+                maxContractNo = _context.Contracts.Any()
+                    ? _context.Contracts.Max(a => Convert.ToInt32(a.ContractNo))
+                    : 0;
                 contract.ContractNo = Convert.ToString(maxContractNo + 1);
                 contract.UserId = 1;
                 contract.ContractType = 0;
