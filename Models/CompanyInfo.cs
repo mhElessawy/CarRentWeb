@@ -33,6 +33,9 @@ public partial class CompanyInfo
     public string? OwnerCivilId3 { get; set; }
 
     //  بيانات عقد الإيجار 
+    [Display(Name = " صاحب العقار")]
+    public string? OwnerHome { get; set; }
+
     [Display(Name = " المنطقه")]
     public int? AddressLocation { get; set; }
     [Display(Name = " القطعه")]

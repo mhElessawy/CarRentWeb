@@ -8,7 +8,7 @@ using CarRentWeb.Models;
 using CarRentWeb.Models.MyModel;
 
 namespace CarRentWeb.Controllers
-{
+{      
     public class CarInfoesController : Controller
     {
         private readonly CarRentWebContext _context;
