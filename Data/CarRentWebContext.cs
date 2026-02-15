@@ -198,6 +198,10 @@ public partial class CarRentWebContext : DbContext
             entity.HasOne(d => d.Location).WithMany(p => p.CompanyInfoLocations)
                 .HasForeignKey(d => d.LocationId)
                 .HasConstraintName("FK_CompanyInfo_Deff");
+
+            entity.HasOne(d => d.City).WithMany(p => p.CompanyInfoCities)
+                .HasForeignKey(d => d.CityId)
+                .HasConstraintName("FK_CompanyInfo_Deff1");
         });
 
         modelBuilder.Entity<CompanyPartner>(entity =>

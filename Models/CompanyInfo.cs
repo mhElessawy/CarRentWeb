@@ -121,6 +121,11 @@ public partial class CompanyInfo
     [Display(Name = "المحافظة")]
     public int? LocationId { get; set; }
 
+    [Display(Name = "حالة التفعيل")]
+    public int? CompActivateId { get; set; }
+
+    [Display(Name = "المدينة")]
+    public int? CityId { get; set; }
 
     //  end
 
