@@ -94,6 +94,48 @@ a {
     }
 
 /* ============================================
+   FIRST NAVBAR MOBILE
+   ============================================ */
+@media (max-width: 768px) {
+    .navbar-top-first {
+        height: auto;
+        padding: 8px 0;
+    }
+
+    .navbar-top-first .d-flex.justify-content-between {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .brand-name {
+        font-size: 0.95rem;
+    }
+
+    .brand-icon {
+        font-size: 1.2rem;
+    }
+
+    .btn-logout {
+        padding: 4px 10px;
+        font-size: 0.78rem;
+    }
+
+    .user-info {
+        font-size: 0.78rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .brand-name {
+        font-size: 0.8rem;
+    }
+
+    .user-info span:not(i) {
+        display: none;
+    }
+}
+
+/* ============================================
    SECOND NAVBAR (Menu Tabs)
    ============================================ */
 .navbar-top-second {

@@ -64,7 +64,52 @@
         margin: 0;
     }
 
+    .card-link {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .hero-image {
+        max-width: 100%;
+        height: auto;
+    }
+
     /* Responsive design */
+    @media (max-width: 768px) {
+        .cards-container {
+            gap: 12px;
+            padding: 0 8px;
+        }
+
+        .card {
+            width: calc(50% - 12px);
+            min-width: 0;
+            padding: 14px 10px;
+        }
+
+        .count-badge {
+            width: 56px;
+            height: 56px;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .image-container {
+            width: 56px;
+            height: 56px;
+            margin-bottom: 10px;
+        }
+
+        .card-title {
+            font-size: 13px;
+        }
+    }
+
+    @media (max-width: 400px) {
+        .card {
+            width: 100%;
+        }
+    }
 
 </style>
 
