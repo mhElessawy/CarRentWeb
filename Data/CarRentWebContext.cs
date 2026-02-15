@@ -58,6 +58,8 @@ public partial class CarRentWebContext : DbContext
 
     public virtual DbSet<EmployeeTakeMoney> EmployeeTakeMoney { get; set; }
 
+    public virtual DbSet<CompanyPartner> CompanyPartners { get; set; }
+    public virtual DbSet<CompanyApproval> CompanyApprovals { get; set; }
     public virtual DbSet<CompanyDebit> CompanyDebits { get; set; }
     public virtual DbSet<CompanyDebitDetails> CompanyDebitDetails { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -165,6 +167,30 @@ public partial class CarRentWebContext : DbContext
 
            
 
+            entity.Property(e => e.RentContractNo).HasMaxLength(100);
+            entity.Property(e => e.AddressStreet).HasMaxLength(500);
+            entity.Property(e => e.AddressBuildingName).HasMaxLength(500);
+            entity.Property(e => e.AddressUnitNo).HasMaxLength(50);
+            entity.Property(e => e.CivilSignboardName).HasMaxLength(500);
+            entity.Property(e => e.CivilLatinName).HasMaxLength(500);
+            entity.Property(e => e.CivilLicenseAuthority).HasMaxLength(500);
+            entity.Property(e => e.LegalEntity).HasMaxLength(200);
+            entity.Property(e => e.LicenseType).HasMaxLength(200);
+            entity.Property(e => e.TradeName).HasMaxLength(500);
+            entity.Property(e => e.ActivityCode).HasMaxLength(50);
+            entity.Property(e => e.CompanyStatus).HasMaxLength(100);
+            entity.Property(e => e.MainLicenseStatus).HasMaxLength(100);
+            entity.Property(e => e.InsuranceRegNo).HasMaxLength(100);
+            entity.Property(e => e.InsuranceSector).HasMaxLength(200);
+            entity.Property(e => e.InsuranceRef).HasMaxLength(200);
+            entity.Property(e => e.ManpowerFileNo).HasMaxLength(100);
+            entity.Property(e => e.ManpowerFileType).HasMaxLength(200);
+            entity.Property(e => e.ManpowerFileClassification).HasMaxLength(200);
+            entity.Property(e => e.ManpowerWorkAdmin).HasMaxLength(500);
+            entity.Property(e => e.UnifiedNo).HasMaxLength(100);
+            entity.Property(e => e.AuthorizedPersonName).HasMaxLength(500);
+            entity.Property(e => e.AuthorizedPersonCivilId).HasMaxLength(13);
+
             entity.HasOne(d => d.CompActivate).WithMany(p => p.CompanyInfoCompActivates)
                 .HasForeignKey(d => d.CompActivateId)
                 .HasConstraintName("FK_CompanyInfo_Deff2");
@@ -172,6 +198,32 @@ public partial class CarRentWebContext : DbContext
             entity.HasOne(d => d.Location).WithMany(p => p.CompanyInfoLocations)
                 .HasForeignKey(d => d.LocationId)
                 .HasConstraintName("FK_CompanyInfo_Deff");
+        });
+
+        modelBuilder.Entity<CompanyPartner>(entity =>
+        {
+            entity.ToTable("CompanyPartner");
+
+            entity.Property(e => e.PartnerName).HasMaxLength(500);
+            entity.Property(e => e.Nationality).HasMaxLength(200);
+            entity.Property(e => e.Role).HasMaxLength(500);
+            entity.Property(e => e.SharePercentage).HasColumnType("decimal(18,2)");
+
+            entity.HasOne(d => d.Comp).WithMany(p => p.CompanyPartners)
+                .HasForeignKey(d => d.CompId)
+                .HasConstraintName("FK_CompanyPartner_CompanyInfo");
+        });
+
+        modelBuilder.Entity<CompanyApproval>(entity =>
+        {
+            entity.ToTable("CompanyApproval");
+
+            entity.Property(e => e.AuthorityName).HasMaxLength(500);
+            entity.Property(e => e.ApprovalNo).HasMaxLength(200);
+
+            entity.HasOne(d => d.Comp).WithMany(p => p.CompanyApprovals)
+                .HasForeignKey(d => d.CompId)
+                .HasConstraintName("FK_CompanyApproval_CompanyInfo");
         });
 
         modelBuilder.Entity<CompanyInfoAtt>(entity =>
