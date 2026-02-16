@@ -12,7 +12,7 @@
     <div class="company-info-header">
         <h4>بيانات العقد</h4>
         <div class="action-buttons">
-           @*  <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">تعديل</a> *@
+            @*  <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">تعديل</a> *@
             <a asp-action="IndexDaily" class="btn btn-secondary">العوده لصفحة العقود</a>
         </div>
     </div>
@@ -43,7 +43,7 @@
             <div class="col-md-6">
                 <div class="info-section">
                     <h5>تفاصيل العقد</h5>
-                    
+
                     <div class="info-item">
                         <label> بداية العقد </label>
                         <span>@Html.DisplayFor(model => model.StartDate)</span>
@@ -66,12 +66,49 @@
                         <label>قيمة العقد </label>
                         <span>@Html.DisplayFor(model => model.TotalCost)</span>
                     </div>
-                    <!-- Repeat for other owners -->
+                    <div class="info-item">
+                        <label>نوع التأجير</label>
+                        <span>
+                            @switch (Model!.RentalType)
+                            {
+                                case 0:
+                                    @:عقد تأجير عادي
+                                    break;
+                                case 1:
+
+                                    @:تأجير مواعده بالتخفيض ثم التملك
+                                    break;
+                                case 2:
+
+                                    @:تأجير مخفض ملكية سائق
+                                    break;
+                                case 3:
+
+                                    @:تأجير مخفض ملكية شركة
+                                    break;
+                                default:
+
+                                    @:عقد تأجير عادي
+                                    break;
+                            }
+                        </span>
+                    </div>
+                    @if (Model.RentalType != null && Model.RentalType != 0)
+                    {
+                        <div class="info-item">
+                            <label>تاريخ التخفيض</label>
+                            <span>@Html.DisplayFor(model => model.DiscountDate)</span>
+                        </div>
+                        <div class="info-item">
+                            <label>مبلغ التخفيض</label>
+                            <span>@Html.DisplayFor(model => model.DiscountAmount)</span>
+                        </div>
+                    }
                 </div>
             </div>
 
         </div>
-        </div>
+    </div>
 
 
 

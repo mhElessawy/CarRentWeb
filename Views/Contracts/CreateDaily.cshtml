@@ -30,10 +30,16 @@
                     <input asp-for="ContractDate" value="@DateTime.Now.ToString("yyyy-MM-dd")" class="form-control" readonly />
                     <span asp-validation-for="ContractDate" class="text-danger small"></span>
                 </div>
-              @*   <div class="col-md-3">
-                    <label class="form-label">نوع العقد</label>
-                    <select class="form-select" asp-items="ViewBag.TimePeriods" dir="rtl" required></select>
-                </div> *@
+                <div class="col-md-3">
+                    <label asp-for="RentalType" class="form-label">نوع التأجير</label>
+                    <select asp-for="RentalType" class="form-select" id="RentalType" dir="rtl" required>
+                        <option value="0">عقد تأجير عادي</option>
+                        <option value="1">تأجير مواعده بالتخفيض ثم التملك</option>
+                        <option value="2">تأجير مخفض ملكية سائق</option>
+                        <option value="3">تأجير مخفض ملكية شركة</option>
+                    </select>
+                    <span asp-validation-for="RentalType" class="text-danger small"></span>
+                </div>
 
                 <div class="col-md-12"> </div>
                 <div class="col-md-3">
@@ -74,18 +80,35 @@
                 <div class="col-md-2">
                     <label asp-for="NoOfDays" class="form-label">عدد الأيام </label>
                     <input asp-for="NoOfDays" value="1" class="form-control" onchange="calculateTotalCost()" readonly />
-                    <span asp-validation-for="NoOfDays" class="text-danger small" ></span>
+                    <span asp-validation-for="NoOfDays" class="text-danger small"></span>
                 </div>
                 <div class="col-md-2">
                     <label asp-for="DailyCredit" class="form-label">المبلغ اليومي </label>
                     <input asp-for="DailyCredit" class="form-control" onchange="calculateTotalCost()" />
-                    <span asp-validation-for="DailyCredit" class="text-danger small" ></span>
+                    <span asp-validation-for="DailyCredit" class="text-danger small"></span>
                 </div>
                 <div class="col-md-2">
                     <label asp-for="TotalCost" class="form-label">قيمة العقد</label>
                     <input asp-for="TotalCost" class="form-control" readonly />
-                    <span asp-validation-for="TotalCost" class="text-danger small" ></span>
+                    <span asp-validation-for="TotalCost" class="text-danger small"></span>
                 </div>
+                <!-- Discount Section -->
+                <div id="discountSection" class="col-md-12 mt-3" style="display:none;">
+                    <h5 class="border-bottom pb-2">بيانات التخفيض</h5>
+                </div>
+                <div id="discountFields" style="display:none;" class="row g-3">
+                    <div class="col-md-3">
+                        <label asp-for="DiscountDate" class="form-label">تاريخ التخفيض</label>
+                        <input asp-for="DiscountDate" type="date" class="form-control" />
+                        <span asp-validation-for="DiscountDate" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-3">
+                        <label asp-for="DiscountAmount" class="form-label">مبلغ التخفيض</label>
+                        <input asp-for="DiscountAmount" class="form-control" />
+                        <span asp-validation-for="DiscountAmount" class="text-danger small"></span>
+                    </div>
+                </div>
+
                 <!-- Form Actions -->
                 <div class="col-md-12 mt-4">
                     <div class="d-flex justify-content-between">
@@ -227,6 +250,28 @@
         const noOfDays = parseFloat(document.getElementById('NoOfDays').value) || 0;
         const dailyCredit = parseFloat(document.getElementById('DailyCredit').value) || 0;
         const totalCost = noOfDays * dailyCredit;
-        document.getElementById('TotalCost').value = totalCost.toFixed(2); // Formats to 2 decimal places
+        document.getElementById('TotalCost').value = totalCost.toFixed(2);
     }
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var rentalTypeSelect = document.getElementById('RentalType');
+        var discountSection = document.getElementById('discountSection');
+        var discountFields = document.getElementById('discountFields');
+
+        function toggleDiscount() {
+            var val = rentalTypeSelect.value;
+            if (val === '1' || val === '2' || val === '3') {
+                discountSection.style.display = '';
+                discountFields.style.display = '';
+            } else {
+                discountSection.style.display = 'none';
+                discountFields.style.display = 'none';
+            }
+        }
+
+        rentalTypeSelect.addEventListener('change', toggleDiscount);
+        toggleDiscount();
+    });
 </script>

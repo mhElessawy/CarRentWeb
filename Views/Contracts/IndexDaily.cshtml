@@ -406,7 +406,9 @@
             <th>
                 البلغ  اليومي
             </th>
-            
+            <th>
+                نوع التأجير
+            </th>
 
 
             <th></th>
@@ -444,7 +446,31 @@
                 <td>
                     @Html.DisplayFor(modelItem => item.DailyCredit)
                 </td>
-             
+                <td>
+                    @switch (item.RentalType)
+                    {
+                        case 0:
+                            @:عادي
+                            break;
+                        case 1:
+
+                            @:تخفيض ثم تملك
+                            break;
+                        case 2:
+
+                            @:مخفض ملكية سائق
+                            break;
+                        case 3:
+
+                            @:مخفض ملكية شركة
+                            break;
+                        default:
+
+                            @:عادي
+                            break;
+                    }
+                </td>
+
                 <td class="action-links">
                     <a asp-action="CreateDaily" asp-controller="Bills" asp-route-id="@item.Id" class="btn-danger"><i class="fas fa-paypal"></i> دفع </a>
                     <a asp-action="DetailsDaily" asp-route-id="@item.Id" class="btn-details"><i class="fas fa-info-circle"></i> تفاصيل</a>

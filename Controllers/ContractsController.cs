@@ -1513,11 +1513,7 @@ namespace CarRentWeb.Controllers
                 }
                 return RedirectToAction(nameof(IndexMonthly));
             }
-
-
             return View();
         }
-
-
     }
 }
