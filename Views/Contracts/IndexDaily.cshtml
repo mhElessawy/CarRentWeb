@@ -284,6 +284,62 @@
             color: white;
         }
 
+    /* Discount alert notification box */
+    .discount-alert-box {
+        margin: 16px 0 20px 0;
+        border: 2px solid #e67e22;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 3px 10px rgba(230, 126, 34, 0.25);
+    }
+
+    .discount-alert-header {
+        background-color: #e67e22;
+        color: #fff;
+        padding: 10px 16px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .discount-alert-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.82rem;
+        background: #fffdf9;
+    }
+
+    .discount-alert-table thead tr {
+        background-color: #fdebd0;
+        color: #784212;
+        font-weight: 600;
+    }
+
+    .discount-alert-table th,
+    .discount-alert-table td {
+        padding: 7px 10px;
+        border-bottom: 1px solid #f0d9c0;
+        text-align: center;
+    }
+
+    .discount-alert-table tr.alert-today {
+        background-color: #fde8e8;
+        color: #c0392b;
+        font-weight: 700;
+    }
+
+    .discount-alert-table tr.alert-urgent {
+        background-color: #fef9e7;
+        color: #b7770d;
+    }
+
+    .discount-alert-table tr.alert-soon {
+        background-color: #fdfefe;
+        color: #2c3e50;
+    }
+
     /* Responsive design */
     @@media (max-width: 1200px) {
         .bordered-table {
@@ -342,6 +398,66 @@
 
 
 <h1 dir="rtl">العقود اليومية </h1>
+
+@{
+    var discountAlerts = ViewBag.DiscountAlerts as List<CarRentWeb.Models.Contract>;
+}
+@if (discountAlerts != null && discountAlerts.Count > 0)
+{
+    <div class="discount-alert-box" dir="rtl">
+        <div class="discount-alert-header">
+            <i class="fas fa-bell"></i>
+            تنبيه: عقود تقترب من تاريخ التخفيض (@discountAlerts.Count عقد)
+        </div>
+        <table class="discount-alert-table">
+            <thead>
+                <tr>
+                    <th>رقم العقد</th>
+                    <th>اسم الموظف</th>
+                    <th>كود السيارة</th>
+                    <th>نوع التأجير</th>
+                    <th>تاريخ التخفيض</th>
+                    <th>الأيام المتبقية</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var alert in discountAlerts)
+                {
+                    var daysLeft = alert.DiscountDate!.Value.DayNumber - DateOnly.FromDateTime(DateTime.Today).DayNumber;
+                    var rowClass = daysLeft == 0 ? "alert-today" : (daysLeft <= 3 ? "alert-urgent" : "alert-soon");
+                    <tr class="@rowClass">
+                        <td>@alert.ContractNo</td>
+                        <td>@alert.Employee?.FullNameAr</td>
+                        <td>@alert.Car?.CarCode</td>
+                        <td>
+                            @switch (alert.RentalType)
+                            {
+                                case 1: @:تخفيض ثم تملك break;
+                                case 2: @:مخفض ملكية سائق break;
+                                case 3: @:مخفض ملكية شركة break;
+                            }
+                        </td>
+                        <td>@alert.DiscountDate</td>
+                        <td>
+                            @if (daysLeft == 0)
+                            {
+                                <strong>اليوم</strong>
+                            }
+                            else
+                            {
+                                @:@daysLeft يوم
+                            }
+                        </td>
+                        <td>
+                            <a asp-action="DetailsDaily" asp-route-id="@alert.Id" class="btn-details" style="font-size:0.72rem">تفاصيل</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
 @if (user!.ContractDailySave == true)
 {
 
