@@ -32,6 +32,19 @@ namespace CarRentWeb.Controllers
             count = _context.EmployeeInfos.Count(a => a.EndLicense <= sevenMonthAgo);
             ViewBag.EndLicenseEmpCount = count;
 
+            // Contract notifications: contracts nearing EndDate (within 30 days)
+            var thirtyDaysLater = today.AddDays(30);
+            ViewBag.NearEndDateContractCount = _context.Contracts.Count(c =>
+                c.DeleteFlag == 0 && c.Status == 0 &&
+                c.EndDate != null &&
+                c.EndDate >= today && c.EndDate <= thirtyDaysLater);
+
+            // Contract notifications: contracts nearing DiscountDate (within 30 days)
+            ViewBag.NearDiscountDateContractCount = _context.Contracts.Count(c =>
+                c.DeleteFlag == 0 && c.Status == 0 &&
+                c.DiscountDate != null &&
+                c.DiscountDate >= today && c.DiscountDate <= thirtyDaysLater);
+
             TempData["Username"] = HttpContext.Session.GetString("Username");
             ViewData["UserId"] = HttpContext.Session.GetInt32("UserId");
             TempData.Keep(); // Keeps all TempData values
@@ -58,7 +71,7 @@ namespace CarRentWeb.Controllers
                     .Where(a => a.ResEndDate <= threeMonthsAgo)
                     .ToList();
 
-                ViewBag.Header = "ÅäÊåÇÁ ÇáÅŞÇãÇÊ";
+                ViewBag.Header = "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½";
                 ViewBag.DataType = "EmpRes";
                 return View(data);
             }
@@ -68,7 +81,7 @@ namespace CarRentWeb.Controllers
                     .Where(a => a.CarEndLicense <= threeMonthsAgo)
                     .ToList();
 
-                ViewBag.Header = "ÅäÊåÇÁ ÑÎÕÉ ÓæÇŞ";
+                ViewBag.Header = "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½";
                 ViewBag.DataType = "CarLicense";
                 return View(data);
             }
@@ -78,7 +91,7 @@ namespace CarRentWeb.Controllers
                     .Where(a => a.EndPerm <= threeMonthsAgo)
                     .ToList();
 
-                ViewBag.Header = "ÅäÊåÇÁ ÅĞä ÇáÚãá";
+                ViewBag.Header = "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½";
                 ViewBag.DataType = "EmpPerm";
                 return View(data);
             }
@@ -88,8 +101,40 @@ namespace CarRentWeb.Controllers
                     .Where(a => a.EndLicense <= threeMonthsAgo)
                     .ToList();
 
-                ViewBag.Header = "ÅäÊåÇÁ ÑÎÕÉ ÇáÓæÇŞÉ";
+                ViewBag.Header = "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½";
                 ViewBag.DataType = "EmpLicense";
+                return View(data);
+            }
+            else if (id == 5)
+            {
+                var thirtyDaysLater = today.AddDays(30);
+                var data = _context.Contracts
+                    .Include(c => c.Employee)
+                    .Include(c => c.Car)
+                    .Where(c => c.DeleteFlag == 0 && c.Status == 0 &&
+                                c.EndDate != null &&
+                                c.EndDate >= today && c.EndDate <= thirtyDaysLater)
+                    .OrderBy(c => c.EndDate)
+                    .ToList();
+
+                ViewBag.Header = "Ø¹Ù‚ÙˆØ¯ ØªÙ‚ØªØ±Ø¨ Ù…Ù† Ø§Ù„Ø§Ù†ØªÙ‡Ø§Ø¡";
+                ViewBag.DataType = "NearEndDate";
+                return View(data);
+            }
+            else if (id == 6)
+            {
+                var thirtyDaysLater = today.AddDays(30);
+                var data = _context.Contracts
+                    .Include(c => c.Employee)
+                    .Include(c => c.Car)
+                    .Where(c => c.DeleteFlag == 0 && c.Status == 0 &&
+                                c.DiscountDate != null &&
+                                c.DiscountDate >= today && c.DiscountDate <= thirtyDaysLater)
+                    .OrderBy(c => c.DiscountDate)
+                    .ToList();
+
+                ViewBag.Header = "Ø¹Ù‚ÙˆØ¯ ØªÙ‚ØªØ±Ø¨ Ù…Ù† Ù…ÙˆØ¹Ø¯ Ø§Ù„ØªØ®ÙÙŠØ¶";
+                ViewBag.DataType = "NearDiscountDate";
                 return View(data);
             }
 
