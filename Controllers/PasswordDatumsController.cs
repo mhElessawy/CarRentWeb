@@ -16,7 +16,6 @@ namespace CarRentWeb.Controllers
         {
             _context = context;
         }
-
         // GET: PasswordDatums
         public async Task<IActionResult> Index()
         {
@@ -120,13 +119,11 @@ namespace CarRentWeb.Controllers
                 ViewData["ErrorMessage"] = "بيانات الدخول غير صحيحة";
                 return View();
             }
-
             // Login successful - create auth session
             HttpContext.Session.SetString("Username", user.UserName!);
             HttpContext.Session.SetInt32("UserId", user.Id);
             HttpContext.Session.SetString("UserCompanyData", user.CompanyData ?? "0");
             HttpContext.Session.SetString("PurshaseShowAll", user.PurshaseShowAll.ToString());
-
             return RedirectToAction("Index", "Home");
         }
 

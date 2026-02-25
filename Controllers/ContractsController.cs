@@ -231,6 +231,22 @@ namespace CarRentWeb.Controllers
             ViewData["EmpNameFilter"] = EmpNameSearch;
             ViewData["CompanyFilter"] = companyId;
 
+            // Discount approaching notification (within 7 days)
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            var alertThreshold = today.AddDays(7);
+            var discountAlerts = await _context.Contracts
+                .Include(c => c.Car)
+                .Include(c => c.Employee)
+                .Where(m => m.DeleteFlag == 0 && m.Status == 0 && m.ContractType == 0
+                         && m.RentalType != 0 && m.RentalType != null
+                         && m.DiscountDate != null
+                         && m.DiscountDate >= today
+                         && m.DiscountDate <= alertThreshold)
+                .OrderBy(m => m.DiscountDate)
+                .AsNoTracking()
+                .ToListAsync();
+            ViewBag.DiscountAlerts = discountAlerts;
+
             // Pagination
             int pageSize = 10; // Set your page size
             return View(await PaginatedList<Contract>.CreateAsync(query.AsNoTracking(), pageNumber ?? 1, pageSize));

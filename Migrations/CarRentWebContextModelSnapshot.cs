@@ -397,7 +397,7 @@ namespace CarRentWeb.Migrations
                     b.Property<string>("AddressQasima")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal>("AddressRent")
+                    b.Property<decimal?>("AddressRent")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
@@ -466,7 +466,7 @@ namespace CarRentWeb.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<int>("CommercialRegistrationNo")
+                    b.Property<int?>("CommercialRegistrationNo")
                         .HasColumnType("int");
 
                     b.Property<int?>("CompActivateId")
@@ -507,10 +507,10 @@ namespace CarRentWeb.Migrations
                         .HasColumnType("int")
                         .HasDefaultValue(0);
 
-                    b.Property<DateOnly>("EndLicense")
+                    b.Property<DateOnly?>("EndLicense")
                         .HasColumnType("date");
 
-                    b.Property<DateOnly>("EndRent")
+                    b.Property<DateOnly?>("EndRent")
                         .HasColumnType("date");
 
                     b.Property<int?>("FiscalYearEndMonth")
@@ -623,10 +623,10 @@ namespace CarRentWeb.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<DateOnly>("StartLicense")
+                    b.Property<DateOnly?>("StartLicense")
                         .HasColumnType("date");
 
-                    b.Property<DateOnly>("StartRent")
+                    b.Property<DateOnly?>("StartRent")
                         .HasColumnType("date");
 
                     b.Property<string>("Tel1")

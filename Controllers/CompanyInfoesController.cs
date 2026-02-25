@@ -97,11 +97,20 @@ namespace CarRentWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CompanyInfo model)
         {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors);
+                foreach (var error in errors)
+                {
+                    Console.WriteLine(error.ErrorMessage);
+                }
+            }
+
             if (ModelState.IsValid)
             {
 
-                var checkCode = _context.CompanyInfos.Where(a => a.CompCode == model.CompCode);
-                if (checkCode != null)
+                var checkCode = await _context.CompanyInfos.AnyAsync(a => a.CompCode == model.CompCode);
+                if (checkCode)
                 {
                     ModelState.AddModelError("CompCode", "كود الشركه موجود مسبقا الرجاء إدخال كد آخر ");
                     return View(model);

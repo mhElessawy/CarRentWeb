@@ -63,11 +63,12 @@ public partial class CompanyInfo
     public string? AddressUnitNo { get; set; }
     [Display(Name = " الإيجار")]
     [Precision(18, 2)]
-    public decimal AddressRent { get; set; }
+    public decimal? AddressRent { get; set; }
     [Display(Name = " بداية الإيجار")]
-    public DateOnly StartRent { get; set; }
+    public DateOnly? StartRent { get; set; }
+    
     [Display(Name = " نهاية الإيجار")]
-    public DateOnly EndRent { get; set; }
+    public DateOnly? EndRent { get; set; }
 
     //    end
 
@@ -110,13 +111,13 @@ public partial class CompanyInfo
     public string? TradeLicenseNo { get; set; }
 
     [Display(Name = "تاريخ بداية الترخيص")]
-    public DateOnly StartLicense { get; set; }
+    public DateOnly? StartLicense { get; set; }
     [Display(Name = "تاريخ نهاية الترخيص")]
-    public DateOnly EndLicense { get; set; }
+    public DateOnly? EndLicense { get; set; }
     [Display(Name = "الرقم المركزي")]
     public string? CenterNo { get; set; }
     [Display(Name = "رقم السجل التجاري")]
-    public int CommercialRegistrationNo { get; set; }
+    public int? CommercialRegistrationNo { get; set; }
 
     [Display(Name = "المحافظة")]
     public int? LocationId { get; set; }

@@ -224,7 +224,7 @@
             </div>
             <div class="col-md-3">
                 <label asp-for="CompActivateId" class="form-label">نوع النشاط</label>
-                <select asp-for="CompActivateId" class="form-control" asp-items="ViewBag.CompActivateId">
+                <select asp-for="CompActivateId" class="form-control" asp-items="ViewBag.CompActivateId" required>
                     <option value="">-- اختر --</option>
                 </select>
                 <span asp-validation-for="CompActivateId" class="text-danger"></span>
@@ -434,14 +434,14 @@
         <div class="row g-3">
             <div class="col-md-3">
                 <label asp-for="LocationId" class="form-label">المحافظة</label>
-                <select asp-for="LocationId" class="form-control" asp-items="ViewBag.LocationId">
+                <select asp-for="LocationId" class="form-control" asp-items="ViewBag.LocationId" required >
                     <option value="">-- اختر --</option>
                 </select>
                 <span asp-validation-for="LocationId" class="text-danger"></span>
             </div>
             <div class="col-md-3">
                 <label asp-for="CityId" class="form-label">المدينة</label>
-                <select asp-for="CityId" class="form-control" asp-items="ViewBag.CityId">
+                <select asp-for="CityId" class="form-control" asp-items="ViewBag.CityId" required>
                     <option value="">-- اختر --</option>
                 </select>
                 <span asp-validation-for="CityId" class="text-danger"></span>
