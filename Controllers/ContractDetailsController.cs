@@ -64,7 +64,8 @@ namespace CarRentWeb.Controllers
                      .Where(a => a.DeleteFlag == 0
                          && (a.Status != 3 && a.Status != 4)
                          && a.Contract!.DeleteFlag == 0
-                         && a.Contract!.Status == 0);
+                         && a.Contract!.Status == 0
+                         && a.Contract!.ContractType == 1);
 
 
             //var query = baseQuery
