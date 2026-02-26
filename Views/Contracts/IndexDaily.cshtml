@@ -340,6 +340,13 @@
             color: #2c3e50;
         }
 
+    /* Table container always scrollable */
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+    }
+
     /* Responsive design */
     @@media (max-width: 1200px) {
         .bordered-table {
@@ -353,10 +360,6 @@
     }
 
     @@media (max-width: 992px) {
-        .table-container {
-            overflow-x: auto;
-        }
-
         .action-links {
             flex-direction: column;
             gap: 3px;
@@ -373,6 +376,16 @@
             flex-direction: column;
             align-items: flex-start;
         }
+
+        .form-group label {
+            margin-top: 6px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100% !important;
+            max-width: 300px;
+        }
     }
 
     @@media (max-width: 768px) {
@@ -381,18 +394,37 @@
         }
 
         .bordered-table {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
         }
 
             .bordered-table th,
             .bordered-table td {
-                padding: 8px 5px;
+                padding: 6px 4px;
+                white-space: nowrap;
             }
 
         .action-buttons {
             flex-direction: column;
             align-items: flex-start;
         }
+
+        .btn-edit, .btn-details, .btn-delete, .btn-info {
+            font-size: 0.7rem;
+            padding: 3px 6px;
+        }
+
+        .search-container {
+            padding: 10px;
+        }
+
+        .discount-alert-table {
+            font-size: 0.75rem;
+        }
+
+            .discount-alert-table th,
+            .discount-alert-table td {
+                padding: 5px 6px;
+            }
     }
 </style>
 
@@ -409,6 +441,7 @@
             <i class="fas fa-bell"></i>
             تنبيه: عقود تقترب من تاريخ التخفيض (@discountAlerts.Count عقد)
         </div>
+        <div style="overflow-x:auto; -webkit-overflow-scrolling:touch;">
         <table class="discount-alert-table">
             <thead>
                 <tr>
@@ -462,6 +495,7 @@
                 }
             </tbody>
         </table>
+        </div>
     </div>
 }
 @if (user!.ContractDailySave == true)
@@ -498,6 +532,7 @@
     </form>
 </div>
 
+<div class="table-container">
 <table class="bordered-table" dir="rtl">
     <thead>
         <tr>
@@ -605,6 +640,7 @@
         }
     </tbody>
 </table>
+</div>
 <div class="pagination-container" dir="rtl">
     @{
         var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
