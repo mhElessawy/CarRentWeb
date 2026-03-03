@@ -340,6 +340,13 @@
             color: #2c3e50;
         }
 
+    /* Table container always scrollable */
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+    }
+
     /* Responsive design */
     @@media (max-width: 1200px) {
         .bordered-table {
@@ -353,10 +360,6 @@
     }
 
     @@media (max-width: 992px) {
-        .table-container {
-            overflow-x: auto;
-        }
-
         .action-links {
             flex-direction: column;
             gap: 3px;
@@ -373,6 +376,16 @@
             flex-direction: column;
             align-items: flex-start;
         }
+
+        .form-group label {
+            margin-top: 6px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100% !important;
+            max-width: 300px;
+        }
     }
 
     @@media (max-width: 768px) {
@@ -381,18 +394,37 @@
         }
 
         .bordered-table {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
         }
 
             .bordered-table th,
             .bordered-table td {
-                padding: 8px 5px;
+                padding: 6px 4px;
+                white-space: nowrap;
             }
 
         .action-buttons {
             flex-direction: column;
             align-items: flex-start;
         }
+
+        .btn-edit, .btn-details, .btn-delete, .btn-info {
+            font-size: 0.7rem;
+            padding: 3px 6px;
+        }
+
+        .search-container {
+            padding: 10px;
+        }
+
+        .discount-alert-table {
+            font-size: 0.75rem;
+        }
+
+            .discount-alert-table th,
+            .discount-alert-table td {
+                padding: 5px 6px;
+            }
     }
 </style>
 
@@ -409,59 +441,61 @@
             <i class="fas fa-bell"></i>
             تنبيه: عقود تقترب من تاريخ التخفيض (@discountAlerts.Count عقد)
         </div>
-        <table class="discount-alert-table">
-            <thead>
-                <tr>
-                    <th>رقم العقد</th>
-                    <th>اسم الموظف</th>
-                    <th>كود السيارة</th>
-                    <th>نوع التأجير</th>
-                    <th>تاريخ التخفيض</th>
-                    <th>الأيام المتبقية</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var alert in discountAlerts)
-                {
-                    var daysLeft = alert.DiscountDate!.Value.DayNumber - DateOnly.FromDateTime(DateTime.Today).DayNumber;
-                    var rowClass = daysLeft == 0 ? "alert-today" : (daysLeft <= 3 ? "alert-urgent" : "alert-soon");
-                    <tr class="@rowClass">
-                        <td>@alert.ContractNo</td>
-                        <td>@alert.Employee?.FullNameAr</td>
-                        <td>@alert.Car?.CarCode</td>
-                        <td>
-                            @switch (alert.RentalType)
-                            {
-                                case 1:
-                                    @:تخفيض ثم تملك
-                                    break;
-                                case 2:
-                                    @:مخفض ملكية سائق
-                                    break;
-                                case 3:
-                                    @:مخفض ملكية شركة
-                                    break;
-                            }
-                        </td>
-                        <td>@alert.DiscountDate</td>
-                        <td>
-                            @if (daysLeft == 0)
-                            {
-                                <strong>اليوم</strong>
-                            }
-                            else
-                            {
-                                @:@daysLeft يوم
-                            }
-                        </td>
-                        <td>
-                            <a asp-action="DetailsDaily" asp-route-id="@alert.Id" class="btn-details" style="font-size:0.72rem">تفاصيل</a>
-                        </td>
+        <div style="overflow-x:auto; -webkit-overflow-scrolling:touch;">
+            <table class="discount-alert-table">
+                <thead>
+                    <tr>
+                        <th>رقم العقد</th>
+                        <th>اسم الموظف</th>
+                        <th>كود السيارة</th>
+                        <th>نوع التأجير</th>
+                        <th>تاريخ التخفيض</th>
+                        <th>الأيام المتبقية</th>
+                        <th></th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach (var alert in discountAlerts)
+                    {
+                        var daysLeft = alert.DiscountDate!.Value.DayNumber - DateOnly.FromDateTime(DateTime.Today).DayNumber;
+                        var rowClass = daysLeft == 0 ? "alert-today" : (daysLeft <= 3 ? "alert-urgent" : "alert-soon");
+                        <tr class="@rowClass">
+                            <td>@alert.ContractNo</td>
+                            <td>@alert.Employee?.FullNameAr</td>
+                            <td>@alert.Car?.CarCode</td>
+                            <td>
+                                @switch (alert.RentalType)
+                                {
+                                    case 1:
+                                        @:تخفيض ثم تملك
+                                        break;
+                                    case 2:
+                                        @:مخفض ملكية سائق
+                                        break;
+                                    case 3:
+                                        @:مخفض ملكية شركة
+                                        break;
+                                }
+                            </td>
+                            <td>@alert.DiscountDate</td>
+                            <td>
+                                @if (daysLeft == 0)
+                                {
+                                    <strong>اليوم</strong>
+                                }
+                                else
+                                {
+                                    @:@daysLeft يوم
+                                }
+                            </td>
+                            <td>
+                                <a asp-action="DetailsDaily" asp-route-id="@alert.Id" class="btn-details" style="font-size:0.72rem">تفاصيل</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
 }
 @if (user!.ContractDailySave == true)
@@ -498,113 +532,115 @@
     </form>
 </div>
 
-<table class="bordered-table" dir="rtl">
-    <thead>
-        <tr>
-            <th>
-                رقم العقد
-            </th>
-            <th>
-                تاريخ العقد
-            </th>
-            <th>
-                كود السيارة
-            </th>
-            <th>
-                رقم الموظف
-            </th>
-            <th>
-                اسم الموظف
-            </th>
-            <th>
-                بداية العقد
-            </th>
-            <th>
-                نهاية العقد
-            </th>
-            <th>
-                عدد الأيام
-            </th>
-            <th>
-                المبلغ  اليومي
-            </th>
-            <th>
-                نوع التأجير
-            </th>
-
-
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
+<div class="table-container">
+    <table class="bordered-table" dir="rtl">
+        <thead>
             <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.ContractNo)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.ContractDate)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Car!.CarCode)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Employee!.EmpCode)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Employee!.FullNameAr)
-                </td>
+                <th>
+                    رقم العقد
+                </th>
+                <th>
+                    تاريخ العقد
+                </th>
+                <th>
+                    كود السيارة
+                </th>
+                <th>
+                    رقم الموظف
+                </th>
+                <th>
+                    اسم الموظف
+                </th>
+                <th>
+                    بداية العقد
+                </th>
+                <th>
+                    نهاية العقد
+                </th>
+                <th>
+                    عدد الأيام
+                </th>
+                <th>
+                    المبلغ  اليومي
+                </th>
+                <th>
+                    نوع التأجير
+                </th>
 
-                <td>
-                    @Html.DisplayFor(modelItem => item.StartDate)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.EndDate)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.NoOfDays)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.DailyCredit)
-                </td>
-                <td>
-                    @switch (item.RentalType)
-                    {
-                        case 0:
-                            @:عادي
-                            break;
-                        case 1:
 
-                            @:تخفيض ثم تملك
-                            break;
-                        case 2:
-
-                            @:مخفض ملكية سائق
-                            break;
-                        case 3:
-
-                            @:مخفض ملكية شركة
-                            break;
-                        default:
-
-                            @:عادي
-                            break;
-                    }
-                </td>
-
-                <td class="action-links">
-                    <a asp-action="CreateDaily" asp-controller="Bills" asp-route-id="@item.Id" class="btn-danger"><i class="fas fa-paypal"></i> دفع </a>
-                    <a asp-action="DetailsDaily" asp-route-id="@item.Id" class="btn-details"><i class="fas fa-info-circle"></i> تفاصيل</a>
-                    @if (user!.ContractDailyEnd == true)
-                    {
-                        <a asp-action="EndContractDaily" asp-route-id="@item.Id" class="btn-delete"><i class="fas fa-trash-alt"></i> إنتهاء عقد</a>
-                    }
-                </td>
+                <th></th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.ContractNo)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.ContractDate)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Car!.CarCode)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Employee!.EmpCode)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Employee!.FullNameAr)
+                    </td>
+
+                    <td>
+                        @Html.DisplayFor(modelItem => item.StartDate)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.EndDate)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.NoOfDays)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.DailyCredit)
+                    </td>
+                    <td>
+                        @switch (item.RentalType)
+                        {
+                            case 0:
+                                @:عادي
+                                break;
+                            case 1:
+
+                                @:تخفيض ثم تملك
+                                break;
+                            case 2:
+
+                                @:مخفض ملكية سائق
+                                break;
+                            case 3:
+
+                                @:مخفض ملكية شركة
+                                break;
+                            default:
+
+                                @:عادي
+                                break;
+                        }
+                    </td>
+
+                    <td class="action-links">
+                        <a asp-action="CreateDaily" asp-controller="Bills" asp-route-id="@item.Id" class="btn-danger"><i class="fas fa-paypal"></i> دفع </a>
+                        <a asp-action="DetailsDaily" asp-route-id="@item.Id" class="btn-details"><i class="fas fa-info-circle"></i> تفاصيل</a>
+                        @if (user!.ContractDailyEnd == true)
+                        {
+                            <a asp-action="EndContractDaily" asp-route-id="@item.Id" class="btn-delete"><i class="fas fa-trash-alt"></i> إنتهاء عقد</a>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
 <div class="pagination-container" dir="rtl">
     @{
         var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";

@@ -32,7 +32,7 @@
     <div class="employee-details" dir="rtl">
         <h3>بيانات السيارة</h3>
         <p><strong>رقم السيارة :</strong> @car.CarNo</p>
-          <!-- Add more fields as needed -->
+        <!-- Add more fields as needed -->
     </div>
 }
 else
@@ -48,29 +48,31 @@ else
     </a>
 </p>
 
-<table class="bordered-table" dir="rtl">
-    <thead>
-        <tr>
-            <th>
-                اسم الملف
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in attendances!)
-        {
+<div class="table-container">
+    <table class="bordered-table" dir="rtl">
+        <thead>
             <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.TitleData)
-                </td>
-                <td class="action-links">
-                    <a asp-action="EditAtt" asp-route-id="@item.Id" class="btn-edit"><i class="fas fa-edit"></i> تعديل</a>
-                    <a asp-action="DownLoadAttatchment" asp-route-id="@item.Id" class="btn-details"><i class="fas fa-info-circle"></i> تحميل</a>
-                    <a asp-action="DeleteAtt" asp-route-id="@item.Id" class="btn-delete"><i class="fas fa-trash-alt"></i> حذف</a>
-                </td>
+                <th>
+                    اسم الملف
+                </th>
+                <th></th>
             </tr>
-        }
+        </thead>
+        <tbody>
+            @foreach (var item in attendances!)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.TitleData)
+                    </td>
+                    <td class="action-links">
+                        <a asp-action="EditAtt" asp-route-id="@item.Id" class="btn-edit"><i class="fas fa-edit"></i> تعديل</a>
+                        <a asp-action="DownLoadAttatchment" asp-route-id="@item.Id" class="btn-details"><i class="fas fa-info-circle"></i> تحميل</a>
+                        <a asp-action="DeleteAtt" asp-route-id="@item.Id" class="btn-delete"><i class="fas fa-trash-alt"></i> حذف</a>
+                    </td>
+                </tr>
+            }
 
-    </tbody>
-</table>
+        </tbody>
+    </table>
+</div>

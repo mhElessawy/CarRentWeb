@@ -67,91 +67,94 @@
 
 
 
-<table class="bordered-table" dir="rtl">
-    <thead>
-        <tr>
-            <th>
-                رقم العقد
-            </th>
-            <th>
-               تاريخ العقد
-            </th>
-            <th>
-               كود السيارة
-            </th>
-            <th>
-               اسم الموظف
-            </th>
-            <th>
-                بداية العقد
-            </th>
-            <th>
-               نهاية العقد
-            </th>
-           
-            <th>
-               البلغ اليومي أو الشهري
-            </th>
-           
-            <th>
-               قيمة العقد
-            </th>
-            <th>
-                نوع العقد
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.ContractNo)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ContractDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Car!.CarCode)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Employee!.FullNameAr)
-            </td>
+<div class="table-container">
+    <table class="bordered-table" dir="rtl">
+        <thead>
+            <tr>
+                <th>
+                    رقم العقد
+                </th>
+                <th>
+                    تاريخ العقد
+                </th>
+                <th>
+                    كود السيارة
+                </th>
+                <th>
+                    اسم الموظف
+                </th>
+                <th>
+                    بداية العقد
+                </th>
+                <th>
+                    نهاية العقد
+                </th>
 
-            <td>
-                @Html.DisplayFor(modelItem => item.StartDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.EndDate)
-            </td>
-       
-            <td>
-                @Html.DisplayFor(modelItem => item.DailyCredit)
-            </td>
-         
-            <td>
-                @Html.DisplayFor(modelItem => item.TotalCost)
-            </td>
-                <td>
-                    @if(item.ContractType ==0 )
-                    {
-                       <label>يومي</label>
-                    }
-                    else
-                    {
-                        <label>شهري</label>
-                    }
-                   
-                </td>
-            <td class="action-links">
-                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn-edit"><i class="fas fa-edit"></i> تعديل</a>
-                    <a asp-action="Details" asp-route-id="@item.Id" class="btn-details"><i class="fas fa-info-circle"></i> تفاصيل</a>
-                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn-delete"><i class="fas fa-trash-alt"></i> حذف</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+                <th>
+                    البلغ اليومي أو الشهري
+                </th>
+
+                <th>
+                    قيمة العقد
+                </th>
+                <th>
+                    نوع العقد
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.ContractNo)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.ContractDate)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Car!.CarCode)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Employee!.FullNameAr)
+                    </td>
+
+                    <td>
+                        @Html.DisplayFor(modelItem => item.StartDate)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.EndDate)
+                    </td>
+
+                    <td>
+                        @Html.DisplayFor(modelItem => item.DailyCredit)
+                    </td>
+
+                    <td>
+                        @Html.DisplayFor(modelItem => item.TotalCost)
+                    </td>
+                    <td>
+                        @if (item.ContractType == 0)
+                        {
+                            <label>يومي</label>
+                        }
+                        else
+                        {
+                            <label>شهري</label>
+                        }
+
+                    </td>
+                    <td class="action-links">
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn-edit"><i class="fas fa-edit"></i> تعديل</a>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn-details"><i class="fas fa-info-circle"></i> تفاصيل</a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn-delete"><i class="fas fa-trash-alt"></i> حذف</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
 <div class="pagination-container" dir="rtl">
     @{
         var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
@@ -164,7 +167,7 @@
        asp-route-EmpCodeString="@ViewData["EmpCodeFilter"]"
        asp-route-EmpNameSearch="@ViewData["EmpNameFilter"]"
        asp-route-companyId="@ViewData["CompanyFilter"]"
-       asp-route-ContractType = "@ViewData["TimePeriods"]"
+       asp-route-ContractType="@ViewData["TimePeriods"]"
        class="btn btn-default @prevDisabled">
         السابق
     </a>
