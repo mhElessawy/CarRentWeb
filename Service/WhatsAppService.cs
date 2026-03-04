@@ -32,6 +32,11 @@ namespace CarRentWeb.Service
 
             // Normalize phone: remove spaces/dashes, ensure starts with country code
             var phone = toPhone.Trim().Replace(" ", "").Replace("-", "").Replace("+", "");
+            // Add Kuwait country code if not present
+            if (phone.StartsWith("0"))
+                phone = "965" + phone.Substring(1);
+            else if (!phone.StartsWith("965"))
+                phone = "965" + phone;
 
             string message =
                 $"🧾 *فاتورة إيجار سيارة*\n" +
