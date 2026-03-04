@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using CarRentWeb.Data;
 using CarRentWeb.Models;
+using CarRentWeb.Service;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
@@ -13,19 +14,21 @@ using System.Linq;
 using System.Threading.Tasks;
 using ClosedXML.Excel;
 using System.Data;
-using CarRentWeb.Data;      
+
 
 namespace CarRentWeb.Controllers
 {
     public class BillsController : Controller
     {
         private readonly CarRentWebContext _context;
+        private readonly WhatsAppService _whatsAppService;
 
         public object UserId { get; private set; }
 
-        public BillsController(CarRentWebContext context)
+        public BillsController(CarRentWebContext context, WhatsAppService whatsAppService)
         {
             _context = context;
+            _whatsAppService = whatsAppService;
         }
         // GET: Bills
         public async Task<IActionResult> Index(string sortField, string sortOrder, string? CarNoSearch, int? EmpNoSearch, string? ContractNoSearch, int? companyId, int? pageNumber, DateTime? FromDateSearch, DateTime? ToDateSearch, string? EmpNameSearch, int? UserId)
@@ -426,6 +429,24 @@ namespace CarRentWeb.Controllers
 
                 _context.Add(bill);
                 await _context.SaveChangesAsync();
+
+                // إرسال رسالة واتساب للعميل
+                var employee = await _context.EmployeeInfos.FindAsync(bill.EmployeeId);
+                var phone = employee?.MobiileNo ?? employee?.TelNo;
+                if (!string.IsNullOrWhiteSpace(phone))
+                {
+                    await _whatsAppService.SendInvoiceMessageAsync(
+                        phone,
+                        employee?.FullNameAr ?? "",
+                        bill.BillNo,
+                        bill.BillPayed,
+                        bill.FromDate,
+                        bill.ToDate,
+                        bill.NoOfDays,
+                        bill.BillDate,
+                        "يومي");
+                }
+
                 return RedirectToAction(nameof(IndexDaily));
             }
 
@@ -641,6 +662,24 @@ namespace CarRentWeb.Controllers
                 bill.ContractId = contractid;
                 _context.Add(bill);
                 await _context.SaveChangesAsync();
+
+                // إرسال رسالة واتساب للعميل
+                var employee = await _context.EmployeeInfos.FindAsync(bill.EmployeeId);
+                var phone = employee?.MobiileNo ?? employee?.TelNo;
+                if (!string.IsNullOrWhiteSpace(phone))
+                {
+                    await _whatsAppService.SendInvoiceMessageAsync(
+                        phone,
+                        employee?.FullNameAr ?? "",
+                        bill.BillNo,
+                        bill.BillPayed,
+                        bill.FromDate,
+                        bill.ToDate,
+                        bill.NoOfDays,
+                        bill.BillDate,
+                        "شهري");
+                }
+
                 return RedirectToAction(nameof(IndexMonthly));
             }
 
