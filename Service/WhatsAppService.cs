@@ -66,7 +66,20 @@ namespace CarRentWeb.Service
             _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_accessToken}");
 
             var url = $"https://graph.facebook.com/v18.0/{_phoneNumberId}/messages";
-            await _httpClient.PostAsync(url, content);
+            var response = await _httpClient.PostAsync(url, content);
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                // Log the error so you can see what went wrong
+                Console.WriteLine($"[WhatsApp ERROR] Status: {response.StatusCode}");
+                Console.WriteLine($"[WhatsApp ERROR] Response: {responseBody}");
+            }
+            else
+            {
+                Console.WriteLine($"[WhatsApp OK] Message sent to {phone}");
+                Console.WriteLine($"[WhatsApp OK] Response: {responseBody}");
+            }
         }
     }
 }
