@@ -49,7 +49,7 @@ namespace CarRentWeb.Service
             var payload = new
             {
                 messaging_product = "whatsapp",
-                to = +96566696126,
+                to = 96566696126,
                 type = "text",
                 text = new { body = message }
             };
