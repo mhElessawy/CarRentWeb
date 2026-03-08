@@ -32,6 +32,11 @@ namespace CarRentWeb.Service
 
             // Normalize phone: remove spaces/dashes, ensure starts with country code
             var phone = toPhone.Trim().Replace(" ", "").Replace("-", "").Replace("+", "");
+            // Add Kuwait country code if not present
+            if (phone.StartsWith("0"))
+                phone = "965" + phone.Substring(1);
+            else if (!phone.StartsWith("965"))
+                phone = "965" + phone;
 
             string message =
                 $"🧾 *فاتورة إيجار سيارة*\n" +
@@ -49,7 +54,7 @@ namespace CarRentWeb.Service
             var payload = new
             {
                 messaging_product = "whatsapp",
-                to = 96566696126,
+                to = phone,
                 type = "text",
                 text = new { body = message }
             };
@@ -61,7 +66,20 @@ namespace CarRentWeb.Service
             _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_accessToken}");
 
             var url = $"https://graph.facebook.com/v18.0/{_phoneNumberId}/messages";
-            await _httpClient.PostAsync(url, content);
+            var response = await _httpClient.PostAsync(url, content);
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                // Log the error so you can see what went wrong
+                Console.WriteLine($"[WhatsApp ERROR] Status: {response.StatusCode}");
+                Console.WriteLine($"[WhatsApp ERROR] Response: {responseBody}");
+            }
+            else
+            {
+                Console.WriteLine($"[WhatsApp OK] Message sent to {phone}");
+                Console.WriteLine($"[WhatsApp OK] Response: {responseBody}");
+            }
         }
     }
 }
