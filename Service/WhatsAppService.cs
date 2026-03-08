@@ -76,6 +76,10 @@ namespace CarRentWeb.Service
             var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{_accountSid}:{_authToken}"));
             request.Headers.Authorization = new AuthenticationHeaderValue("Basic", credentials);
 
+            Console.WriteLine($"[Twilio DEBUG] AccountSid: {_accountSid}");
+            Console.WriteLine($"[Twilio DEBUG] AuthToken length: {_authToken?.Length}");
+            Console.WriteLine($"[Twilio DEBUG] URL: {url}");
+
             var response = await _httpClient.SendAsync(request);
             var responseBody = await response.Content.ReadAsStringAsync();
 
