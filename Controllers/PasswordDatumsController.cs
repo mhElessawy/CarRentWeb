@@ -80,8 +80,14 @@ namespace CarRentWeb.Controllers
                                         : string.Join(",", SelectedCompanies);
 
 
+                if (string.IsNullOrEmpty(passwordDatum.Password))
+                {
+                    ModelState.AddModelError("Password", "كلمة المرور مطلوبة");
+                    return View(passwordDatum);
+                }
+
                 passwordDatum.EmpId = 0;
-                string hashedPassword = HashPassword(passwordDatum.Password!);
+                string hashedPassword = HashPassword(passwordDatum.Password);
                 passwordDatum.Password = hashedPassword; // Store the hashed versi
                 _context.Add(passwordDatum);
                 await _context.SaveChangesAsync();
