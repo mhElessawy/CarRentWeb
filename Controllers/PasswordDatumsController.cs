@@ -205,6 +205,16 @@ namespace CarRentWeb.Controllers
                     passwordDatum.CompanyData = (SelectedCompanies == null || !SelectedCompanies.Any())
                                         ? "0"
                                         : string.Join(",", SelectedCompanies);
+
+                    var existing = await _context.PasswordData.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id);
+                    if (existing != null)
+                    {
+                        passwordDatum.CompDebitView = existing.CompDebitView;
+                        passwordDatum.CompDebitSave = existing.CompDebitSave;
+                        passwordDatum.CompDebitUpdate = existing.CompDebitUpdate;
+                        passwordDatum.CompDebitDelete = existing.CompDebitDelete;
+                    }
+
                     _context.Update(passwordDatum);
                     await _context.SaveChangesAsync();
                 }
