@@ -153,7 +153,7 @@
         if (fromDateInput.value && noOfDaysInput.value) {
             // 1. Calculate ToDate by adding days
             const fromDate = new Date(fromDateInput.value);
-            const noOfDays = parseInt(noOfDaysInput.value) || 0;
+            const noOfDays = parseInt(noOfDaysInput.value) - 1  || 0;
             const toDate = new Date(fromDate);
 
             // Add the number of days to the date
@@ -163,7 +163,7 @@
 
             // 2. Calculate Total Cost (using CostPerDay as per day)
             const costPerDay = parseFloat(billCostBerDay.value) || 0;
-            const totalCost = noOfDays * costPerDay;
+            const totalCost = (noOfDays + 1)  * costPerDay;
             billPayedInput.value = totalCost;
             console.log("Total Cost Calculated:", totalCost);
         } else {
