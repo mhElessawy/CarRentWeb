@@ -1,0 +1,238 @@
+@model IEnumerable<CarRentWeb.Models.MyModel.BalanceReportViewModel>
+
+@{
+    ViewData["Title"] = "تقرير الرصيد الحالي";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var totalOverdue  = ViewBag.TotalOverdueRental as decimal? ?? 0;
+    var totalDebt     = ViewBag.TotalRemainingDebt  as decimal? ?? 0;
+    var grandTotal    = ViewBag.GrandTotal           as decimal? ?? 0;
+    var reportDate    = ViewBag.ReportDate as string ?? "";
+}
+
+<style>
+    .bordered-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 15px 0;
+        font-size: 0.85em;
+        font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+        .bordered-table thead tr {
+            background-color: #2c3e50;
+            color: #ffffff;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .bordered-table th,
+        .bordered-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #dddddd;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .bordered-table tbody tr:nth-of-type(even) {
+            background-color: #f8f9fa;
+        }
+
+        .bordered-table tbody tr:hover {
+            background-color: #e8f4f8;
+        }
+
+        .bordered-table tfoot tr {
+            background-color: #2c3e50;
+            color: #fff;
+            font-weight: bold;
+        }
+
+    .summary-cards {
+        display: flex;
+        gap: 20px;
+        margin: 20px 0;
+        flex-wrap: wrap;
+    }
+
+    .summary-card {
+        flex: 1;
+        min-width: 180px;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        padding: 18px 20px;
+        text-align: center;
+    }
+
+        .summary-card .card-title {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-bottom: 6px;
+        }
+
+        .summary-card .card-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        .summary-card.overdue   .card-value { color: #e74c3c; }
+        .summary-card.debt      .card-value { color: #e67e22; }
+        .summary-card.grand     .card-value { color: #2c3e50; }
+
+    .search-container {
+        margin: 20px 0;
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .form-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+    }
+
+        .form-group label {
+            margin-bottom: 0;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+    h1 {
+        color: #2c3e50;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #3498db;
+    }
+
+    .report-date {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-bottom: 1rem;
+    }
+
+    @@media print {
+        .search-container, .btn, button, form { display: none !important; }
+        .bordered-table { font-size: 0.8em; }
+    }
+</style>
+
+<h1 dir="rtl">تقرير الرصيد الحالي</h1>
+<div class="report-date" dir="rtl">التاريخ: @reportDate</div>
+
+<!-- بطاقات الإجماليات -->
+<div class="summary-cards" dir="rtl">
+    <div class="summary-card overdue">
+        <div class="card-title">إجمالي المبالغ المتأخرة</div>
+        <div class="card-value">@String.Format("{0:N2}", totalOverdue)</div>
+    </div>
+    <div class="summary-card debt">
+        <div class="card-title">إجمالي الديون المتبقية</div>
+        <div class="card-value">@String.Format("{0:N2}", totalDebt)</div>
+    </div>
+    <div class="summary-card grand">
+        <div class="card-title">الإجمالي الكلي</div>
+        <div class="card-value">@String.Format("{0:N2}", grandTotal)</div>
+    </div>
+</div>
+
+<!-- فلتر البحث -->
+<div class="search-container" dir="rtl">
+    <form asp-action="BalanceReport" method="get">
+        <div class="form-group">
+            <label>رقم الموظف:</label>
+            <input type="number" name="EmpNoSearch" value="@ViewData["EmpNoFilter"]" placeholder="رقم الموظف" style="width:120px" />
+
+            <label>اسم الموظف:</label>
+            <input type="text" name="EmpNameSearch" value="@ViewData["EmpNameFilter"]" placeholder="اسم الموظف" style="width:200px" />
+
+            <label>الشركة:</label>
+            <select name="companyId" asp-items="ViewBag.Companies" class="form-control" style="width:200px">
+                <option value="">-- جميع الشركات --</option>
+            </select>
+
+            <input type="submit" value="بحث" class="btn btn-primary" />
+            <a asp-action="BalanceReport" class="btn btn-secondary">إعادة تعيين</a>
+        </div>
+    </form>
+</div>
+
+<!-- الجدول -->
+<div class="table-container" style="overflow-x:auto">
+    <table class="bordered-table" dir="rtl" id="balanceTable">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>كود الموظف</th>
+                <th>اسم الموظف</th>
+                <th>رقم الهاتف</th>
+                <th>الشركة</th>
+                <th>المبالغ المتأخرة</th>
+                <th>الديون المتبقية</th>
+                <th>الإجمالي</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{ int rowNum = 0; }
+            @foreach (var item in Model)
+            {
+                rowNum++;
+                <tr>
+                    <td>@rowNum</td>
+                    <td>@item.EmpCode</td>
+                    <td>@item.EmployeeName</td>
+                    <td>@item.MobileNo</td>
+                    <td>@item.CompanyName</td>
+                    <td style="color:#e74c3c; font-weight:600">@String.Format("{0:N2}", item.OverdueRental)</td>
+                    <td style="color:#e67e22; font-weight:600">@String.Format("{0:N2}", item.RemainingDebt)</td>
+                    <td style="font-weight:700">@String.Format("{0:N2}", item.GrandTotal)</td>
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="5" style="text-align:right; padding-right:15px;">الإجمالي</td>
+                <td>@String.Format("{0:N2}", totalOverdue)</td>
+                <td>@String.Format("{0:N2}", totalDebt)</td>
+                <td>@String.Format("{0:N2}", grandTotal)</td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info" dir="rtl" style="margin-top:15px">لا توجد بيانات للعرض.</div>
+}
+
+<div style="margin-top:15px; display:flex; gap:10px">
+    <button onclick="printReport()" class="btn btn-success">
+        <i class="bi bi-printer"></i> طباعة
+    </button>
+</div>
+
+<script>
+    function printReport() {
+        var table = document.getElementById('balanceTable').outerHTML;
+        var original = document.body.innerHTML;
+        document.body.innerHTML =
+            '<div dir="rtl">' +
+            '<h2 style="text-align:center; margin-bottom:5px">تقرير الرصيد الحالي</h2>' +
+            '<p style="text-align:center; color:#666">التاريخ: @reportDate</p>' +
+            table +
+            '<div style="margin-top:15px; font-weight:bold; direction:rtl">' +
+            'إجمالي المبالغ المتأخرة: @String.Format("{0:N2}", totalOverdue) &nbsp;&nbsp;|&nbsp;&nbsp; ' +
+            'إجمالي الديون المتبقية: @String.Format("{0:N2}", totalDebt) &nbsp;&nbsp;|&nbsp;&nbsp; ' +
+            'الإجمالي الكلي: @String.Format("{0:N2}", grandTotal)' +
+            '</div></div>';
+        window.print();
+        document.body.innerHTML = original;
+    }
+</script>

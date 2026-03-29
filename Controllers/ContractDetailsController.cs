@@ -784,5 +784,131 @@ namespace CarRentWeb.Controllers
                .Where(a => a.DeleteFlag == 0 && a.ContractId == id && (a.DailyCredit != 0 || a.CarCredit != 0) && a.Status == 3);
             return View(query);
         }
+
+        // GET: ContractDetails/BalanceReport - تقرير الرصيد الحالي
+        public async Task<IActionResult> BalanceReport(int? companyId, int? EmpNoSearch, string? EmpNameSearch)
+        {
+            TempData.Keep();
+            TempData["UserCompanyData"] = HttpContext.Session.GetString("UserCompanyData");
+            TempData["Username"] = HttpContext.Session.GetString("Username");
+
+            var userCompanyData = TempData["UserCompanyData"]?.ToString();
+            var companyIds = userCompanyData!.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
+
+            if (companyIds.Any())
+            {
+                ViewBag.Companies = new SelectList(
+                    await _context.CompanyInfos
+                        .FromSqlRaw($"SELECT * FROM CompanyInfo WHERE DeleteFlag = 0 AND Id IN ({companyIdsString})")
+                        .OrderBy(c => c.CompNameAr)
+                        .ToListAsync(),
+                    "Id",
+                    "CompNameAr",
+                    companyId);
+            }
+            else
+            {
+                ViewBag.Companies = new SelectList(Enumerable.Empty<SelectListItem>());
+            }
+
+            ViewData["EmpNoFilter"] = EmpNoSearch;
+            ViewData["EmpNameFilter"] = EmpNameSearch;
+            ViewData["CompanyFilter"] = companyId;
+
+            var today = DateOnly.FromDateTime(DateTime.Now);
+
+            // المبالغ المتأخرة: ContractDetails غير مدفوعة حتى اليوم
+            var overdueQuery = _context.ContractDetails
+                .FromSqlRaw($"SELECT * FROM ContractDetails WHERE ContractId IN (SELECT Id FROM Contract WHERE DeleteFlag = 0 AND Status = 0 AND EmployeeId IN (SELECT Id FROM EmployeeInfo WHERE CompanyId IN ({companyIdsString})))")
+                .Include(c => c.Contract)
+                    .ThenInclude(c => c!.Employee)
+                        .ThenInclude(e => e!.Company)
+                .Where(a => a.DeleteFlag == 0
+                    && a.Status == 0
+                    && (a.DailyCredit != 0 || a.CarCredit != 0)
+                    && a.DailyCreditDate <= today);
+
+            if (companyId.HasValue)
+                overdueQuery = overdueQuery.Where(a => a.Contract!.Employee!.CompanyId == companyId.Value);
+
+            if (EmpNoSearch.HasValue)
+                overdueQuery = overdueQuery.Where(a => a.Contract!.Employee!.EmpCode == EmpNoSearch.Value);
+
+            if (!string.IsNullOrEmpty(EmpNameSearch))
+                overdueQuery = overdueQuery.Where(a => a.Contract!.Employee!.FullNameAr!.Contains(EmpNameSearch));
+
+            var overdueByEmp = await overdueQuery
+                .GroupBy(a => a.Contract!.Employee!.Id)
+                .Select(g => new
+                {
+                    EmployeeId = g.Key,
+                    OverdueRental = g.Sum(a => (a.DailyCredit ?? 0) + (a.CarCredit ?? 0))
+                })
+                .ToListAsync();
+
+            // الديون المتبقية: DebitInfo مع رصيد متبقي
+            var debitQuery = _context.DebitInfos
+                .Include(d => d.Emp)
+                    .ThenInclude(e => e!.Company)
+                .Where(d => d.DeleteFlag == 0
+                    && d.DebitRemaining > 0
+                    && d.Emp!.CompanyId.HasValue
+                    && companyIds.Contains((int)d.Emp.CompanyId!));
+
+            if (companyId.HasValue)
+                debitQuery = debitQuery.Where(d => d.Emp!.CompanyId == companyId.Value);
+
+            if (EmpNoSearch.HasValue)
+                debitQuery = debitQuery.Where(d => d.Emp!.EmpCode == EmpNoSearch.Value);
+
+            if (!string.IsNullOrEmpty(EmpNameSearch))
+                debitQuery = debitQuery.Where(d => d.Emp!.FullNameAr!.Contains(EmpNameSearch));
+
+            var debtByEmp = await debitQuery
+                .GroupBy(d => d.EmpId)
+                .Select(g => new
+                {
+                    EmployeeId = g.Key,
+                    RemainingDebt = g.Sum(d => d.DebitRemaining ?? 0)
+                })
+                .ToListAsync();
+
+            // جمع الموظفين من المصدرين
+            var allEmployeeIds = overdueByEmp.Select(x => x.EmployeeId)
+                .Union(debtByEmp.Select(x => x.EmployeeId ?? 0))
+                .Distinct()
+                .ToList();
+
+            var employees = await _context.EmployeeInfos
+                .Include(e => e.Company)
+                .Where(e => allEmployeeIds.Contains(e.Id))
+                .ToListAsync();
+
+            var overdueDict = overdueByEmp.ToDictionary(x => x.EmployeeId, x => x.OverdueRental);
+            var debtDict = debtByEmp.ToDictionary(x => x.EmployeeId ?? 0, x => x.RemainingDebt);
+
+            var result = employees
+                .Select(e => new BalanceReportViewModel
+                {
+                    EmployeeId = e.Id,
+                    EmpCode = e.EmpCode ?? 0,
+                    EmployeeName = e.FullNameAr,
+                    MobileNo = e.MobiileNo ?? e.TelNo,
+                    CompanyName = e.Company?.CompNameAr,
+                    OverdueRental = overdueDict.TryGetValue(e.Id, out var od) ? od : 0,
+                    RemainingDebt = debtDict.TryGetValue(e.Id, out var rd) ? rd : 0
+                })
+                .Where(x => x.GrandTotal > 0)
+                .OrderBy(x => x.EmpCode)
+                .ToList();
+
+            ViewBag.TotalOverdueRental = result.Sum(x => x.OverdueRental);
+            ViewBag.TotalRemainingDebt = result.Sum(x => x.RemainingDebt);
+            ViewBag.GrandTotal = result.Sum(x => x.GrandTotal);
+            ViewBag.ReportDate = today.ToString("yyyy/MM/dd");
+
+            return View(result);
+        }
     }
 }
