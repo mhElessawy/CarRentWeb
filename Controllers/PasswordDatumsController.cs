@@ -62,13 +62,13 @@ namespace CarRentWeb.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(PasswordDatum passwordDatum , List<string> SelectedCompanies)
+        public async Task<IActionResult> Create(PasswordDatum passwordDatum, List<string> SelectedCompanies)
         {
             if (ModelState.IsValid)
             {
 
-                var loginExist = _context.PasswordData.Where(a => a.UserName == passwordDatum.UserName && a.DeleteFlag ==0).ToList();
-                if (loginExist.Count  != 0)
+                var loginExist = _context.PasswordData.Where(a => a.UserName == passwordDatum.UserName && a.DeleteFlag == 0).ToList();
+                if (loginExist.Count != 0)
                 {
                     ModelState.AddModelError("UserName", "اسم المستخدم موجود مسبقا ");
                     return View(passwordDatum);
@@ -205,6 +205,16 @@ namespace CarRentWeb.Controllers
                     passwordDatum.CompanyData = (SelectedCompanies == null || !SelectedCompanies.Any())
                                         ? "0"
                                         : string.Join(",", SelectedCompanies);
+
+                    var existing = await _context.PasswordData.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id);
+                    if (existing != null)
+                    {
+                        passwordDatum.CompDebitView = existing.CompDebitView;
+                        passwordDatum.CompDebitSave = existing.CompDebitSave;
+                        passwordDatum.CompDebitUpdate = existing.CompDebitUpdate;
+                        passwordDatum.CompDebitDelete = existing.CompDebitDelete;
+                    }
+
                     _context.Update(passwordDatum);
                     await _context.SaveChangesAsync();
                 }
@@ -279,7 +289,7 @@ namespace CarRentWeb.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> ChangePassword(int? id , PasswordDatum passwordDatum)
+        public async Task<IActionResult> ChangePassword(int? id, PasswordDatum passwordDatum)
         {
             if (id != passwordDatum.Id)
             {

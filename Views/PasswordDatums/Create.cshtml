@@ -40,25 +40,25 @@
                 </div>
                 <div class="col-md-3">
                     <label asp-for="UserName" class="form-label">اسم المستخدم</label>
-                    <input asp-for="UserName"  class="form-control"  />
+                    <input asp-for="UserName" class="form-control" />
                     <span asp-validation-for="UserName" class="text-danger small"></span>
                 </div>
                 <div class="col-md-3">
                     <label asp-for="UserFullName" class="form-label">اسم الموظف</label>
-                    <input asp-for="UserFullName"  class="form-control"  />
+                    <input asp-for="UserFullName" class="form-control" />
                     <span asp-validation-for="UserFullName" class="text-danger small"></span>
                 </div>
 
                 <div class="col-md-3">
                     <label asp-for="UserMobile" class="form-label">رقم الموبيل</label>
-                    <input asp-for="UserMobile" class="form-control"  />
+                    <input asp-for="UserMobile" class="form-control" />
                     <span asp-validation-for="UserMobile" class="text-danger small"></span>
                 </div>
 
 
-                 <div class="col-md-3">
+                <div class="col-md-3">
                     <label asp-for="UserEmail" class="form-label">صندوق البريد</label>
-                    <input asp-for="UserEmail" class="form-control"  />
+                    <input asp-for="UserEmail" class="form-control" />
                     <span asp-validation-for="UserEmail" class="text-danger small"></span>
                 </div>
 
@@ -278,7 +278,7 @@
                     <input type="checkbox" asp-for="PurshaseView" class="form-check-input" />
                     <span asp-validation-for="PurshaseView" class="text-danger small"></span>
                 </div>
-                 <div class="col-md-2">
+                <div class="col-md-2">
                     <label asp-for="PurshaseUpdate" class="form-label">تعديل المصاريف</label>
                     <input type="checkbox" asp-for="PurshaseUpdate" class="form-check-input" />
                     <span asp-validation-for="PurshaseUpdate" class="text-danger small"></span>
@@ -330,7 +330,7 @@
                     <input type="checkbox" asp-for="EmpTakeMoney" class="form-check-input" />
                     <span asp-validation-for="EmpTakeMoney" class="text-danger small"></span>
                 </div>
-                <div class="col-md-12 mt-3">
+                @*    <div class="col-md-12 mt-3">
                     <h5 class="border-bottom pb-2">صلاحيات المستخدم لديون الشركات </h5>
                 </div>
                 <div class="col-md-2">
@@ -352,7 +352,7 @@
                     <label asp-for="CompDebitDelete" class="form-label">حذف ديون الشركات</label>
                     <input type="checkbox" asp-for="CompDebitDelete" class="form-check-input" />
                     <span asp-validation-for="CompDebitDelete" class="text-danger small"></span>
-                </div>
+                </div> *@
 
                 <!-- Form Actions -->
                 <div class="col-md-12"> </div>
@@ -375,15 +375,15 @@
 
 
                 <!-- Form Actions -->
-                 <div class="col-md-12"> </div>
-                 <!-- Arabic Name Section -->
+                <div class="col-md-12"> </div>
+                <!-- Arabic Name Section -->
                 <div class="col-md-12 mt-3">
                     <h5 class="border-bottom pb-2">كلمة المرور  </h5>
                 </div>
                 <div class="col-md-3">
                     <label asp-for="Password" class="form-label">كلمة المرور</label>
-                    <input asp-for="Password"  type = "password" class="form-control"  />
-                    <span asp-validation-for="Password" class="text-danger small"></span>
+                    <input asp-for="Password" type="password" class="form-control" required />
+                    <span asp-validation-for="Password" class="text-danger small" ></span>
                 </div>
 
 

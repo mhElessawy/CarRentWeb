@@ -109,7 +109,7 @@
                         {
                             <li><a asp-action="RecievedMoney" asp-controller="EmployeeInfoes"><i class="bi bi-cash-coin"></i> استلام المبالغ</a></li>
                         }
-                        @if (user.CompDebitView == true)
+                      @*   @if (user.CompDebitView == true)
                         {
                             <li><a asp-action="Index" asp-controller="CompanyDebits"><i class="bi bi-building-exclamation"></i> ديون الشركات</a></li>
                         }
@@ -118,7 +118,7 @@
                             <ul class="submenu">
                                 <li><a asp-action="Index" asp-controller="EmployeeSalaries">إضافة راتب</a></li>
                             </ul>
-                        </li>
+                        </li> *@
                     </ul>
                 </li>
 
@@ -220,9 +220,9 @@
                         <li><a asp-action="IndexReport" asp-controller="Purshases"><i class="bi bi-receipt-cutoff"></i> المصاريف</a></li>
                         <li><a asp-action="IndexReportAudit" asp-controller="ContractDetails"><i class="bi bi-clipboard-check"></i> متابعة التحصيل</a></li>
                         <li><a asp-action="IndexReportTakeMoney" asp-controller="EmployeeTakeMoneys"><i class="bi bi-wallet"></i> العهد</a></li>
-                        <li><a asp-action="IndexPrint" asp-controller="CompanyDebits"><i class="bi bi-building-check"></i> ديون الشركات مجمع</a></li>
+@*                         <li><a asp-action="IndexPrint" asp-controller="CompanyDebits"><i class="bi bi-building-check"></i> ديون الشركات مجمع</a></li>
                         <li><a asp-action="Index" asp-controller="CompanyDebitDetails"><i class="bi bi-building-down"></i> ديون الشركات تفصيلي</a></li>
-                    </ul>
+ *@                    </ul>
                 </li>
 
                 <!-- طباعة -->
