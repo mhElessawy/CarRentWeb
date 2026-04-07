@@ -91,6 +91,7 @@ namespace CarRentWeb.Service
             else
             {
                 Console.WriteLine($"[Twilio OK] Message sent to whatsapp:+{phone}");
+                Console.WriteLine($"[Twilio OK] Response: {responseBody}");
             }
         }
     }
