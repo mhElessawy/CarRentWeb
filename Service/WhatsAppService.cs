@@ -9,6 +9,7 @@ namespace CarRentWeb.Service
         private readonly string _accountSid;
         private readonly string _authToken;
         private readonly string _fromNumber;
+        private readonly string _templateSid;
 
         // Keep Meta fields so existing DI registration still compiles
         private readonly string _phoneNumberId;
@@ -20,9 +21,10 @@ namespace CarRentWeb.Service
             _phoneNumberId = configuration["WhatsApp:PhoneNumberId"] ?? "";
             _accessToken  = configuration["WhatsApp:AccessToken"]  ?? "";
 
-            _accountSid  = configuration["Twilio:AccountSid"]  ?? "";
-            _authToken   = configuration["Twilio:AuthToken"]    ?? "";
-            _fromNumber  = configuration["Twilio:FromNumber"]   ?? "";
+            _accountSid   = configuration["Twilio:AccountSid"]   ?? "";
+            _authToken    = configuration["Twilio:AuthToken"]     ?? "";
+            _fromNumber   = configuration["Twilio:FromNumber"]    ?? "";
+            _templateSid  = configuration["Twilio:TemplateSid"]  ?? "";
         }
 
         public async Task SendInvoiceMessageAsync(
@@ -46,26 +48,29 @@ namespace CarRentWeb.Service
             else if (!phone.StartsWith("965"))
                 phone = "965" + phone;
 
-            string message =
-                $"🧾 *فاتورة إيجار سيارة*\n" +
-                $"━━━━━━━━━━━━━━━━\n" +
-                $"👤 العميل: {customerName}\n" +
-                $"🔢 رقم الفاتورة: {billNo}\n" +
-                $"📅 تاريخ الفاتورة: {billDate?.ToString("yyyy/MM/dd")}\n" +
-                $"📆 من: {fromDate?.ToString("yyyy/MM/dd")} إلى: {toDate?.ToString("yyyy/MM/dd")}\n" +
-                (noOfDays.HasValue ? $"🗓️ عدد الأيام: {noOfDays}\n" : "") +
-                $"💰 المبلغ المدفوع: {amount:N3} د.ك\n" +
-                $"🚗 نوع العقد: {contractType}\n" +
-                $"━━━━━━━━━━━━━━━━\n" +
-                $"شكراً لتعاملكم معنا 🙏";
+            // Template variables matching the order in your approved WhatsApp template:
+            // {{1}}=customerName, {{2}}=billNo, {{3}}=billDate, {{4}}=fromDate,
+            // {{5}}=toDate, {{6}}=noOfDays, {{7}}=amount, {{8}}=contractType
+            var templateVariables = System.Text.Json.JsonSerializer.Serialize(new Dictionary<string, string>
+            {
+                { "1", customerName },
+                { "2", billNo?.ToString() ?? "" },
+                { "3", billDate?.ToString("yyyy/MM/dd") ?? "" },
+                { "4", fromDate?.ToString("yyyy/MM/dd") ?? "" },
+                { "5", toDate?.ToString("yyyy/MM/dd") ?? "" },
+                { "6", noOfDays?.ToString() ?? "" },
+                { "7", amount?.ToString("N3") ?? "" },
+                { "8", contractType }
+            });
 
             var url = $"https://api.twilio.com/2010-04-01/Accounts/{_accountSid}/Messages.json";
 
             var formData = new FormUrlEncodedContent(new[]
             {
-                new KeyValuePair<string, string>("From", $"whatsapp:{_fromNumber}"),
-                new KeyValuePair<string, string>("To",   $"whatsapp:+{phone}"),
-                new KeyValuePair<string, string>("Body", message)
+                new KeyValuePair<string, string>("From",             $"whatsapp:{_fromNumber}"),
+                new KeyValuePair<string, string>("To",               $"whatsapp:+{phone}"),
+                new KeyValuePair<string, string>("ContentSid",       _templateSid),
+                new KeyValuePair<string, string>("ContentVariables", templateVariables)
             });
 
             var request = new HttpRequestMessage(HttpMethod.Post, url)
