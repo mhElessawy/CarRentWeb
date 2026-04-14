@@ -58,6 +58,10 @@ namespace CarRentWeb.Service
             var json    = JsonSerializer.Serialize(payload);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
+            Console.WriteLine($"[GreenAPI DEBUG] chatId: {chatId}");
+            Console.WriteLine($"[GreenAPI DEBUG] IdInstance: {_idInstance}");
+            Console.WriteLine($"[GreenAPI DEBUG] Sending to: {url}");
+
             var response     = await _httpClient.PostAsync(url, content);
             var responseBody = await response.Content.ReadAsStringAsync();
 
