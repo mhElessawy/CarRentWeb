@@ -8,12 +8,14 @@ namespace CarRentWeb.Service
         private readonly HttpClient _httpClient;
         private readonly string _idInstance;
         private readonly string _apiToken;
+        private readonly string _apiUrl;
 
         public WhatsAppService(HttpClient httpClient, IConfiguration configuration)
         {
             _httpClient = httpClient;
             _idInstance = configuration["GreenApi:IdInstance"] ?? "";
             _apiToken   = configuration["GreenApi:ApiToken"]   ?? "";
+            _apiUrl     = configuration["GreenApi:ApiUrl"]     ?? "https://api.green-api.com";
         }
 
         public async Task SendInvoiceMessageAsync(
@@ -53,7 +55,7 @@ namespace CarRentWeb.Service
                 $"━━━━━━━━━━━━━━━━\n" +
                 $"شكراً لتعاملكم معنا 🙏";
 
-            var url     = $"https://api.green-api.com/waInstance{_idInstance}/sendMessage/{_apiToken}";
+            var url     = $"{_apiUrl}/waInstance{_idInstance}/sendMessage/{_apiToken}";
             var payload = new { chatId = chatId, message = message };
             var json    = JsonSerializer.Serialize(payload);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
