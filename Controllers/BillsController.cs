@@ -407,9 +407,11 @@ namespace CarRentWeb.Controllers
             if (ModelState.IsValid)
             {
                 bill.Id = 0;
-                if (bill.BankBillNo == null)
+                if (bill.BankIntNo == null || bill.BankIntNo == 0)
                 {
-                    bill.BankIntNo = 568;
+                    bill.BankIntNo = null;
+                    bill.BankBillNo = null;
+                    bill.BankDate = null;
                 }
 
                 DateOnly currentDate = DateOnly.FromDateTime(DateTime.Now);

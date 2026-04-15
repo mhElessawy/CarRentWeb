@@ -120,7 +120,7 @@
 
                 <div class="col-md-2">
                     <label asp-for="BankDate" class="form-label">تاريخ دفع البنك</label>
-                    <input asp-for="BankDate" type="date" value="@DateTime.Now.ToString("yyyy-MM-dd")" class="form-control"  />
+                    <input asp-for="BankDate" id="BankDateInput" type="date" class="form-control"  />
                     <span asp-validation-for="BankDate" class="text-danger small"></span>
                 </div>
 
@@ -186,4 +186,31 @@
             input.value = 1; // Reset to minimum allowed value
         }
     }
+</script>
+
+<script>
+    const bankSelect   = document.getElementById('BankSelect');
+    const bankBillNo   = document.getElementById('BankBillNo');
+    const bankDateInput = document.getElementById('BankDateInput');
+
+    function toggleBankFields() {
+        const bankSelected = bankSelect.value !== '';
+        if (bankSelected) {
+            bankBillNo.disabled   = false;
+            bankDateInput.disabled = false;
+            if (!bankDateInput.value) {
+                bankDateInput.value = new Date().toISOString().split('T')[0];
+            }
+        } else {
+            bankBillNo.value      = '';
+            bankBillNo.disabled   = true;
+            bankDateInput.value   = '';
+            bankDateInput.disabled = true;
+        }
+    }
+
+    bankSelect.addEventListener('change', toggleBankFields);
+
+    // Initialize on load
+    toggleBankFields();
 </script>
