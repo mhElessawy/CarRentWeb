@@ -1,18 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query;
 using CarRentWeb.Data;
 using CarRentWeb.Models;
 using CarRentWeb.Service;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.Contracts;
-using System.Diagnostics.Contracts;
-using System.Drawing.Imaging;
-using System.Linq;
-using System.Threading.Tasks;
 using ClosedXML.Excel;
 using System.Data;
 
@@ -375,7 +366,7 @@ namespace CarRentWeb.Controllers
             ViewBag.dailyCost = contract.DailyCredit;
 
             var lastBillNumber = _context.Bills
-                            .Where(b => b.EmployeeId == contract!.EmployeeId)
+                            .Where(b => b.EmployeeId == contract!.EmployeeId && b.DeleteFlag == 0 )
                             .OrderByDescending(b => b.Id)
                             .FirstOrDefault();
 
