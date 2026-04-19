@@ -288,7 +288,6 @@ namespace CarRentWeb.Controllers
                 try
                 {
                     debitInfo.UserId = HttpContext.Session.GetInt32("UserId");
-                    debitInfo.ViolationId = 569;
                     debitInfo.DebitRemaining = debitInfo.DebitQty - debitInfo.DebitPayed;
                     debitInfo.DeleteFlag = 0;
 
@@ -389,13 +388,21 @@ namespace CarRentWeb.Controllers
                     // No need to call Update if you fetched the entity with tracking
                     // _context.Update(existingDebitInfo);
 
+                    // Only use ViolationId if it actually exists in ViolationInfo
+                    int? validViolationId = null;
+                    if (existingDebitInfo.ViolationId.HasValue)
+                    {
+                        bool exists = await _context.ViolationInfos.AnyAsync(v => v.Id == existingDebitInfo.ViolationId.Value);
+                        if (exists) validViolationId = existingDebitInfo.ViolationId;
+                    }
+
                     var debitPayInfo = new DebitPayInfo
                     {
                         DebitPayNo = DebitPayNo,
                         DebitPayDate = DateOnly.FromDateTime(DateTime.Now),
                         DebitPayQty = DebitPayQty,
                         DeleteFlag = 0,
-                        ViolationId = existingDebitInfo.ViolationId,
+                        ViolationId = validViolationId,
                         UserId = existingDebitInfo.UserId,
                         UserRecievedId = existingDebitInfo.UserId,
                         DebitInfoId = existingDebitInfo.Id,

@@ -3,12 +3,17 @@
     public class ContractDetailsSumation
     {
         public int EmployeeId { get; set; }
-        public int EmpCode {  get; set; }
-
-        public string? MobileNo {  get; set; }
+        public int EmpCode { get; set; }
+        public string? MobileNo { get; set; }
         public string? EmployeeName { get; set; }
+        public string? CompanyName { get; set; }
         public decimal TotalDailyCredit { get; set; }
         public decimal TotalCarCredit { get; set; }
+        public decimal OverdueRental { get; set; }
+        public decimal RemainingDebt { get; set; }
+        public decimal RentPaid { get; set; }
+        public decimal DebtPaid { get; set; }
+        public decimal TotalPaid => RentPaid + DebtPaid;
     }
     public class CarInfoWithCreditsViewModel
     {

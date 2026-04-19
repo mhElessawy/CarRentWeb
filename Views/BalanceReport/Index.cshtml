@@ -1,0 +1,88 @@
+﻿@model CarRentWeb.Models.MyModel.BalanceReportViewModel
+
+@{
+    ViewData["Title"] = "تقرير إجمالي الرصيد";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    int rowNum = 0;
+}
+
+<h1 dir="rtl">تقرير إجمالي الرصيد</h1>
+
+<div class="search-container" dir="rtl">
+    <form asp-action="Index" method="get">
+        <div class="form-group">
+            <label for="companyId">اسم الشركة:</label>
+            <select name="companyId" asp-items="ViewBag.Companies" class="form-control" style="width:200px">
+                <option value="">-- جميع الشركات --</option>
+            </select>
+
+            <label for="FromDateSearch">من تاريخ</label>
+            <input type="date" name="FromDateSearch" value="@ViewData["FromDateFilter"]" style="width:140px" />
+
+            <label for="ToDateSearch">إلى تاريخ</label>
+            <input type="date" name="ToDateSearch" value="@ViewData["ToDateFilter"]" style="width:140px" />
+
+            <input type="submit" value="بحث" class="btn btn-primary" />
+            <a asp-action="Index" class="btn btn-secondary">إعادة تعيين</a>
+        </div>
+    </form>
+</div>
+
+<div class="table-container mt-3" dir="rtl">
+    <table class="bordered-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>كود الموظف</th>
+                <th>اسم الموظف</th>
+                <th>رقم الهاتف</th>
+                <th>الشركة</th>
+                <th>الإيجار المتأخر</th>
+                <th>الديون المتبقية</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Items)
+            {
+                rowNum++;
+                <tr>
+                    <td>@rowNum</td>
+                    <td>@item.EmpCode</td>
+                    <td>@item.EmployeeName</td>
+                    <td>@item.MobileNo</td>
+                    <td>@item.CompanyName</td>
+                    <td style="color:#e74c3c; font-weight:600">@String.Format("{0:N2}", item.OverdueRental)</td>
+                    <td style="color:#e67e22; font-weight:600">@String.Format("{0:N2}", item.RemainingDebt)</td>
+                </tr>
+            }
+            <tr style="font-weight:bold; background-color:#f0f0f0;">
+                <td colspan="5" style="text-align:right">الإجمالي:</td>
+                <td style="color:#e74c3c">@String.Format("{0:N2}", Model.TotalOverdueRental)</td>
+                <td style="color:#e67e22">@String.Format("{0:N2}", Model.TotalRemainingDebt)</td>
+            </tr>
+            <tr style="font-weight:bold; background-color:#d4edda;">
+                <td colspan="5" style="text-align:right">إجمالي الرصيد الكلي:</td>
+                <td colspan="2" style="color:#155724; font-size:1.1em">@String.Format("{0:N2}", Model.GrandTotal)</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="mt-3" dir="rtl">
+    <button onclick="printReport()" class="btn btn-success">
+        <i class="bi bi-printer"></i> طباعة
+    </button>
+</div>
+
+<script>
+    function printReport() {
+        var printContents =
+            '<h2 style="text-align:center;direction:rtl">تقرير إجمالي الرصيد</h2>' +
+            document.querySelector('.bordered-table').outerHTML;
+        var originalContents = document.body.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+        location.reload();
+    }
+</script>
