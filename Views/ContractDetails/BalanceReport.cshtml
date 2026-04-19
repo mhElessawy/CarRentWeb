@@ -10,21 +10,18 @@
 }
 
 <h1 dir="rtl">تقرير إجمالي الرصيد</h1>
+<p dir="rtl" style="color:#555; margin-bottom:10px">
+    <i class="bi bi-calendar-check"></i>
+    حتى تاريخ: <strong>@DateTime.Today.ToString("yyyy/MM/dd")</strong>
+</p>
 
 <div class="search-container" dir="rtl">
     <form asp-action="BalanceReport" method="get">
         <div class="form-group">
             <label for="companyId">اسم الشركة:</label>
-            <select name="companyId" asp-items="ViewBag.Companies" class="form-control" style="width:200px">
+            <select name="companyId" asp-items="ViewBag.Companies" class="form-control" style="width:220px">
                 <option value="">-- جميع الشركات --</option>
             </select>
-
-            <label for="FromDateSearch">من تاريخ</label>
-            <input type="date" name="FromDateSearch" value="@ViewData["FromDateFilter"]" style="width:140px" />
-
-            <label for="ToDateSearch">إلى تاريخ</label>
-            <input type="date" name="ToDateSearch" value="@ViewData["ToDateFilter"]" style="width:140px" />
-
             <input type="submit" value="بحث" class="btn btn-primary" />
             <a asp-action="BalanceReport" class="btn btn-secondary">إعادة تعيين</a>
         </div>
@@ -40,7 +37,7 @@
                 <th>اسم الموظف</th>
                 <th>رقم الهاتف</th>
                 <th>الشركة</th>
-                <th>الإيجار المتأخر</th>
+                <th>متأخرات الإيجار</th>
                 <th>الديون المتبقية</th>
             </tr>
         </thead>
@@ -81,6 +78,7 @@
     function printReport() {
         var printContents =
             '<h2 style="text-align:center;direction:rtl">تقرير إجمالي الرصيد</h2>' +
+            '<p style="text-align:center;direction:rtl">حتى تاريخ: @DateTime.Today.ToString("yyyy/MM/dd")</p>' +
             document.querySelector('.bordered-table').outerHTML;
         var originalContents = document.body.innerHTML;
         document.body.innerHTML = printContents;

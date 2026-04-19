@@ -785,7 +785,7 @@ namespace CarRentWeb.Controllers
             return View(query);
         }
 
-        public async Task<IActionResult> BalanceReport(int? companyId, DateTime? FromDateSearch, DateTime? ToDateSearch)
+        public async Task<IActionResult> BalanceReport(int? companyId)
         {
             TempData["Username"] = HttpContext.Session.GetString("Username");
             ViewData["UserId"] = HttpContext.Session.GetInt32("UserId");
@@ -813,6 +813,8 @@ namespace CarRentWeb.Controllers
                 ViewBag.Companies = new SelectList(Enumerable.Empty<SelectListItem>());
             }
 
+            var today = DateOnly.FromDateTime(DateTime.Today);
+
             // Employees in scope
             var empQuery = _context.EmployeeInfos
                 .FromSqlRaw($"SELECT * FROM EmployeeInfo WHERE CompanyId IN ({companyIdsString}) AND DeleteFlag = 0")
@@ -828,21 +830,18 @@ namespace CarRentWeb.Controllers
 
             var empIds = employees.Select(e => e.Id).ToList();
 
-            // OverdueRental: unpaid remaining rent from ContractDetails (Status == 0)
-            var cdQuery = _context.ContractDetails
-                .Where(cd => cd.Contract != null && empIds.Contains(cd.Contract.EmployeeId!.Value) && cd.Status == 0 && cd.DeleteFlag == 0);
-
-            if (FromDateSearch.HasValue)
-                cdQuery = cdQuery.Where(cd => cd.DailyCreditDate >= DateOnly.FromDateTime(FromDateSearch.Value));
-            if (ToDateSearch.HasValue)
-                cdQuery = cdQuery.Where(cd => cd.DailyCreditDate <= DateOnly.FromDateTime(ToDateSearch.Value));
-
-            var overdueByEmp = await cdQuery
+            // OverdueRental: unpaid rent where due date <= today (Status == 0)
+            var overdueByEmp = await _context.ContractDetails
+                .Where(cd => cd.Contract != null
+                          && empIds.Contains(cd.Contract.EmployeeId!.Value)
+                          && cd.Status == 0
+                          && cd.DeleteFlag == 0
+                          && cd.DailyCreditDate <= today)
                 .GroupBy(cd => cd.Contract!.EmployeeId)
                 .Select(g => new { EmpId = g.Key, Total = g.Sum(cd => (decimal?)cd.DailyCredit) ?? 0 })
                 .ToListAsync();
 
-            // RemainingDebt: sum of DebitInfo.DebitRemaining per employee
+            // RemainingDebt: current unpaid debt per employee
             var debtByEmp = await _context.DebitInfos
                 .Where(d => empIds.Contains(d.EmpId!.Value) && d.DeleteFlag == 0)
                 .GroupBy(d => d.EmpId)
@@ -865,9 +864,7 @@ namespace CarRentWeb.Controllers
                 .ThenBy(i => i.EmpCode)
                 .ToList();
 
-            ViewData["CompanyFilter"]  = companyId;
-            ViewData["FromDateFilter"] = FromDateSearch?.ToString("yyyy-MM-dd") ?? "";
-            ViewData["ToDateFilter"]   = ToDateSearch?.ToString("yyyy-MM-dd") ?? "";
+            ViewData["CompanyFilter"] = companyId;
 
             return View(result);
         }
