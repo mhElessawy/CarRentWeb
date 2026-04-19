@@ -45,66 +45,61 @@ namespace CarRentWeb.Controllers
                 ViewBag.Companies = new SelectList(Enumerable.Empty<SelectListItem>());
             }
 
-            // Bills query (daily rent = ContractType 0, monthly rent = ContractType 1)
-            var billsQuery = _context.Bills
-                .FromSqlRaw($"SELECT * FROM Bill WHERE EmployeeId IN (SELECT Id FROM EmployeeInfo WHERE CompanyId IN ({companyIdsString}))")
-                .Include(b => b.Contract)
-                .Where(b => b.DeleteFlag == 0);
-
-            // DebitPayInfos query
-            var debitsQuery = _context.DebitPayInfos
-                .FromSqlRaw($"SELECT * FROM DebitPayInfo WHERE DebitInfoId IN (SELECT Id FROM DebitInfo WHERE EmpId IN (SELECT Id FROM EmployeeInfo WHERE CompanyId IN ({companyIdsString})))")
-                .Where(d => d.DeleteFlag == 0);
+            // Employees in scope
+            var empQuery = _context.EmployeeInfos
+                .FromSqlRaw($"SELECT * FROM EmployeeInfo WHERE CompanyId IN ({companyIdsString}) AND DeleteFlag = 0")
+                .Include(e => e.Company)
+                .AsQueryable();
 
             if (companyId.HasValue)
-            {
-                billsQuery = (IQueryable<Models.Bill>)billsQuery.Where(b => b.Employee!.CompanyId == companyId.Value);
-                debitsQuery = (IQueryable<Models.DebitPayInfo>)debitsQuery.Where(d => d.DebitInfo!.Emp!.CompanyId == companyId.Value);
-            }
+                empQuery = empQuery.Where(e => e.CompanyId == companyId.Value);
+
+            var employees = await empQuery
+                .Select(e => new { e.Id, e.EmpCode, e.FullNameAr, e.MobiileNo, e.TelNo, CompanyName = e.Company!.CompNameAr })
+                .ToListAsync();
+
+            var empIds = employees.Select(e => e.Id).ToList();
+
+            // OverdueRental: unpaid remaining rent from ContractDetails (Status == 0)
+            var contractDetailsQuery = _context.ContractDetails
+                .Where(cd => cd.Contract != null && empIds.Contains(cd.Contract.EmployeeId!.Value) && cd.Status == 0);
 
             if (FromDateSearch.HasValue)
-            {
-                var from = DateOnly.FromDateTime(FromDateSearch.Value);
-                billsQuery = (IQueryable<Models.Bill>)billsQuery.Where(b => b.BillDate >= from);
-                debitsQuery = (IQueryable<Models.DebitPayInfo>)debitsQuery.Where(d => d.DebitPayDate >= from);
-            }
-
+                contractDetailsQuery = contractDetailsQuery.Where(cd => cd.DailyCreditDate >= DateOnly.FromDateTime(FromDateSearch.Value));
             if (ToDateSearch.HasValue)
-            {
-                var to = DateOnly.FromDateTime(ToDateSearch.Value);
-                billsQuery = (IQueryable<Models.Bill>)billsQuery.Where(b => b.BillDate <= to);
-                debitsQuery = (IQueryable<Models.DebitPayInfo>)debitsQuery.Where(d => d.DebitPayDate <= to);
-            }
+                contractDetailsQuery = contractDetailsQuery.Where(cd => cd.DailyCreditDate <= DateOnly.FromDateTime(ToDateSearch.Value));
 
-            var totalDailyRent = await billsQuery
-                .Where(b => b.Contract!.ContractType == 0)
-                .SumAsync(b => (decimal?)b.BillPayed) ?? 0;
+            var overdueByEmp = await contractDetailsQuery
+                .GroupBy(cd => cd.Contract!.EmployeeId)
+                .Select(g => new { EmpId = g.Key, Total = g.Sum(cd => (decimal?)cd.DailyCredit) ?? 0 })
+                .ToListAsync();
 
-            var totalMonthlyRent = await billsQuery
-                .Where(b => b.Contract!.ContractType == 1)
-                .SumAsync(b => (decimal?)b.BillPayed) ?? 0;
+            // RemainingDebt: unpaid debt from DebitInfo
+            var debitQuery = _context.DebitInfos
+                .Where(d => empIds.Contains(d.EmpId!.Value) && d.DeleteFlag == 0);
 
-            var totalDebtsPaid = await debitsQuery
-                .SumAsync(d => (decimal?)d.DebitPayQty) ?? 0;
+            var debtByEmp = await debitQuery
+                .GroupBy(d => d.EmpId)
+                .Select(g => new { EmpId = g.Key, Total = g.Sum(d => (decimal?)d.DebitRemaining) ?? 0 })
+                .ToListAsync();
 
-            // Remaining debt from DebitInfo (not filtered by date — reflects current state)
-            var debitInfoQuery = _context.DebitInfos
-                .FromSqlRaw($"SELECT * FROM DebitInfo WHERE EmpId IN (SELECT Id FROM EmployeeInfo WHERE CompanyId IN ({companyIdsString}))")
-                .Where(d => d.DeleteFlag == 0);
+            // Build report items — only employees with overdue rent or remaining debt
+            var items = employees
+                .Select(e => new BalanceReportItemViewModel
+                {
+                    EmpCode = e.EmpCode ?? 0,
+                    EmployeeName = e.FullNameAr,
+                    MobileNo = e.MobiileNo ?? e.TelNo,
+                    CompanyName = e.CompanyName,
+                    OverdueRental = overdueByEmp.FirstOrDefault(o => o.EmpId == e.Id)?.Total ?? 0,
+                    RemainingDebt = debtByEmp.FirstOrDefault(d => d.EmpId == e.Id)?.Total ?? 0
+                })
+                .Where(i => i.OverdueRental > 0 || i.RemainingDebt > 0)
+                .OrderBy(i => i.CompanyName)
+                .ThenBy(i => i.EmpCode)
+                .ToList();
 
-            if (companyId.HasValue)
-                debitInfoQuery = (IQueryable<Models.DebitInfo>)debitInfoQuery.Where(d => d.Emp!.CompanyId == companyId.Value);
-
-            var remainingDebt = await debitInfoQuery
-                .SumAsync(d => (decimal?)d.DebitRemaining) ?? 0;
-
-            var model = new BalanceReportViewModel
-            {
-                TotalDailyRentPaid = totalDailyRent,
-                TotalMonthlyRentPaid = totalMonthlyRent,
-                TotalDebtsPaid = totalDebtsPaid,
-                RemainingDebt = remainingDebt
-            };
+            var model = new BalanceReportViewModel { Items = items };
 
             ViewData["CompanyFilter"] = companyId;
             ViewData["FromDateFilter"] = FromDateSearch?.ToString("yyyy-MM-dd") ?? "";

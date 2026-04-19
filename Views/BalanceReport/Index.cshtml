@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "تقرير إجمالي الرصيد";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    int rowNum = 0;
 }
 
 <h1 dir="rtl">تقرير إجمالي الرصيد</h1>
@@ -27,38 +28,41 @@
     </form>
 </div>
 
-<div class="table-container mt-4" dir="rtl">
-    <table class="bordered-table" style="width:auto; min-width:500px">
+<div class="table-container mt-3" dir="rtl">
+    <table class="bordered-table">
         <thead>
             <tr>
-                <th>البيان</th>
-                <th>المبلغ (د.ك)</th>
+                <th>#</th>
+                <th>كود الموظف</th>
+                <th>اسم الموظف</th>
+                <th>رقم الهاتف</th>
+                <th>الشركة</th>
+                <th>الإيجار المتأخر</th>
+                <th>الديون المتبقية</th>
             </tr>
         </thead>
         <tbody>
-            <tr>
-                <td>الإيجار اليومي المدفوع</td>
-                <td>@Model.TotalDailyRentPaid.ToString("N3")</td>
+            @foreach (var item in Model.Items)
+            {
+                rowNum++;
+                <tr>
+                    <td>@rowNum</td>
+                    <td>@item.EmpCode</td>
+                    <td>@item.EmployeeName</td>
+                    <td>@item.MobileNo</td>
+                    <td>@item.CompanyName</td>
+                    <td style="color:#e74c3c; font-weight:600">@String.Format("{0:N2}", item.OverdueRental)</td>
+                    <td style="color:#e67e22; font-weight:600">@String.Format("{0:N2}", item.RemainingDebt)</td>
+                </tr>
+            }
+            <tr style="font-weight:bold; background-color:#f0f0f0;">
+                <td colspan="5" style="text-align:right">الإجمالي:</td>
+                <td style="color:#e74c3c">@String.Format("{0:N2}", Model.TotalOverdueRental)</td>
+                <td style="color:#e67e22">@String.Format("{0:N2}", Model.TotalRemainingDebt)</td>
             </tr>
-            <tr>
-                <td>الإيجار الشهري المدفوع</td>
-                <td>@Model.TotalMonthlyRentPaid.ToString("N3")</td>
-            </tr>
-            <tr class="table-info fw-bold">
-                <td>إجمالي الإيجار المدفوع</td>
-                <td>@Model.TotalRentPaid.ToString("N3")</td>
-            </tr>
-            <tr>
-                <td>الديون المحصّلة</td>
-                <td>@Model.TotalDebtsPaid.ToString("N3")</td>
-            </tr>
-            <tr class="table-warning">
-                <td>الديون المتبقية</td>
-                <td>@Model.RemainingDebt.ToString("N3")</td>
-            </tr>
-            <tr class="table-success fw-bold">
-                <td>إجمالي الرصيد الكلي</td>
-                <td>@Model.GrandTotal.ToString("N3")</td>
+            <tr style="font-weight:bold; background-color:#d4edda;">
+                <td colspan="5" style="text-align:right">إجمالي الرصيد الكلي:</td>
+                <td colspan="2" style="color:#155724; font-size:1.1em">@String.Format("{0:N2}", Model.GrandTotal)</td>
             </tr>
         </tbody>
     </table>
