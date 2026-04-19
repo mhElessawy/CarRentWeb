@@ -66,7 +66,7 @@ namespace CarRentWeb.Controllers
 
             // Base query with includes
             var query = _context.DebitInfos
-                 .FromSqlRaw($"Select * from DebitInfo where EmpId in( Select Id from  EmployeeInfo where CompanyId IN ({companyIdsString}))")
+                 .FromSqlRaw($"Select * from DebitInfo where EmpId in( Select Id from  EmployeeInfo where deleteflag = 0 and CompanyId IN ({companyIdsString}))")
                 .Include(c => c.Emp)
                 .Include(c => c.DebitType)
                 .Include(c => c.User)
@@ -379,22 +379,9 @@ namespace CarRentWeb.Controllers
 
                     // Update only the necessary fields
                     existingDebitInfo.UserId = HttpContext.Session.GetInt32("UserId");
-
-                    existingDebitInfo.ViolationId = debitInfo.ViolationId;
                     existingDebitInfo.DebitRemaining = existingDebitInfo.DebitQty - (existingDebitInfo.DebitPayed + DebitPayQty);
                     existingDebitInfo.DebitPayed += DebitPayQty;
                     existingDebitInfo.DeleteFlag = 0;
-
-                    // No need to call Update if you fetched the entity with tracking
-                    // _context.Update(existingDebitInfo);
-
-                    // Only use ViolationId if it actually exists in ViolationInfo
-                    int? validViolationId = null;
-                    if (existingDebitInfo.ViolationId.HasValue)
-                    {
-                        bool exists = await _context.ViolationInfos.AnyAsync(v => v.Id == existingDebitInfo.ViolationId.Value);
-                        if (exists) validViolationId = existingDebitInfo.ViolationId;
-                    }
 
                     var debitPayInfo = new DebitPayInfo
                     {
@@ -402,7 +389,7 @@ namespace CarRentWeb.Controllers
                         DebitPayDate = DateOnly.FromDateTime(DateTime.Now),
                         DebitPayQty = DebitPayQty,
                         DeleteFlag = 0,
-                        ViolationId = validViolationId,
+                        ViolationId = null,
                         UserId = existingDebitInfo.UserId,
                         UserRecievedId = existingDebitInfo.UserId,
                         DebitInfoId = existingDebitInfo.Id,

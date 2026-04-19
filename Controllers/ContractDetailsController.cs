@@ -781,7 +781,7 @@ namespace CarRentWeb.Controllers
             var today = DateOnly.FromDateTime(DateTime.Today);
 
             var empQuery = _context.EmployeeInfos
-                .FromSqlRaw($"SELECT * FROM EmployeeInfo WHERE CompanyId IN ({companyIdsString}) AND DeleteFlag = 0")
+                .FromSqlRaw($"SELECT * FROM EmployeeInfo WHERE deleteflag = 0 and CompanyId IN ({companyIdsString}) AND DeleteFlag = 0")
                 .Include(e => e.Company)
                 .AsQueryable();
 
