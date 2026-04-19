@@ -785,7 +785,7 @@ namespace CarRentWeb.Controllers
             return View(query);
         }
 
-        public async Task<IActionResult> BalanceReport(int? companyId)
+        public async Task<IActionResult> BalanceReport(int? companyId, int? empCode, string? empName)
         {
             TempData["Username"] = HttpContext.Session.GetString("Username");
             ViewData["UserId"] = HttpContext.Session.GetInt32("UserId");
@@ -815,7 +815,6 @@ namespace CarRentWeb.Controllers
 
             var today = DateOnly.FromDateTime(DateTime.Today);
 
-            // Employees in scope
             var empQuery = _context.EmployeeInfos
                 .FromSqlRaw($"SELECT * FROM EmployeeInfo WHERE CompanyId IN ({companyIdsString}) AND DeleteFlag = 0")
                 .Include(e => e.Company)
@@ -823,6 +822,10 @@ namespace CarRentWeb.Controllers
 
             if (companyId.HasValue)
                 empQuery = empQuery.Where(e => e.CompanyId == companyId.Value);
+            if (empCode.HasValue)
+                empQuery = empQuery.Where(e => e.EmpCode == empCode.Value);
+            if (!string.IsNullOrEmpty(empName))
+                empQuery = empQuery.Where(e => e.FullNameAr!.Contains(empName));
 
             var employees = await empQuery
                 .Select(e => new { e.Id, e.EmpCode, e.FullNameAr, e.MobiileNo, e.TelNo, CompanyName = e.Company!.CompNameAr })
@@ -830,7 +833,6 @@ namespace CarRentWeb.Controllers
 
             var empIds = employees.Select(e => e.Id).ToList();
 
-            // OverdueRental: unpaid rent where due date <= today (Status == 0)
             var overdueByEmp = await _context.ContractDetails
                 .Where(cd => cd.Contract != null
                           && empIds.Contains(cd.Contract.EmployeeId!.Value)
@@ -841,7 +843,6 @@ namespace CarRentWeb.Controllers
                 .Select(g => new { EmpId = g.Key, Total = g.Sum(cd => (decimal?)cd.DailyCredit) ?? 0 })
                 .ToListAsync();
 
-            // RemainingDebt: current unpaid debt per employee
             var debtByEmp = await _context.DebitInfos
                 .Where(d => empIds.Contains(d.EmpId!.Value) && d.DeleteFlag == 0)
                 .GroupBy(d => d.EmpId)
@@ -851,11 +852,11 @@ namespace CarRentWeb.Controllers
             var result = employees
                 .Select(e => new ContractDetailsSumation
                 {
-                    EmployeeId = e.Id,
-                    EmpCode    = e.EmpCode ?? 0,
-                    EmployeeName = e.FullNameAr,
-                    MobileNo   = e.MobiileNo ?? e.TelNo,
-                    CompanyName = e.CompanyName,
+                    EmployeeId    = e.Id,
+                    EmpCode       = e.EmpCode ?? 0,
+                    EmployeeName  = e.FullNameAr,
+                    MobileNo      = e.MobiileNo ?? e.TelNo,
+                    CompanyName   = e.CompanyName,
                     OverdueRental = overdueByEmp.FirstOrDefault(o => o.EmpId == e.Id)?.Total ?? 0,
                     RemainingDebt = debtByEmp.FirstOrDefault(d => d.EmpId == e.Id)?.Total ?? 0
                 })
@@ -865,6 +866,8 @@ namespace CarRentWeb.Controllers
                 .ToList();
 
             ViewData["CompanyFilter"] = companyId;
+            ViewData["EmpCodeFilter"] = empCode;
+            ViewData["EmpNameFilter"] = empName;
 
             return View(result);
         }
