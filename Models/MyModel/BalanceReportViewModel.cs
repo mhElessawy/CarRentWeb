@@ -6,6 +6,7 @@ namespace CarRentWeb.Models.MyModel
         public decimal TotalMonthlyRentPaid { get; set; }
         public decimal TotalRentPaid => TotalDailyRentPaid + TotalMonthlyRentPaid;
         public decimal TotalDebtsPaid { get; set; }
+        public decimal RemainingDebt { get; set; }
         public decimal GrandTotal => TotalRentPaid + TotalDebtsPaid;
     }
 }

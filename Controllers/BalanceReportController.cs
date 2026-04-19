@@ -87,11 +87,23 @@ namespace CarRentWeb.Controllers
             var totalDebtsPaid = await debitsQuery
                 .SumAsync(d => (decimal?)d.DebitPayQty) ?? 0;
 
+            // Remaining debt from DebitInfo (not filtered by date — reflects current state)
+            var debitInfoQuery = _context.DebitInfos
+                .FromSqlRaw($"SELECT * FROM DebitInfo WHERE EmpId IN (SELECT Id FROM EmployeeInfo WHERE CompanyId IN ({companyIdsString}))")
+                .Where(d => d.DeleteFlag == 0);
+
+            if (companyId.HasValue)
+                debitInfoQuery = (IQueryable<Models.DebitInfo>)debitInfoQuery.Where(d => d.Emp!.CompanyId == companyId.Value);
+
+            var remainingDebt = await debitInfoQuery
+                .SumAsync(d => (decimal?)d.DebitRemaining) ?? 0;
+
             var model = new BalanceReportViewModel
             {
                 TotalDailyRentPaid = totalDailyRent,
                 TotalMonthlyRentPaid = totalMonthlyRent,
-                TotalDebtsPaid = totalDebtsPaid
+                TotalDebtsPaid = totalDebtsPaid,
+                RemainingDebt = remainingDebt
             };
 
             ViewData["CompanyFilter"] = companyId;

@@ -52,6 +52,10 @@
                 <td>الديون المحصّلة</td>
                 <td>@Model.TotalDebtsPaid.ToString("N3")</td>
             </tr>
+            <tr class="table-warning">
+                <td>الديون المتبقية</td>
+                <td>@Model.RemainingDebt.ToString("N3")</td>
+            </tr>
             <tr class="table-success fw-bold">
                 <td>إجمالي الرصيد الكلي</td>
                 <td>@Model.GrandTotal.ToString("N3")</td>
