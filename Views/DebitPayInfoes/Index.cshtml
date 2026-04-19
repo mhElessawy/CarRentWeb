@@ -1,11 +1,15 @@
 ﻿@using CarRentWeb.Data
+@using CarRentWeb.Models.MyModel
 @model PaginatedList<CarRentWeb.Models.DebitPayInfo>
-
+@inject IHttpContextAccessor HttpContextAccessor
 @{
     ViewData["Title"] = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+@{
+    var user = HttpContextAccessor.HttpContext!.Session.GetObjectFromJson<PasswordDatum>("CurrentUser");
+}
 
 <style>
     /* Enhanced styling for the employee info table */
@@ -419,7 +423,11 @@
                 <td class="action-links">
                     <a asp-action="DebitPayPrint" asp-controller="DebitInfoes" asp-route-id="@item.Id" class="btn-success"><i class="fas fa-print"></i> طباعة</a>
                     <a asp-action="Details" asp-route-id="@item.Id" class="btn-details"><i class="fas fa-info-circle"></i> تفاصيل</a>
-                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn-delete"><i class="fas fa-trash-alt"></i> حذف</a>
+                    @if (user!.DebitDelete == true)
+                    {
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn-delete"><i class="fas fa-trash-alt"></i> حذف</a>
+                    }
+
                  </td>
         </tr>
 }

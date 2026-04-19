@@ -95,6 +95,18 @@ namespace CarRentWeb.Controllers
         {
             HttpContext.Session.SetString("Username", "");
             HttpContext.Session.SetInt32("UserId", 0);
+
+            var users = _context.PasswordData
+                .Where(u => u.DeleteFlag == 0)
+                .OrderBy(u => u.UserName)
+                .Select(u => new SelectListItem
+                {
+                    Value = u.UserName,
+                    Text = u.UserName
+                })
+                .ToList();
+
+            ViewBag.Users = users;
             return View();
         }
 
@@ -205,16 +217,6 @@ namespace CarRentWeb.Controllers
                     passwordDatum.CompanyData = (SelectedCompanies == null || !SelectedCompanies.Any())
                                         ? "0"
                                         : string.Join(",", SelectedCompanies);
-
-                    var existing = await _context.PasswordData.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id);
-                    if (existing != null)
-                    {
-                        passwordDatum.CompDebitView = existing.CompDebitView;
-                        passwordDatum.CompDebitSave = existing.CompDebitSave;
-                        passwordDatum.CompDebitUpdate = existing.CompDebitUpdate;
-                        passwordDatum.CompDebitDelete = existing.CompDebitDelete;
-                    }
-
                     _context.Update(passwordDatum);
                     await _context.SaveChangesAsync();
                 }

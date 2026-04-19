@@ -5,8 +5,6 @@
     ViewData["Title"] = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-
-
 <style>
     .pagination-container {
         margin-top: 20px;
@@ -24,9 +22,7 @@
         border-color: #007bff;
     }
 </style>
-
 <h1 dir="rtl">بيانات تحصيل الديون</h1>
-
 <div class="search-container" dir="rtl">
     <form asp-action="Index" method="get">
         <div class="form-group">
@@ -57,8 +53,6 @@
         </div>
     </form>
 </div>
-
-
 <table class="bordered-table" dir="rtl">
     <thead>
         <tr>
@@ -106,7 +100,6 @@
         }
     </tbody>
 </table>
-
 <div class="pagination-container" dir="rtl">
     @{
         var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
@@ -139,13 +132,10 @@
         التالي
     </a>
 </div>
-
-
 <div dir="rtl">
     إجمالي الإيراد   @String.Format("{0:C}", ViewBag.TotalBillPayed)
 </div>
 <button onclick="printBills()" class="btn btn-success">طباعة</button>
-
 <script>
     function printBills() {
         var printContents = document.querySelector('.bordered-table').outerHTML;

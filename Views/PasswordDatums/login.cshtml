@@ -21,8 +21,16 @@
                     <form method="post" asp-action="Login" asp-controller="PasswordDatums" dir="rtl">
                         <div class="mb-3">
                             <label for="username" class="form-label">اسم المستخدم</label>
-                            <input type="text" class="form-control" id="username" name="username"
-                                   value="@ViewData["PreservedUsername"]" required>
+                            <select class="form-select" id="username" name="username" required>
+                                <option value="" disabled selected>-- اختر اسم المستخدم --</option>
+                                @foreach (var user in (IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>)ViewBag.Users)
+                                {
+                                    var isSelected = ViewData["PreservedUsername"]?.ToString() == user.Value;
+                                    <option value="@user.Value" selected="@(isSelected ? "selected" : null)">
+                                        @user.Text
+                                    </option>
+                                }
+                            </select>
                         </div>
                         <div class="mb-3">
                             <label for="password" class="form-label">كلمة المرور</label>
@@ -45,30 +53,28 @@
 <!-- Optional: Add JavaScript for better UX -->
 
     <script>
-        // Clear error when user starts typing
         document.addEventListener('DOMContentLoaded', function() {
-            const inputs = document.querySelectorAll('input');
+            const usernameField = document.getElementById('username');
+            const passwordField = document.getElementById('password');
             const errorAlert = document.querySelector('.alert-danger');
 
             if (errorAlert) {
-                inputs.forEach(input => {
-                    input.addEventListener('input', function() {
-                        errorAlert.style.display = 'none';
-                    });
+                // Clear error when user changes selection or types
+                usernameField.addEventListener('change', function() {
+                    errorAlert.style.display = 'none';
+                });
+                passwordField.addEventListener('input', function() {
+                    errorAlert.style.display = 'none';
                 });
 
-                // Auto focus on password field if username is already filled
-                const usernameField = document.getElementById('username');
-                const passwordField = document.getElementById('password');
-
+                // Auto focus on password field if username is already selected
                 if (usernameField.value.trim() !== '') {
                     passwordField.focus();
                 } else {
                     usernameField.focus();
                 }
             } else {
-                // No error, focus on username
-                document.getElementById('username').focus();
+                usernameField.focus();
             }
         });
     </script>
