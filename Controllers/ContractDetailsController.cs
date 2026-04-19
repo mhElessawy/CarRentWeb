@@ -633,7 +633,7 @@ namespace CarRentWeb.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
-        public async Task<IActionResult> IndexReportAudit(DateTime? FromDate, DateTime? ToDate, int? KindOfPay, int? companyId, int? empCode, string? empName)
+        public async Task<IActionResult> IndexReportAudit(DateTime? FromDate, DateTime? ToDate, int? companyId, int? empCode, string? empName)
         {
             TempData.Keep();
 
@@ -657,58 +657,79 @@ namespace CarRentWeb.Controllers
                 ViewBag.Companies = new SelectList(Enumerable.Empty<SelectListItem>());
             }
 
-            ViewBag.KindOfPay = new SelectList(
-                new List<SelectListItem>
-                {
-                    new SelectListItem { Value = "1", Text = "مدفوع" },
-                    new SelectListItem { Value = "0", Text = "غير مدفوع" }
-                },
-                "Value", "Text", KindOfPay);
+            var fromDate = FromDate.HasValue ? DateOnly.FromDateTime(FromDate.Value) : (DateOnly?)null;
+            var toDate   = ToDate.HasValue   ? DateOnly.FromDateTime(ToDate.Value)   : (DateOnly?)null;
 
-            IQueryable<ContractDetail> query = _context.ContractDetails
-                .FromSqlRaw($"select * from ContractDetails where ContractId In (Select Id from Contract where DeleteFlag = 0 and EmployeeId In (Select Id From EmployeeInfo where CompanyId IN ({companyIdsString})))")
-                .Include(c => c.Bill)
-                .Include(c => c.Contract)
-                    .ThenInclude(c => c!.Employee)
-                        .ThenInclude(e => e!.Company)
-                .Include(c => c.Contract)
-                    .ThenInclude(c => c!.Car)
-                .Where(a => a.DeleteFlag == 0 && (a.DailyCredit != 0 || a.CarCredit != 0));
+            // --- Bills (paid rent) ---
+            var billsQuery = _context.Bills
+                .FromSqlRaw($"SELECT * FROM Bill WHERE EmployeeId IN (SELECT Id FROM EmployeeInfo WHERE CompanyId IN ({companyIdsString}))")
+                .Include(b => b.Employee).ThenInclude(e => e!.Company)
+                .Where(b => b.DeleteFlag == 0);
 
-            if (KindOfPay.HasValue)
-                query = query.Where(a => a.Status == (KindOfPay == 1 ? 3 : 0));
+            if (fromDate.HasValue) billsQuery = (IQueryable<Bill>)billsQuery.Where(b => b.BillDate >= fromDate.Value);
+            if (toDate.HasValue)   billsQuery = (IQueryable<Bill>)billsQuery.Where(b => b.BillDate <= toDate.Value);
+            if (companyId.HasValue) billsQuery = (IQueryable<Bill>)billsQuery.Where(b => b.Employee!.CompanyId == companyId.Value);
+            if (empCode.HasValue)   billsQuery = (IQueryable<Bill>)billsQuery.Where(b => b.Employee!.EmpCode == empCode.Value);
+            if (!string.IsNullOrEmpty(empName)) billsQuery = (IQueryable<Bill>)billsQuery.Where(b => b.Employee!.FullNameAr!.Contains(empName));
 
-            if (FromDate.HasValue)
-                query = query.Where(a => a.DailyCreditDate >= DateOnly.FromDateTime(FromDate.Value));
-
-            if (ToDate.HasValue)
-                query = query.Where(a => a.DailyCreditDate <= DateOnly.FromDateTime(ToDate.Value));
-
-            if (companyId.HasValue)
-                query = query.Where(e => e.Contract!.Employee!.CompanyId == companyId.Value);
-
-            if (empCode.HasValue)
-                query = query.Where(e => e.Contract!.Employee!.EmpCode == empCode.Value);
-
-            if (!string.IsNullOrEmpty(empName))
-                query = query.Where(e => e.Contract!.Employee!.FullNameAr!.Contains(empName));
-
-            var result = await query
-                .Where(c => c.Contract != null && c.Contract.Employee != null && c.Contract.Employee.EmpCode != null)
-                .GroupBy(c => c.Contract!.Employee!.Id)
-                .Select(g => new ContractDetailsSumation
-                {
-                    EmployeeId       = g.Key,
-                    EmpCode          = (int)g.First().Contract!.Employee!.EmpCode!,
-                    MobileNo         = g.First().Contract!.Employee!.MobiileNo ?? g.First().Contract!.Employee!.TelNo ?? "N/A",
-                    EmployeeName     = g.First().Contract!.Employee!.FullNameAr ?? "Unknown",
-                    CompanyName      = g.First().Contract!.Employee!.Company!.CompNameAr,
-                    TotalDailyCredit = (decimal)g.Sum(c => c.DailyCredit),
-                    TotalCarCredit   = (decimal)g.Sum(c => c.CarCredit)
+            var rentByEmp = await billsQuery
+                .GroupBy(b => b.EmployeeId)
+                .Select(g => new {
+                    EmpId        = g.Key,
+                    EmpCode      = g.First().Employee!.EmpCode,
+                    EmployeeName = g.First().Employee!.FullNameAr,
+                    MobileNo     = g.First().Employee!.MobiileNo ?? g.First().Employee!.TelNo,
+                    CompanyName  = g.First().Employee!.Company!.CompNameAr,
+                    RentPaid     = g.Sum(b => (decimal?)b.BillPayed) ?? 0
                 })
-                .OrderBy(x => x.CompanyName)
-                .ThenBy(x => x.EmpCode)
                 .ToListAsync();
+
+            // --- DebitPayInfos (paid debts) ---
+            var debitQuery = _context.DebitPayInfos
+                .FromSqlRaw($"SELECT * FROM DebitPayInfo WHERE DebitInfoId IN (SELECT Id FROM DebitInfo WHERE EmpId IN (SELECT Id FROM EmployeeInfo WHERE CompanyId IN ({companyIdsString})))")
+                .Include(d => d.DebitInfo).ThenInclude(di => di!.Emp).ThenInclude(e => e!.Company)
+                .Where(d => d.DeleteFlag == 0);
+
+            if (fromDate.HasValue) debitQuery = (IQueryable<DebitPayInfo>)debitQuery.Where(d => d.DebitPayDate >= fromDate.Value);
+            if (toDate.HasValue)   debitQuery = (IQueryable<DebitPayInfo>)debitQuery.Where(d => d.DebitPayDate <= toDate.Value);
+            if (companyId.HasValue) debitQuery = (IQueryable<DebitPayInfo>)debitQuery.Where(d => d.DebitInfo!.Emp!.CompanyId == companyId.Value);
+            if (empCode.HasValue)   debitQuery = (IQueryable<DebitPayInfo>)debitQuery.Where(d => d.DebitInfo!.Emp!.EmpCode == empCode.Value);
+            if (!string.IsNullOrEmpty(empName)) debitQuery = (IQueryable<DebitPayInfo>)debitQuery.Where(d => d.DebitInfo!.Emp!.FullNameAr!.Contains(empName));
+
+            var debtByEmp = await debitQuery
+                .GroupBy(d => d.DebitInfo!.EmpId)
+                .Select(g => new { EmpId = g.Key, DebtPaid = g.Sum(d => (decimal?)d.DebitPayQty) ?? 0 })
+                .ToListAsync();
+
+            // --- Merge ---
+            var allEmpIds = rentByEmp.Select(r => r.EmpId)
+                .Union(debtByEmp.Select(d => d.EmpId))
+                .Distinct().ToList();
+
+            // Employee info for those who only appear in debts
+            var empInfos = await _context.EmployeeInfos
+                .FromSqlRaw($"SELECT * FROM EmployeeInfo WHERE CompanyId IN ({companyIdsString}) AND DeleteFlag = 0")
+                .Include(e => e.Company)
+                .Where(e => allEmpIds.Contains(e.Id))
+                .ToListAsync();
+
+            var result = allEmpIds.Select(eid => {
+                var rent = rentByEmp.FirstOrDefault(r => r.EmpId == eid);
+                var debt = debtByEmp.FirstOrDefault(d => d.EmpId == eid);
+                var emp  = empInfos.FirstOrDefault(e => e.Id == eid);
+                return new ContractDetailsSumation
+                {
+                    EmployeeId   = eid ?? 0,
+                    EmpCode      = (int)(rent?.EmpCode ?? emp?.EmpCode ?? 0),
+                    EmployeeName = rent?.EmployeeName ?? emp?.FullNameAr ?? "",
+                    MobileNo     = rent?.MobileNo ?? emp?.MobiileNo ?? emp?.TelNo ?? "",
+                    CompanyName  = rent?.CompanyName ?? emp?.Company?.CompNameAr ?? "",
+                    RentPaid     = rent?.RentPaid ?? 0,
+                    DebtPaid     = debt?.DebtPaid ?? 0
+                };
+            })
+            .OrderBy(x => x.CompanyName).ThenBy(x => x.EmpCode)
+            .ToList();
 
             ViewData["FromDateFilter"] = FromDate?.ToString("yyyy-MM-dd") ?? "";
             ViewData["ToDateFilter"]   = ToDate?.ToString("yyyy-MM-dd") ?? "";

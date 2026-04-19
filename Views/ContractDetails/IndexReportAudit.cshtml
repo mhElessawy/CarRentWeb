@@ -3,9 +3,9 @@
 @{
     ViewData["Title"] = "متابعة التحصيل";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var totalDaily = Model?.Sum(item => item?.TotalDailyCredit ?? 0) ?? 0;
-    var totalCar   = Model?.Sum(item => item?.TotalCarCredit   ?? 0) ?? 0;
-    var grandTotal = totalDaily + totalCar;
+    var totalRent  = Model?.Sum(item => item?.RentPaid  ?? 0) ?? 0;
+    var totalDebt  = Model?.Sum(item => item?.DebtPaid  ?? 0) ?? 0;
+    var grandTotal = totalRent + totalDebt;
 }
 
 <style>
@@ -339,17 +339,17 @@
 </style>
 <h1 dir="rtl">متابعة التحصيل</h1>
 
-<!-- Summary card -->
+<!-- Summary cards -->
 @if (Model != null && Model.Any())
 {
     <div dir="rtl" style="display:flex;gap:16px;margin:14px 0;">
         <div style="flex:1;background:#fff;border:1px solid #dce3ea;border-radius:10px;padding:16px 20px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.07)">
-            <div style="color:#999;font-size:.85em;margin-bottom:8px">إجمالي الإيجار</div>
-            <div style="color:#2980b9;font-size:1.5em;font-weight:700">@String.Format("{0:N2}", totalDaily)</div>
+            <div style="color:#999;font-size:.85em;margin-bottom:8px">إجمالي الإيجار المدفوع</div>
+            <div style="color:#2980b9;font-size:1.5em;font-weight:700">@String.Format("{0:N2}", totalRent)</div>
         </div>
         <div style="flex:1;background:#fff;border:1px solid #dce3ea;border-radius:10px;padding:16px 20px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.07)">
-            <div style="color:#999;font-size:.85em;margin-bottom:8px">إجمالي الأقساط</div>
-            <div style="color:#8e44ad;font-size:1.5em;font-weight:700">@String.Format("{0:N2}", totalCar)</div>
+            <div style="color:#999;font-size:.85em;margin-bottom:8px">إجمالي الديون المدفوعة</div>
+            <div style="color:#e67e22;font-size:1.5em;font-weight:700">@String.Format("{0:N2}", totalDebt)</div>
         </div>
         <div style="flex:1;background:#fff;border:1px solid #dce3ea;border-radius:10px;padding:16px 20px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.07)">
             <div style="color:#999;font-size:.85em;margin-bottom:8px">إجمالي التحصيل</div>
@@ -366,11 +366,6 @@
 
             <label>إلى تاريخ:</label>
             <input type="date" name="ToDate" value="@ViewData["ToDateFilter"]" style="width:140px" class="form-control" />
-
-            <label>حالة الدفع:</label>
-            <select name="KindOfPay" asp-items="ViewBag.KindOfPay" class="form-control" style="width:130px">
-                <option value="">-- الكل --</option>
-            </select>
 
             <label>الشركة:</label>
             <select name="companyId" asp-items="ViewBag.Companies" class="form-control" style="width:200px">
@@ -397,8 +392,8 @@
             <th>اسم الموظف</th>
             <th>رقم الهاتف</th>
             <th>الشركة</th>
-            <th>مبلغ الإيجار</th>
-            <th>مبلغ القسط</th>
+            <th>الإيجار المدفوع</th>
+            <th>الديون المدفوعة</th>
             <th>الإجمالي</th>
         </tr>
     </thead>
@@ -413,15 +408,15 @@
                 <td>@item.EmployeeName</td>
                 <td>@item.MobileNo</td>
                 <td>@item.CompanyName</td>
-                <td style="color:#2980b9;font-weight:600">@String.Format("{0:N2}", item.TotalDailyCredit)</td>
-                <td style="color:#8e44ad;font-weight:600">@String.Format("{0:N2}", item.TotalCarCredit)</td>
-                <td style="font-weight:bold">@String.Format("{0:N2}", (item.TotalDailyCredit + item.TotalCarCredit))</td>
+                <td style="color:#2980b9;font-weight:600">@String.Format("{0:N2}", item.RentPaid)</td>
+                <td style="color:#e67e22;font-weight:600">@String.Format("{0:N2}", item.DebtPaid)</td>
+                <td style="font-weight:bold">@String.Format("{0:N2}", item.TotalPaid)</td>
             </tr>
         }
         <tr style="font-weight:bold;background-color:#f0f4f8;">
             <td colspan="5" style="text-align:right">الإجمالي:</td>
-            <td style="color:#2980b9">@String.Format("{0:N2}", totalDaily)</td>
-            <td style="color:#8e44ad">@String.Format("{0:N2}", totalCar)</td>
+            <td style="color:#2980b9">@String.Format("{0:N2}", totalRent)</td>
+            <td style="color:#e67e22">@String.Format("{0:N2}", totalDebt)</td>
             <td>@String.Format("{0:N2}", grandTotal)</td>
         </tr>
     </tbody>
@@ -443,8 +438,8 @@
         document.body.innerHTML =
             '<div style="direction:rtl;text-align:center"><h2>متابعة التحصيل</h2><p>' + period + '</p></div>' +
             '<div style="direction:rtl;display:flex;gap:12px;margin:10px 0">' +
-            '<div style="flex:1;border:1px solid #ccc;padding:10px;text-align:center"><div style="font-size:.8em;color:#999">إجمالي الإيجار</div><div style="color:#2980b9;font-weight:bold">@String.Format("{0:N2}", totalDaily)</div></div>' +
-            '<div style="flex:1;border:1px solid #ccc;padding:10px;text-align:center"><div style="font-size:.8em;color:#999">إجمالي الأقساط</div><div style="color:#8e44ad;font-weight:bold">@String.Format("{0:N2}", totalCar)</div></div>' +
+            '<div style="flex:1;border:1px solid #ccc;padding:10px;text-align:center"><div style="font-size:.8em;color:#999">إجمالي الإيجار المدفوع</div><div style="color:#2980b9;font-weight:bold">@String.Format("{0:N2}", totalRent)</div></div>' +
+            '<div style="flex:1;border:1px solid #ccc;padding:10px;text-align:center"><div style="font-size:.8em;color:#999">إجمالي الديون المدفوعة</div><div style="color:#e67e22;font-weight:bold">@String.Format("{0:N2}", totalDebt)</div></div>' +
             '<div style="flex:1;border:1px solid #ccc;padding:10px;text-align:center"><div style="font-size:.8em;color:#999">إجمالي التحصيل</div><div style="color:#27ae60;font-weight:bold">@String.Format("{0:N2}", grandTotal)</div></div>' +
             '</div>' + printContents;
         window.print();
