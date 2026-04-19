@@ -1,0 +1,80 @@
+@model CarRentWeb.Models.MyModel.BalanceReportViewModel
+
+@{
+    ViewData["Title"] = "تقرير إجمالي الرصيد";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1 dir="rtl">تقرير إجمالي الرصيد</h1>
+
+<div class="search-container" dir="rtl">
+    <form asp-action="Index" method="get">
+        <div class="form-group">
+            <label for="companyId">اسم الشركة:</label>
+            <select name="companyId" asp-items="ViewBag.Companies" class="form-control" style="width:200px">
+                <option value="">-- جميع الشركات --</option>
+            </select>
+
+            <label for="FromDateSearch">من تاريخ</label>
+            <input type="date" name="FromDateSearch" value="@ViewData["FromDateFilter"]" style="width:140px" />
+
+            <label for="ToDateSearch">إلى تاريخ</label>
+            <input type="date" name="ToDateSearch" value="@ViewData["ToDateFilter"]" style="width:140px" />
+
+            <input type="submit" value="بحث" class="btn btn-primary" />
+            <a asp-action="Index" class="btn btn-secondary">إعادة تعيين</a>
+        </div>
+    </form>
+</div>
+
+<div class="table-container mt-4" dir="rtl">
+    <table class="bordered-table" style="width:auto; min-width:500px">
+        <thead>
+            <tr>
+                <th>البيان</th>
+                <th>المبلغ (د.ك)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>الإيجار اليومي المدفوع</td>
+                <td>@Model.TotalDailyRentPaid.ToString("N3")</td>
+            </tr>
+            <tr>
+                <td>الإيجار الشهري المدفوع</td>
+                <td>@Model.TotalMonthlyRentPaid.ToString("N3")</td>
+            </tr>
+            <tr class="table-info fw-bold">
+                <td>إجمالي الإيجار المدفوع</td>
+                <td>@Model.TotalRentPaid.ToString("N3")</td>
+            </tr>
+            <tr>
+                <td>الديون المحصّلة</td>
+                <td>@Model.TotalDebtsPaid.ToString("N3")</td>
+            </tr>
+            <tr class="table-success fw-bold">
+                <td>إجمالي الرصيد الكلي</td>
+                <td>@Model.GrandTotal.ToString("N3")</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="mt-3" dir="rtl">
+    <button onclick="printReport()" class="btn btn-success">
+        <i class="bi bi-printer"></i> طباعة
+    </button>
+</div>
+
+<script>
+    function printReport() {
+        var printContents =
+            '<h2 style="text-align:center;direction:rtl">تقرير إجمالي الرصيد</h2>' +
+            document.querySelector('.bordered-table').outerHTML;
+        var originalContents = document.body.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+        location.reload();
+    }
+</script>
