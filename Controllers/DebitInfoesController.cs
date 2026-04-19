@@ -379,33 +379,20 @@ namespace CarRentWeb.Controllers
 
                     // Update only the necessary fields
                     existingDebitInfo.UserId = HttpContext.Session.GetInt32("UserId");
-
-                    existingDebitInfo.ViolationId = debitInfo.ViolationId;
                     existingDebitInfo.DebitRemaining = existingDebitInfo.DebitQty - (existingDebitInfo.DebitPayed + DebitPayQty);
                     existingDebitInfo.DebitPayed += DebitPayQty;
                     existingDebitInfo.DeleteFlag = 0;
 
-                    // No need to call Update if you fetched the entity with tracking
-                    // _context.Update(existingDebitInfo);
-
-                    // Only use ViolationId if it actually exists in ViolationInfo
-                    int? validViolationId = null;
-                    if (existingDebitInfo.ViolationId.HasValue)
-                    {
-                        bool exists = await _context.ViolationInfos.AnyAsync(v => v.Id == existingDebitInfo.ViolationId.Value);
-                        if (exists) validViolationId = existingDebitInfo.ViolationId;
-                    }
-
                     var debitPayInfo = new DebitPayInfo
                     {
-                        DebitPayNo = DebitPayNo,
-                        DebitPayDate = DateOnly.FromDateTime(DateTime.Now),
-                        DebitPayQty = DebitPayQty,
-                        DeleteFlag = 0,
-                        ViolationId = validViolationId,
-                        UserId = existingDebitInfo.UserId,
-                        UserRecievedId = existingDebitInfo.UserId,
-                        DebitInfoId = existingDebitInfo.Id,
+                        DebitPayNo       = DebitPayNo,
+                        DebitPayDate     = DateOnly.FromDateTime(DateTime.Now),
+                        DebitPayQty      = DebitPayQty,
+                        DeleteFlag       = 0,
+                        ViolationId      = null,
+                        UserId           = existingDebitInfo.UserId,
+                        UserRecievedId   = existingDebitInfo.UserId,
+                        DebitInfoId      = existingDebitInfo.Id,
                     };
 
                     _context.DebitPayInfos.Add(debitPayInfo);
