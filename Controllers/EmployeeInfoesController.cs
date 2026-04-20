@@ -322,7 +322,8 @@ namespace CarRentWeb.Controllers
             var employeeInfo = await _context.EmployeeInfos.FindAsync(id);
             if (employeeInfo != null)
             {
-                _context.EmployeeInfos.Remove(employeeInfo);
+                employeeInfo.DeleteFlag = 1;
+                _context.Update(employeeInfo);
             }
 
             await _context.SaveChangesAsync();
