@@ -189,7 +189,7 @@ namespace CarRentWeb.Controllers
                 .Include(c => c.Employee)
                 .Include(c => c.User)
                 .Where(m => m.DeleteFlag == 0 && m.Status == 0 && m.ContractType == 0)
-                .OrderBy(e => e.ContractNo);
+                .OrderBy(e => e.Employee!.EmpCode);
 
 
             if (!string.IsNullOrEmpty(ContractNoString))
