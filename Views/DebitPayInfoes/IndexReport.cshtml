@@ -63,6 +63,9 @@
                 التاريخ
             </th>
             <th>
+                رقم الموظف
+            </th>
+            <th>
                 الاسم
             </th>
             <th>
@@ -85,6 +88,9 @@
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.DebitPayDate)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.DebitInfo!.Emp!.EmpCode)
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.DebitInfo!.Emp!.FullNameAr)

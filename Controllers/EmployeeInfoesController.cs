@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using CarRentWeb.Data;
+using CarRentWeb.Data;
 using CarRentWeb.Models;
 using CarRentWeb.Models.MyModel;
 
@@ -322,7 +323,8 @@ namespace CarRentWeb.Controllers
             var employeeInfo = await _context.EmployeeInfos.FindAsync(id);
             if (employeeInfo != null)
             {
-                _context.EmployeeInfos.Remove(employeeInfo);
+                employeeInfo.DeleteFlag = 1;
+                _context.Update(employeeInfo);
             }
 
             await _context.SaveChangesAsync();

@@ -360,7 +360,7 @@ namespace CarRentWeb.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> CreateDailyAsync(int? id)
+        public async Task<IActionResult> CreateDaily(int? id)
         {
             int maxBillNo = _context.Bills.Max(a => a.BillNo)!.Value;
             ViewBag.maxBillNo = maxBillNo + 1;
@@ -412,6 +412,7 @@ namespace CarRentWeb.Controllers
                     bill.BankIntNo = null;
                     bill.BankBillNo = null;
                     bill.BankDate = null;
+                   
                 }
 
                 DateOnly currentDate = DateOnly.FromDateTime(DateTime.Now);
@@ -427,9 +428,61 @@ namespace CarRentWeb.Controllers
 
                 bill.ContractId = contractid;
 
+                int nNoOfDays = (int)bill.NoOfDays;
+                
                 bill.BillHent = "إيجار يومي";
+                
 
                 _context.Add(bill);
+
+                await _context.SaveChangesAsync();
+
+                int billId = _context.Bills.Max(a => Convert.ToInt32(a.Id));
+
+                var existingDetail = await _context.ContractDetails
+                .Include(c => c.Contract)
+                .Where(c => c.Contract!.Id == contractid && (c.Status == 0 || c.Status == 2))
+                .Where(c =>
+                    // إذا كان فيه Status = 3
+                    _context.ContractDetails
+                        .Where(last => last.ContractId == contractid && last.Status == 3)
+                        .OrderByDescending(last => last.Id)
+                        .Select(last => last.DailyCreditDate)
+                        .FirstOrDefault() != null
+                    ?
+                        // نجيب السجلات اللي بعد آخر Status = 3
+                        c.DailyCreditDate > _context.ContractDetails
+                            .Where(last => last.ContractId == contractid && last.Status == 3)
+                            .OrderByDescending(last => last.Id)
+                            .Select(last => last.DailyCreditDate)
+                            .FirstOrDefault()
+                    :
+                        // إذا مكنش فيه Status = 3، نجيب أول سجل فقط
+                        c.DailyCreditDate >= _context.ContractDetails
+                            .Where(first => first.ContractId == contractid && (first.Status == 0 || first.Status == 2))
+                            .OrderBy(first => first.DailyCreditDate)
+                            .Select(first => first.DailyCreditDate)
+                            .FirstOrDefault()
+                )
+                .OrderBy(c => c.Id)
+                .Take(nNoOfDays)
+                .ToListAsync();
+
+                for (int i = 0; i < existingDetail.Count; i++)
+                {
+                    if (existingDetail[i].Status == 0)
+                    {
+                        existingDetail[i].Status = 3;
+                    }
+
+
+                    existingDetail[i].BillId = billId;
+                    existingDetail[i].PayedDate = DateOnly.FromDateTime(DateTime.Now);
+                    _context.Update(existingDetail[i]);
+                }
+
+
+
                 await _context.SaveChangesAsync();
 
                 // إرسال رسالة واتساب للعميل
@@ -448,6 +501,7 @@ namespace CarRentWeb.Controllers
                         bill.BillDate,
                         "يومي");
                 }
+
 
                 return RedirectToAction(nameof(IndexDaily));
             }

@@ -389,6 +389,9 @@
                 رقم الدين
             </th>
             <th>
+                رقم الموظف
+            </th>
+            <th>
                اسم الموظف
             </th>
             <th>
@@ -419,6 +422,9 @@
             <td>
                 @Html.DisplayFor(modelItem => item.DebitNo)
             </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Emp!.EmpCode)
+                </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Emp!.FullNameAr)
             </td>

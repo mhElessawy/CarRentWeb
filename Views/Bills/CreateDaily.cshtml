@@ -83,7 +83,7 @@
                 </div>
                 <div class="col-md-3">
                     <label asp-for="FromDate" class="form-label">من تاريخ</label>
-                    <input asp-for="FromDate" type="date" value="@ViewBag.fromDate.ToString("yyyy-MM-dd")" class="form-control" onchange="calculateToDateAndCost" readonly />
+                    <input asp-for="FromDate"  value="@ViewBag.fromDate.ToString("yyyy-MM-dd")" class="form-control" onchange="calculateToDateAndCost" readonly />
                     <span asp-validation-for="FromDate" class="text-danger small"></span>
                 </div>
                 <div class="col-md-2">
@@ -93,7 +93,7 @@
                 </div>
                 <div class="col-md-3">
                     <label asp-for="ToDate" class="form-label">إلى تاريخ</label>
-                    <input asp-for="ToDate" type="date" value="@DateTime.Now.ToString("yyyy-MM-dd")" class="form-control" readonly  />
+                    <input asp-for="ToDate"  value="@DateTime.Now.ToString("yyyy-MM-dd")" class="form-control" readonly  />
                     <span asp-validation-for="ToDate" class="text-danger small"></span>
                 </div>
                 <div class="col-md-2">
@@ -153,11 +153,11 @@
         if (fromDateInput.value && noOfDaysInput.value) {
             // 1. Calculate ToDate by adding days
             const fromDate = new Date(fromDateInput.value);
-            const noOfDays = parseInt(noOfDaysInput.value) || 0;
+            const noOfDays = parseInt(noOfDaysInput.value ) || 0;
             const toDate = new Date(fromDate);
 
             // Add the number of days to the date
-            toDate.setDate(toDate.getDate() + noOfDays);
+            toDate.setDate(toDate.getDate() + noOfDays -1);
 
             toDateInput.value = toDate.toISOString().split('T')[0];
 

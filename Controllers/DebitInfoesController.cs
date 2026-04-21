@@ -104,12 +104,12 @@ namespace CarRentWeb.Controllers
             {
                 query = (IOrderedQueryable<DebitInfo>)query.Where(e => e.DebitDate <= DateOnly.FromDateTime((DateTime)ToDateSearch));
             }
-            if (FromDateSearch == null && ToDateSearch == null)
-            {
-                var today = DateOnly.FromDateTime(DateTime.Now);
-                var sevenDaysAgo = today.AddDays(-7); // Subtract 7 days
-                query = (IOrderedQueryable<DebitInfo>)query.Where(e => e.DebitDate >= sevenDaysAgo);
-            }
+            //if (FromDateSearch == null && ToDateSearch == null)
+            //{
+            //    var today = DateOnly.FromDateTime(DateTime.Now);
+            //    var sevenDaysAgo = today.AddDays(-7); // Subtract 7 days
+            //    query = (IOrderedQueryable<DebitInfo>)query.Where(e => e.DebitDate >= sevenDaysAgo);
+            //}
             // Store current search values for the view
             ViewData["EmpCodeFilter"] = EmpCodeString;
             ViewData["EmpFilter"] = EmpSearch;
@@ -144,7 +144,6 @@ namespace CarRentWeb.Controllers
             int pageSize = 50; // Set your page size
             return View(await PaginatedList<DebitInfo>.CreateAsync(query.AsNoTracking(), pageNumber ?? 1, pageSize));
         }
-
 
         // GET: DebitInfoes/Details/5
         public async Task<IActionResult> Details(int? id)
@@ -438,8 +437,6 @@ namespace CarRentWeb.Controllers
             // If validation fails, return to the edit view with error messages
             return View(debitInfo);
         }
-
-
         public IActionResult DebitPayPrint(int Id)
         {
             if (Id == null)

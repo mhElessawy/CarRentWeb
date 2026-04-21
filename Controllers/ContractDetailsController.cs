@@ -826,7 +826,7 @@ namespace CarRentWeb.Controllers
                     RemainingDebt = debtByEmp.FirstOrDefault(d => d.EmpId == e.Id)?.Total ?? 0
                 })
                 .Where(i => i.OverdueRental > 0 || i.RemainingDebt > 0)
-                .OrderBy(i => i.CompanyName)
+                .OrderBy(i => i.EmpCode)
                 .ThenBy(i => i.EmpCode)
                 .ToList();
 
