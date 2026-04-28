@@ -852,7 +852,7 @@ namespace CarRentWeb.Controllers
                 .Include(c => c.Car)
                 .Include(c => c.Employee)
                 .Include(c => c.User)
-                .Where(m => m.Status == 1)
+                .Where(m => m.Status == 0 || m.DeleteFlag == 0)
                 .OrderByDescending(e => e.ContractNo)
                 .Select(c => new ContractCreditData
                 {

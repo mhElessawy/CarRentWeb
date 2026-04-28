@@ -378,6 +378,9 @@
                 كود السيارة
             </th>
             <th>
+                رقم الموظف
+            </th>
+            <th>
                 اسم الموظف
             </th>
             <th>
@@ -407,6 +410,9 @@
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.Contract.Car!.CarCode)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Contract.Employee!.EmpCode)
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.Contract.Employee!.FullNameAr)
