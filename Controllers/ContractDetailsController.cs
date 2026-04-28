@@ -774,6 +774,88 @@ namespace CarRentWeb.Controllers
 
 
         }
+        public async Task<IActionResult> IndexReportNotCollected(int? selectMonth, int? selectYear, int[] companyId)
+        {
+            TempData.Keep();
+
+            TempData["UserCompanyData"] = HttpContext.Session.GetString("UserCompanyData");
+            var userCompanyData = TempData["UserCompanyData"]?.ToString();
+            var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
+
+            if (companyIds.Any())
+            {
+                ViewBag.Companies = new SelectList(
+                    await _context.CompanyInfos
+                        .FromSqlRaw($"SELECT * FROM CompanyInfo WHERE DeleteFlag = 0 AND Id IN ({companyIdsString})")
+                        .OrderBy(c => c.CompNameAr)
+                        .ToListAsync(),
+                    "Id", "CompNameAr", companyId);
+            }
+            else
+            {
+                ViewBag.Companies = new SelectList(Enumerable.Empty<SelectListItem>());
+            }
+
+            int currentYear = DateTime.Now.Year;
+            ViewBag.SelectMonth = new SelectList(
+                Enumerable.Range(1, 12).Select(x => new { Value = x, Text = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(x) }),
+                "Value", "Text", selectMonth);
+
+            ViewBag.SelectYear = new SelectList(
+                Enumerable.Range(currentYear - 3, 4).OrderByDescending(y => y).Select(y => new { Value = y, Text = y.ToString() }),
+                "Value", "Text", selectYear);
+
+            if (selectMonth == null)
+                ModelState.AddModelError("SelectMonth", "يجب إختيار الشهر");
+            else if (selectYear == null)
+                ModelState.AddModelError("SelectYear", "يجب إختيار السنة");
+
+            IQueryable<ContractDetail> query = _context.ContractDetails.Where(a => false);
+
+            if (selectMonth.HasValue && selectYear.HasValue)
+            {
+                query = _context.ContractDetails
+                    .FromSqlRaw($"select * from ContractDetails where ContractId In (Select Id from Contract where DeleteFlag = 0 and status = 0 and EmployeeId In (Select Id From EmployeeInfo where CompanyId IN ({companyIdsString})))")
+                    .Include(c => c.Bill)
+                    .Include(c => c.Contract)
+                        .ThenInclude(c => c!.Employee)
+                    .Include(c => c.Contract)
+                        .ThenInclude(c => c!.Car)
+                    .Where(a => a.DeleteFlag == 0 && (a.DailyCredit != 0 || a.CarCredit != 0))
+                    .Where(a => a.Status == 0)
+                    .Where(a => a.DailyCreditDate!.Value.Month == selectMonth && a.DailyCreditDate!.Value.Year == selectYear);
+
+                if (companyId != null && companyId.Length > 0)
+                {
+                    var selectedCompanyIds = companyId.ToList();
+                    query = query.Where(e => selectedCompanyIds.Contains((int)e.Contract!.Employee!.CompanyId));
+                }
+            }
+
+            var result = await query
+                .Where(c => c.Contract != null && c.Contract.Employee != null && c.Contract.Employee.EmpCode != null)
+                .GroupBy(c => c.Contract!.Employee!.Id)
+                .Select(g => new ContractDetailsSumation
+                {
+                    EmployeeId = g.Key,
+                    EmpCode = (int)g.First().Contract!.Employee!.EmpCode!,
+                    MobileNo = g.First().Contract!.Employee!.MobiileNo ?? "N/A",
+                    EmployeeName = g.First().Contract!.Employee!.FullNameAr ?? "Unknown",
+                    TotalDailyCredit = (decimal)g.Sum(c => c.DailyCredit),
+                    TotalCarCredit = (decimal)g.Sum(c => c.CarCredit)
+                })
+                .OrderBy(x => x.EmpCode)
+                .ToListAsync();
+
+            ViewBag.SelectMonthName = selectMonth.HasValue
+                ? CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(selectMonth.Value)
+                : "";
+            ViewBag.SelectYearValue = selectYear;
+
+            return View(result);
+        }
+
         [HttpGet]
         public IActionResult IndexMonthlyDetailsPayed(int? id)
         {
