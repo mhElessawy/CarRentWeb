@@ -189,7 +189,7 @@ namespace CarRentWeb.Controllers
                 .Include(c => c.Employee)
                 .Include(c => c.User)
                 .Where(m => m.DeleteFlag == 0 && m.Status == 0 && m.ContractType == 0)
-                .OrderBy(e => e.Employee!.EmpCode);
+                .OrderBy(e => e.ContractNo);
 
 
             if (!string.IsNullOrEmpty(ContractNoString))
@@ -248,7 +248,7 @@ namespace CarRentWeb.Controllers
             ViewBag.DiscountAlerts = discountAlerts;
 
             // Pagination
-            int pageSize = 100; // Set your page size
+            int pageSize = 10; // Set your page size
             return View(await PaginatedList<Contract>.CreateAsync(query.AsNoTracking(), pageNumber ?? 1, pageSize));
         }
 
@@ -852,7 +852,7 @@ namespace CarRentWeb.Controllers
                 .Include(c => c.Car)
                 .Include(c => c.Employee)
                 .Include(c => c.User)
-                .Where(m => m.Status == 1)
+                .Where(m => m.Status == 0 || m.DeleteFlag == 0)
                 .OrderByDescending(e => e.ContractNo)
                 .Select(c => new ContractCreditData
                 {
@@ -887,7 +887,7 @@ namespace CarRentWeb.Controllers
                 query = (IOrderedQueryable<ContractCreditData>)query.Where(e => e.Contract!.Employee!.CompanyId == companyId.Value);
             }
 
-            int pageSize = 10; // Set your page size
+            int pageSize = 100; // Set your page size
             return View(await PaginatedList<ContractCreditData>.CreateAsync(query.AsNoTracking(), pageNumber ?? 1, pageSize));
         }
 
@@ -1064,6 +1064,35 @@ namespace CarRentWeb.Controllers
         #endregion
 
         #region "ContractDaily"
+
+        [HttpGet]
+        public async Task<IActionResult> EditDailyContract(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var contract = await _context.Contracts
+                .Include(c => c.Car)
+                .Include(c => c.Employee)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (contract == null) return NotFound();
+
+            return View(contract);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditDailyContract(int id, int? RentalType, DateOnly? DiscountDate)
+        {
+            var contractToUpdate = new Contract { Id = id, RentalType = RentalType, DiscountDate = DiscountDate };
+            _context.Attach(contractToUpdate);
+            var entry = _context.Entry(contractToUpdate);
+            entry.Property(x => x.RentalType).IsModified = true;
+            entry.Property(x => x.DiscountDate).IsModified = true;
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(IndexDaily));
+        }
+
         [HttpGet]
         public async Task<IActionResult> EndContractDaily(int? id)
         {

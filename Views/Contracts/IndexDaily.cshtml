@@ -1,4 +1,4 @@
-﻿@using CarRentWeb.Data
+﻿﻿@using CarRentWeb.Data
 @model PaginatedList<CarRentWeb.Models.Contract>
 @using CarRentWeb.Models.MyModel
 @inject IHttpContextAccessor HttpContextAccessor
@@ -498,7 +498,7 @@
         </div>
     </div>
 }
-@if (user?.ContractDailySave == true)
+@if (user!.ContractDailySave == true)
 {
 
     <p dir="rtl">
@@ -569,6 +569,9 @@
                 <th>
                     تاريخ التخفيض
                 </th>
+                <th>
+                    عدد السنين
+                </th>
 
                 <th></th>
             </tr>
@@ -630,17 +633,30 @@
                         }
                     </td>
                     <td>
-                        @Html.DisplayFor(modelItem => item.DiscountDate)
+                        @(item.DiscountDate.HasValue? item.DiscountDate.Value.ToString() : "-")
                     </td>
+                    <td>
+                        @{
+                            int contractDays = (item.StartDate.HasValue && item.EndDate.HasValue)
+                            ? item.EndDate.Value.DayNumber - item.StartDate.Value.DayNumber
+                            : (item.NoOfDays ?? 0);
+                            double contractYears = Math.Round(contractDays / 365.0, 1);
+                        }
+                        @contractYears
+                    </td>
+
                     <td class="action-links">
                         <a asp-action="CreateDaily" asp-controller="Bills" asp-route-id="@item.Id" class="btn-danger"><i class="fas fa-paypal"></i> دفع </a>
                         <a asp-action="DetailsDaily" asp-route-id="@item.Id" class="btn-details"><i class="fas fa-info-circle"></i> تفاصيل</a>
-                        @if (user?.ContractDailyEnd == true)
+                        @if (user!.ContractDailySave == true)
+                        {
+                            <a asp-action="EditDailyContract" asp-route-id="@item.Id" class="btn-edit"><i class="fas fa-edit"></i> تعديل</a>
+                        }
+                        @if (user!.ContractDailyEnd == true)
                         {
                             <a asp-action="EndContractDaily" asp-route-id="@item.Id" class="btn-delete"><i class="fas fa-trash-alt"></i> إنتهاء عقد</a>
                         }
                     </td>
-                   
                 </tr>
             }
         </tbody>

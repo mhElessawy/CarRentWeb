@@ -1,0 +1,277 @@
+﻿@model IEnumerable<CarRentWeb.Models.MyModel.ContractDetailsSumation>
+
+@{
+    ViewData["Title"] = "تقرير الموظفين غير المحصلين";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var totalDaily = Model?.Sum(item => item?.TotalDailyCredit ?? 0) ?? 0;
+    var totalCar = Model?.Sum(item => item?.TotalCarCredit ?? 0) ?? 0;
+    var grandTotal = totalDaily + totalCar;
+    var monthName = ViewBag.SelectMonthName as string ?? "";
+    var yearValue = ViewBag.SelectYearValue;
+}
+
+<style>
+    .bordered-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 15px 0;
+        font-size: 0.8em;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+        .bordered-table thead tr {
+            background-color: #c0392b;
+            color: #ffffff;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .bordered-table th,
+        .bordered-table td {
+            padding: 6px 8px;
+            border-bottom: 1px solid #dddddd;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .bordered-table tbody tr:nth-of-type(even) {
+            background-color: #fdf5f5;
+        }
+
+        .bordered-table tbody tr:last-of-type {
+            border-bottom: 2px solid #c0392b;
+        }
+
+        .bordered-table tbody tr:hover {
+            background-color: #fce4e4;
+            transform: translateY(-1px);
+        }
+
+    .search-container {
+        margin: 20px 0;
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .form-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+    }
+
+        .form-group label {
+            margin-bottom: 0;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+    .form-control {
+        padding: 6px 12px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+    }
+
+    .btn-primary {
+        background-color: #3498db;
+        border-color: #3498db;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 4px;
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 4px;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-print {
+        background-color: #c0392b;
+        border: none;
+        color: white;
+        padding: 8px 20px;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+        .btn-print:hover {
+            background-color: #a93226;
+        }
+
+    .summary-badge {
+        display: inline-block;
+        background: #c0392b;
+        color: white;
+        border-radius: 20px;
+        padding: 4px 16px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        margin-right: 10px;
+    }
+
+    h1 {
+        color: #c0392b;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #c0392b;
+    }
+
+    @@media (max-width: 768px) {
+        .bordered-table {
+            font-size: 0.75rem;
+        }
+
+        .form-group {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+
+    @@media print {
+        .search-container, .btn-print, .no-print {
+            display: none !important;
+        }
+
+        h1 {
+            color: #000;
+            border-color: #000;
+        }
+
+        .bordered-table thead tr {
+            background-color: #555 !important;
+            -webkit-print-color-adjust: exact;
+        }
+    }
+</style>
+
+<h1 dir="rtl">
+    <i class="fas fa-user-times"></i> تقرير الموظفين غير المحصلين
+    @if (!string.IsNullOrEmpty(monthName) && yearValue != null)
+    {
+        <span class="summary-badge">@monthName @yearValue</span>
+    }
+    @if (Model != null && Model.Any())
+    {
+        <span class="summary-badge">@Model.Count() موظف</span>
+    }
+</h1>
+
+<div class="search-container no-print" dir="rtl">
+    <form asp-action="IndexReportNotCollected" method="get">
+        <div class="form-group">
+            <label>الشهر:</label>
+            <select name="selectMonth" asp-items="ViewBag.SelectMonth" class="form-control" style="width:130px">
+                <option value="">-- اختر الشهر --</option>
+            </select>
+
+            <label>السنة:</label>
+            <select name="selectYear" asp-items="ViewBag.SelectYear" class="form-control" style="width:100px">
+                <option value="">-- اختر السنة --</option>
+            </select>
+
+            <label>الشركة:</label>
+            <select name="companyId" asp-items="ViewBag.Companies" class="form-control" style="width:280px" multiple>
+            </select>
+
+            <input type="submit" value="عرض التقرير" class="btn btn-primary" />
+            <a asp-action="IndexReportNotCollected" class="btn btn-secondary">إعادة تعيين</a>
+        </div>
+    </form>
+</div>
+
+@if (!ModelState.IsValid)
+{
+    <div dir="rtl" style="color:#c0392b; margin-bottom:10px; font-weight:600;">
+        @foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <div>⚠ @error.ErrorMessage</div>
+        }
+    </div>
+}
+
+@if (Model != null)
+{
+    <div style="overflow-x:auto;">
+        <table class="bordered-table" dir="rtl">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>كود الموظف</th>
+                    <th>اسم الموظف</th>
+                    <th>رقم الهاتف</th>
+                    <th>مبلغ الإيجار</th>
+                    <th>مبلغ القسط</th>
+                    <th>الإجمالي</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    int rowNum = 1;
+                }
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@rowNum</td>
+                        <td>@item.EmpCode</td>
+                        <td>@item.EmployeeName</td>
+                        <td>@item.MobileNo</td>
+                        <td>@item.TotalDailyCredit.ToString("N2")</td>
+                        <td>@item.TotalCarCredit.ToString("N2")</td>
+                        <td style="font-weight:600;">@((item.TotalDailyCredit + item.TotalCarCredit).ToString("N2"))</td>
+                    </tr>
+                    rowNum++;
+                }
+                @if (Model.Any())
+                {
+                    <tr style="font-weight:bold; background-color:#fde8e8;">
+                        <td colspan="4" style="text-align:right;">الإجمالي:</td>
+                        <td>@totalDaily.ToString("N2")</td>
+                        <td>@totalCar.ToString("N2")</td>
+                        <td>@grandTotal.ToString("N2")</td>
+                    </tr>
+                }
+                else if (ViewBag.SelectMonthName != null && ViewBag.SelectMonthName != "")
+                {
+                    <tr>
+                        <td colspan="7" style="text-align:center; color:#27ae60; font-weight:600; padding:20px;">
+                            ✓ تم تحصيل جميع الموظفين لهذا الشهر
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (Model.Any())
+    {
+        <div style="margin-top:12px;" class="no-print">
+            <button onclick="printReport()" class="btn-print">
+                <i class="fas fa-print"></i> طباعة
+            </button>
+        </div>
+    }
+}
+
+<script>
+    function printReport() {
+        var header = '<h2 style="text-align:center;color:#c0392b;">تقرير الموظفين غير المحصلين - @monthName @yearValue</h2>';
+        var table  = document.querySelector('.bordered-table').outerHTML;
+        var w = window.open('', '_blank');
+        w.document.write('<html><head><meta charset="utf-8"><style>table{width:100%;border-collapse:collapse;font-family:Arial;}th,td{border:1px solid #ccc;padding:6px 8px;text-align:center;}thead tr{background:#555;color:#fff;}body{direction:rtl;}</style></head><body>' + header + table + '</body></html>');
+        w.document.close();
+        w.print();
+    }
+</script>

@@ -1,4 +1,4 @@
-﻿@using CarRentWeb.Data
+﻿﻿@using CarRentWeb.Data
 @model PaginatedList<CarRentWeb.Models.MyModel.ContractCreditData>
 
 @{
@@ -338,7 +338,7 @@
     }
 </style>
 
-<h1 dir="rtl">العقود الشهرية</h1>
+<h1 dir="rtl">أرشيف العقود</h1>
 
 
 <div class="search-container" dir="rtl">
@@ -360,7 +360,7 @@
                 <option value="">-- جميع الشركات --</option>
             </select>
             <input type="submit" value="بحث" class="btn btn-primary" />
-            <a asp-action="IndexMonthly" class="btn btn-secondary">إعادة تعيين</a>
+            <a asp-action="IndexArchive" class="btn btn-secondary">إعادة تعيين</a>
         </div>
     </form>
 </div>
@@ -378,6 +378,9 @@
                 كود السيارة
             </th>
             <th>
+                رقم الموظف
+            </th>
+            <th>
                 اسم الموظف
             </th>
             <th>
@@ -386,7 +389,7 @@
             <th>
                 نهاية العقد
             </th>
-           
+
             <th>
                 سبب الإنهاء
             </th>
@@ -407,6 +410,9 @@
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.Contract.Car!.CarCode)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Contract.Employee!.EmpCode)
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.Contract.Employee!.FullNameAr)
@@ -433,7 +439,7 @@
         var nextDisabled = !Model.HasNextPage ? "disabled" : "";
     }
 
-    <a asp-action="IndexDaily"
+    <a asp-action="IndexArchive"
        asp-route-pageNumber="@(Model.PageIndex - 1)"
        asp-route-ContractNoString="@ViewData["ContractNoFilter"]"
        asp-route-CarCodeString="@ViewData["CarCodeFilter"]"
@@ -446,7 +452,7 @@
 
     <span>الصفحة @Model.PageIndex من @Model.TotalPages</span>
 
-    <a asp-action="IndexDaily"
+    <a asp-action="IndexArchive"
        asp-route-pageNumber="@(Model.PageIndex + 1)"
        asp-route-ContractNoString="@ViewData["ContractNoFilter"]"
        asp-route-CarCodeString="@ViewData["CarCodeFilter"]"
@@ -457,4 +463,3 @@
         التالي
     </a>
 </div>
-
