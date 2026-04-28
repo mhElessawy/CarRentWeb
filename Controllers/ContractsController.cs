@@ -1064,6 +1064,35 @@ namespace CarRentWeb.Controllers
         #endregion
 
         #region "ContractDaily"
+
+        [HttpGet]
+        public async Task<IActionResult> EditDailyContract(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var contract = await _context.Contracts
+                .Include(c => c.Car)
+                .Include(c => c.Employee)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (contract == null) return NotFound();
+
+            return View(contract);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditDailyContract(int id, int? RentalType, DateOnly? DiscountDate)
+        {
+            var contractToUpdate = new Contract { Id = id, RentalType = RentalType, DiscountDate = DiscountDate };
+            _context.Attach(contractToUpdate);
+            var entry = _context.Entry(contractToUpdate);
+            entry.Property(x => x.RentalType).IsModified = true;
+            entry.Property(x => x.DiscountDate).IsModified = true;
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(IndexDaily));
+        }
+
         [HttpGet]
         public async Task<IActionResult> EndContractDaily(int? id)
         {
