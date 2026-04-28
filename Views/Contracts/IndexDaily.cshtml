@@ -567,6 +567,9 @@
                     نوع التأجير
                 </th>
                 <th>
+                    تاريخ التخفيض
+                </th>
+                <th>
                     عدد السنين
                 </th>
 
@@ -628,6 +631,9 @@
                                 @:عادي
                                 break;
                         }
+                    </td>
+                    <td>
+                        @(item.DiscountDate.HasValue ? item.DiscountDate.Value.ToString() : "-")
                     </td>
                     <td>
                         @{
