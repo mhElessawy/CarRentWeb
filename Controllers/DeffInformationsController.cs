@@ -10,7 +10,7 @@ namespace CarRentWeb.Controllers
     public class DeffInformationsController : Controller
     {
         private readonly CarRentWebContext _context;
-
+            
         public DeffInformationsController(CarRentWebContext context)
         {
             _context = context;
