@@ -325,7 +325,8 @@ public class WordDocumentService
         string companyName = company?.CompNameEn ?? company?.CompNameAr ?? "";
         string companyNameAr = company?.CompNameAr ?? companyName;
         string fileNo = company?.ManpowerFileNo ?? company?.CompFileNo ?? "";
-        string licenseNo = company?.CompLicenseNo ?? "";
+        string ownerName = company?.OwnerName1 ?? "";
+        string ownerCivilId = company?.OwnerCivilId1 ?? "";
         string empNameEn = emp?.FullNameEn ?? emp?.FullNameAr ?? "";
         string empNameAr = emp?.FullNameAr ?? empNameEn;
         string nationality = emp?.Nationality?.DeffName ?? "";
@@ -356,42 +357,49 @@ public class WordDocumentService
 
                 var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
                 {
-                    // Arabic bookmarks
-                    ["ArContractDate"]  = contractDate,
-                    ["ArArabicDate"]    = contractDate,
-                    ["ArCompanyName"]   = companyNameAr,
-                    ["ArFileNo"]        = fileNo,
-                    ["ArLicenseNo"]     = licenseNo,
-                    ["ArEmpName"]       = empNameAr,
-                    ["ArNationality"]   = nationality,
-                    ["ArCivilId"]       = civilId,
-                    ["ArAddress"]       = address,
-                    ["ArFacilityName"]  = companyNameAr,
-                    ["ArWorkField"]     = "تأجير سيارات الأجرة",
-                    ["ArProfession1"]   = jobTitle,
-                    ["ArProfession2"]   = jobTitle,
-                    ["ArSalary"]        = salary,
-                    ["ArStartDate1"]    = startDate,
-                    ["ArStartDate2"]    = startDate,
-                    ["ArYears"]         = years.ToString(),
-                    // English bookmarks
-                    ["EnContractDate"]  = contractDate,
-                    ["EnArabicDate"]    = contractDate,
-                    ["EnCompanyName"]   = companyName,
-                    ["EnFileNo"]        = fileNo,
-                    ["EnLicenseNo"]     = licenseNo,
-                    ["EnEmpName"]       = empNameEn,
-                    ["EnNationality"]   = nationality,
-                    ["EnCivilId"]       = civilId,
-                    ["EnAddress"]       = address,
-                    ["EnFacilityName"]  = companyName,
-                    ["EnWorkField"]     = "Car Rental",
-                    ["EnProfession1"]   = jobTitle,
-                    ["EnProfession2"]   = jobTitle,
-                    ["EnSalary"]        = salary,
-                    ["EnStartDate1"]    = startDate,
-                    ["EnStartDate2"]    = startDate,
-                    ["EnYears"]         = years.ToString(),
+                    // ── Arabic bookmarks ──────────────────────────────────
+                    ["CompPlaceAr"]           = "الكويت",
+                    ["ContractDayAr"]         = contractDate,
+                    ["ContractDateAr"]        = contractDate,
+                    ["ContractDateAr1"]       = contractDate,
+                    ["ContractStartDateAr"]   = startDate,
+                    ["ContractPeriodAr"]      = years.ToString(),
+                    ["CompNameAr"]            = companyNameAr,
+                    ["CompNameAr1"]           = companyNameAr,
+                    ["CompOwnerAr"]           = ownerName,
+                    ["CompOwnerAr1"]          = ownerName,
+                    ["CompFileNoAr"]          = fileNo,
+                    ["CompOwnerCivilIDAr"]    = ownerCivilId,
+                    ["CompActivateAr"]        = "تأجير سيارات الأجرة",
+                    ["EmpNameAr"]             = empNameAr,
+                    ["EmpNameAr1"]            = empNameAr,
+                    ["EmpNationalityAr"]      = nationality,
+                    ["EmpCivilIDAr"]          = civilId,
+                    ["EmpResidenceAr"]        = address,
+                    ["EmpJobTitleAr"]         = jobTitle,
+                    ["EmpJobTitleAr1"]        = jobTitle,
+                    ["EmpSalaryAr"]           = salary,
+                    ["EmpSalarTafketAr"]      = salary,
+                    // ── English bookmarks ─────────────────────────────────
+                    ["CompPlaceEng"]          = "Kuwait",
+                    ["ContractDateEng1"]      = contractDate,
+                    ["ContractStartDateEng"]  = startDate,
+                    ["ContractPeriodEng"]     = years.ToString(),
+                    ["CompNameEng"]           = companyName,
+                    ["CompNameEng1"]          = companyName,
+                    ["CompOwnerEng"]          = ownerName,
+                    ["CompOwnerEng1"]         = ownerName,
+                    ["CompFileNoEn"]          = fileNo,
+                    ["CompOwnerCivilIDEng"]   = ownerCivilId,
+                    ["CompActivateEng"]       = "Car Rental",
+                    ["EmpNameEng"]            = empNameEn,
+                    ["EmpNameEng1"]           = empNameEn,
+                    ["EmpNationalityEng"]     = nationality,
+                    ["EmpCivilIDEng"]         = civilId,
+                    ["EmpResidenceEng"]       = address,
+                    ["EmpJobTitleEng"]        = jobTitle,
+                    ["EmpJobTitleEng1"]       = jobTitle,
+                    ["EmpSalaryEng"]          = salary,
                 };
 
                 foreach (var bk in body.Descendants<BookmarkStart>().ToList())
