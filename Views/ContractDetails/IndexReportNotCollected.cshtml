@@ -192,10 +192,14 @@
     </form>
 </div>
 
-@if (!ModelState.IsValid)
+@inject Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider
+@{
+    var modelState = ViewContext?.ViewData?.ModelState;
+}
+@if (modelState != null && !modelState.IsValid)
 {
     <div dir="rtl" style="color:#c0392b; margin-bottom:10px; font-weight:600;">
-        @foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+        @foreach (var error in modelState.Values.SelectMany(v => v.Errors))
         {
             <div>⚠ @error.ErrorMessage</div>
         }

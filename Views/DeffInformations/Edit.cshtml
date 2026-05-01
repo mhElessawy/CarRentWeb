@@ -1,6 +1,5 @@
 ﻿@model CarRentWeb.Models.DeffInformation
-
-@{
+﻿@{
     ViewData["Title"] = "Edit";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
@@ -28,6 +27,32 @@
                     <label asp-for="DebitPayLateDay" class="form-label">يتحول إلى دين </label>
                     @Html.DropDownList("DebitPayLatId", ViewBag.DebitPayLatId as SelectList, "-- إختيار نوع الغرامة --", new { @class = "form-control", id = "DebitPayLatId", required = "required" })
                 </div>
+
+                <!-- Renewal Dates Section -->
+                <div class="col-md-12 mt-3">
+                    <h5 class="border-bottom pb-2">تواريخ التجديد</h5>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="VpsRenewalDate" class="form-label">تاريخ تجديد VPS</label>
+                    <input asp-for="VpsRenewalDate" type="date" class="form-control" />
+                    <span asp-validation-for="VpsRenewalDate" class="text-danger"></span>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="DomainRenewalDate" class="form-label">تاريخ تجديد Domain</label>
+                    <input asp-for="DomainRenewalDate" type="date" class="form-control" />
+                    <span asp-validation-for="DomainRenewalDate" class="text-danger"></span>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="SslRenewalDate" class="form-label">تاريخ تجديد SSL</label>
+                    <input asp-for="SslRenewalDate" type="date" class="form-control" />
+                    <span asp-validation-for="SslRenewalDate" class="text-danger"></span>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="MessageRenewalDate" class="form-label">تاريخ تجديد Message</label>
+                    <input asp-for="MessageRenewalDate" type="date" class="form-control" />
+                    <span asp-validation-for="MessageRenewalDate" class="text-danger"></span>
+                </div>
+
                 <!-- Form Actions -->
                 <div class="col-md-12 mt-4">
                     <div class="d-flex justify-content-between">
@@ -60,4 +85,3 @@
         color: #0d6efd;
     }
 </style>
-
