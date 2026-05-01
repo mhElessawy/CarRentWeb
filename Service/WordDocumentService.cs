@@ -323,9 +323,11 @@ public class WordDocumentService
         var company = emp?.Company;
 
         string companyName = company?.CompNameEn ?? company?.CompNameAr ?? "";
+        string companyNameAr = company?.CompNameAr ?? companyName;
         string fileNo = company?.ManpowerFileNo ?? company?.CompFileNo ?? "";
         string licenseNo = company?.CompLicenseNo ?? "";
-        string empName = emp?.FullNameEn ?? emp?.FullNameAr ?? "";
+        string empNameEn = emp?.FullNameEn ?? emp?.FullNameAr ?? "";
+        string empNameAr = emp?.FullNameAr ?? empNameEn;
         string nationality = emp?.Nationality?.DeffName ?? "";
         string civilId = emp?.CivilId ?? "";
         string address = emp?.EmpAddress ?? "";
@@ -335,145 +337,80 @@ public class WordDocumentService
         string contractDate = contract.ContractDate?.ToString("dd/MM/yyyy") ?? "";
         int years = 1;
         if (contract.StartDate.HasValue && contract.EndDate.HasValue)
-            years = Math.Max(1, (int)Math.Round((contract.EndDate.Value.ToDateTime(TimeOnly.MinValue) - contract.StartDate.Value.ToDateTime(TimeOnly.MinValue)).TotalDays / 365.25));
+            years = Math.Max(1, (int)Math.Round(
+                (contract.EndDate.Value.ToDateTime(TimeOnly.MinValue)
+                - contract.StartDate.Value.ToDateTime(TimeOnly.MinValue)).TotalDays / 365.25));
 
-        using var ms = new MemoryStream();
-        using (var doc = WordprocessingDocument.Create(ms, WordprocessingDocumentType.Document, true))
+        string templatePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Templates", "ContractNewEn.docx");
+        if (!File.Exists(templatePath))
+            throw new FileNotFoundException("Contract template not found", templatePath);
+
+        string tempFile = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.docx");
+        File.Copy(templatePath, tempFile, true);
+
+        try
         {
-            var mainPart = doc.AddMainDocumentPart();
-            mainPart.Document = new Document();
-            var body = new Body();
-            mainPart.Document.AppendChild(body);
+            using (var doc = WordprocessingDocument.Open(tempFile, true))
+            {
+                var body = doc.MainDocumentPart!.Document.Body!;
 
-            // Page margins
-            var sectProps = new SectionProperties(
-                new PageMargin { Top = 720, Bottom = 720, Left = 900, Right = 900 });
-            body.AppendChild(sectProps);
+                var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    // Arabic bookmarks
+                    ["ArContractDate"]  = contractDate,
+                    ["ArArabicDate"]    = contractDate,
+                    ["ArCompanyName"]   = companyNameAr,
+                    ["ArFileNo"]        = fileNo,
+                    ["ArLicenseNo"]     = licenseNo,
+                    ["ArEmpName"]       = empNameAr,
+                    ["ArNationality"]   = nationality,
+                    ["ArCivilId"]       = civilId,
+                    ["ArAddress"]       = address,
+                    ["ArFacilityName"]  = companyNameAr,
+                    ["ArWorkField"]     = "تأجير سيارات الأجرة",
+                    ["ArProfession1"]   = jobTitle,
+                    ["ArProfession2"]   = jobTitle,
+                    ["ArSalary"]        = salary,
+                    ["ArStartDate1"]    = startDate,
+                    ["ArStartDate2"]    = startDate,
+                    ["ArYears"]         = years.ToString(),
+                    // English bookmarks
+                    ["EnContractDate"]  = contractDate,
+                    ["EnArabicDate"]    = contractDate,
+                    ["EnCompanyName"]   = companyName,
+                    ["EnFileNo"]        = fileNo,
+                    ["EnLicenseNo"]     = licenseNo,
+                    ["EnEmpName"]       = empNameEn,
+                    ["EnNationality"]   = nationality,
+                    ["EnCivilId"]       = civilId,
+                    ["EnAddress"]       = address,
+                    ["EnFacilityName"]  = companyName,
+                    ["EnWorkField"]     = "Car Rental",
+                    ["EnProfession1"]   = jobTitle,
+                    ["EnProfession2"]   = jobTitle,
+                    ["EnSalary"]        = salary,
+                    ["EnStartDate1"]    = startDate,
+                    ["EnStartDate2"]    = startDate,
+                    ["EnYears"]         = years.ToString(),
+                };
 
-            // Header
-            body.InsertBefore(EcParagraph("Public Authority for Manpower                    Labour Department", bold: true, center: true, size: 28), sectProps);
-            body.InsertBefore(EcParagraph("", size: 20), sectProps);
+                foreach (var bk in body.Descendants<BookmarkStart>().ToList())
+                {
+                    if (bk.Name != null && values.TryGetValue(bk.Name, out var val))
+                        ReplaceBookmarkText(bk, val);
+                }
 
-            // Date
-            body.InsertBefore(EcParagraph($"On  {contractDate}  corresponding to  the present contract was concluded by and between:", size: 22), sectProps);
-            body.InsertBefore(EcParagraph("", size: 20), sectProps);
-
-            // First party
-            body.InsertBefore(EcParagraph($"1. Company:  {companyName}", size: 22), sectProps);
-            body.InsertBefore(EcParagraph($"   File No / {fileNo}          Civil license number / {licenseNo}", size: 22), sectProps);
-            body.InsertBefore(EcParagraph("                                                                      (First party)", size: 22), sectProps);
-            body.InsertBefore(EcParagraph("", size: 20), sectProps);
-
-            // Second party
-            body.InsertBefore(EcParagraph($"   Name:  {empName}", size: 22), sectProps);
-            body.InsertBefore(EcParagraph($"   Nationality:  {nationality}", size: 22), sectProps);
-            body.InsertBefore(EcParagraph($"   Civil card:  {civilId}          Residence:  {address}", size: 22), sectProps);
-            body.InsertBefore(EcParagraph("                                                                      (Second party)", size: 22), sectProps);
-            body.InsertBefore(EcParagraph("", size: 20), sectProps);
-
-            // Preamble
-            body.InsertBefore(EcParagraph("Preamble", bold: true, size: 24), sectProps);
-            body.InsertBefore(EcParagraph(
-                $"The first party owns the facility entitled  {companyName}  working in the field of car rental " +
-                $"whereas it wishes to conclude a contract with the second party to work for it in the profession of  {jobTitle}.",
-                size: 22), sectProps);
-            body.InsertBefore(EcParagraph("", size: 20), sectProps);
-            body.InsertBefore(EcParagraph(
-                "whereas acknowledged  their  capacity  to   conclude  this contract, they agreed upon the following:",
-                size: 22), sectProps);
-            body.InsertBefore(EcParagraph("", size: 20), sectProps);
-
-            // Article One
-            body.InsertBefore(EcParagraph("Article One", bold: true, size: 24), sectProps);
-            body.InsertBefore(EcParagraph("The preamble above shall constitute an integral part of the present contract.", size: 22), sectProps);
-            body.InsertBefore(EcParagraph("", size: 20), sectProps);
-
-            // Article Two
-            body.InsertBefore(EcParagraph("Article Two - Nature of the Work", bold: true, size: 24), sectProps);
-            body.InsertBefore(EcParagraph(
-                $"The first party concluded a contract with the second party to work for it in the profession of  {jobTitle}  in the State of Kuwait.",
-                size: 22), sectProps);
-            body.InsertBefore(EcParagraph("", size: 20), sectProps);
-
-            // Article Three
-            body.InsertBefore(EcParagraph("Article Three", bold: true, size: 24), sectProps);
-            body.InsertBefore(EcParagraph(
-                "Considering the contract as having a definite or indefinite term shall be subject to the will of the two parties.",
-                size: 22), sectProps);
-            body.InsertBefore(EcParagraph("", size: 20), sectProps);
-
-            // Article Four
-            body.InsertBefore(EcParagraph("Article Four - Lease Value", bold: true, size: 24), sectProps);
-            body.InsertBefore(EcParagraph(
-                $"For executing the present contract, the second party shall receive the wage of  {salary}  dinars " +
-                "to be paid at the end of every month. The first party may not decrease the wage during the term of the contract. " +
-                "It may not transfer the second party to daily wage without his approval.",
-                size: 22), sectProps);
-            body.InsertBefore(EcParagraph("", size: 20), sectProps);
-
-            // Article Five
-            body.InsertBefore(EcParagraph("Article Five - Contract Term", bold: true, size: 24), sectProps);
-            body.InsertBefore(EcParagraph(
-                $"The contract shall come into force on  {startDate}.  The second party shall execute his work during the entire execution term thereof.",
-                size: 22), sectProps);
-            body.InsertBefore(EcParagraph("", size: 20), sectProps);
-
-            // Article Six
-            body.InsertBefore(EcParagraph("Article Six - Contract Term", bold: true, size: 24), sectProps);
-            body.InsertBefore(EcParagraph(
-                $"The present contract has a definite term. It shall come into force on  {startDate}  for a term of  {years}  year(s).",
-                size: 22), sectProps);
-            body.InsertBefore(EcParagraph("", size: 20), sectProps);
-
-            // Article Seven
-            body.InsertBefore(EcParagraph("Article Seven - Annual Leave", bold: true, size: 24), sectProps);
-            body.InsertBefore(EcParagraph(
-                "The second party shall have the right to a paid annual leave with a term of 30 days. " +
-                "It shall not be due on the first year save after the expiration of nine months to be calculated from the date of the contract coming into force.",
-                size: 22), sectProps);
-            body.InsertBefore(EcParagraph("", size: 20), sectProps);
-
-            // Article Eight
-            body.InsertBefore(EcParagraph("Article Eight - Number of Work Hours", bold: true, size: 24), sectProps);
-            body.InsertBefore(EcParagraph(
-                "The first party may not require that the second party work for a term exceeding eight daily work hours with rest periods not less than one hour.",
-                size: 22), sectProps);
-            body.InsertBefore(EcParagraph("", size: 20), sectProps);
-
-            // Signatures
-            body.InsertBefore(EcParagraph("", size: 20), sectProps);
-            body.InsertBefore(EcParagraph(
-                "First Party Signature                                                Second Party Signature",
-                size: 22), sectProps);
-            body.InsertBefore(EcParagraph("", size: 20), sectProps);
-            body.InsertBefore(EcParagraph(
-                "_______________________                                         _______________________",
-                size: 22), sectProps);
-
-            doc.Save();
+                doc.Save();
+            }
+            return File.ReadAllBytes(tempFile);
         }
-        return ms.ToArray();
+        finally
+        {
+            if (File.Exists(tempFile)) File.Delete(tempFile);
+        }
     }
 
-    private static Paragraph EcParagraph(string text, bool bold = false, bool center = false, int size = 22)
-    {
-        var para = new Paragraph();
-        var pPr = new ParagraphProperties();
-        if (center)
-            pPr.AppendChild(new Justification { Val = JustificationValues.Center });
-        pPr.AppendChild(new SpacingBetweenLines { After = "80" });
-        para.AppendChild(pPr);
 
-        var run = new Run();
-        var rPr = new RunProperties();
-        if (bold) rPr.AppendChild(new Bold());
-        rPr.AppendChild(new FontSize { Val = size.ToString() });
-        rPr.AppendChild(new RunFonts { Ascii = "Times New Roman", HighAnsi = "Times New Roman" });
-        run.AppendChild(rPr);
-        run.AppendChild(new Text(text) { Space = SpaceProcessingModeValues.Preserve });
-        para.AppendChild(run);
-        return para;
-    }
 
     // Method to list all bookmarks in template (for debugging)
     public List<string> GetTemplateBookmarks()
