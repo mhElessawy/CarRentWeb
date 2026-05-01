@@ -18,10 +18,12 @@ namespace CarRentWeb.Controllers
     public class ContractsController : Controller
     {
         private readonly CarRentWebContext _context;
+        private readonly WordDocumentService _wordService;
 
         public ContractsController(CarRentWebContext context)
         {
             _context = context;
+            _wordService = new WordDocumentService(context);
         }
 
         // GET: Contracts
@@ -1530,6 +1532,29 @@ namespace CarRentWeb.Controllers
                 return RedirectToAction(nameof(IndexMonthly));
             }
             return View();
+        }
+
+        public IActionResult GenerateEnglishContract(int id)
+        {
+            try
+            {
+                var documentBytes = _wordService.GenerateEnglishContractDocument(id);
+                var contract = _context.Contracts
+                    .Include(c => c.Employee)
+                    .FirstOrDefault(c => c.Id == id);
+                string empName = contract?.Employee?.FullNameEn ?? contract?.Employee?.FullNameAr ?? "Employee";
+                string contractNo = contract?.ContractNo ?? id.ToString();
+                string fileName = $"Contract_{empName}_{contractNo}_{DateTime.Now:yyyyMMdd}.docx";
+                fileName = string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
+                return File(documentBytes,
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    fileName);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Error generating contract: {ex.Message}";
+                return RedirectToAction("DetailsDaily", new { id });
+            }
         }
     }
 }
