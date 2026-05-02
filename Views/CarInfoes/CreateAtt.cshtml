@@ -38,9 +38,11 @@ else
                     <span asp-validation-for="TitleData" class="text-danger small"></span>
                 </div>
                 <div class="col-md-4">
-                    <label asp-for="pdfFile1" class="control-label"></label>
-                    <input asp-for="pdfFile1" type="file" class="form-control" accept=".pdf,application/pdf" />
-                    <span asp-validation-for="pdfFile1" class="text-danger"></span>
+                    <label asp-for="pdfFile1" class="form-label">الملف (PDF أو صورة)</label>
+                    <input asp-for="pdfFile1" type="file" class="form-control"
+                           accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,application/pdf,image/*" />
+                    <small class="text-muted">PDF، JPG، PNG، GIF، WEBP - حد أقصى 10MB</small>
+                    <span asp-validation-for="pdfFile1" class="text-danger d-block"></span>
                 </div>
                 <!-- Form Actions --> 
                 <div class="col-md-12 mt-4">
