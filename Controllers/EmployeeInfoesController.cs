@@ -263,7 +263,7 @@ namespace CarRentWeb.Controllers
                     employeeInfo.FullNameAr = employeeInfo.FirstNameAr + " " + employeeInfo.SecondNameAr + " " + employeeInfo.ThirdNameAr + " " + employeeInfo.LastNameAr;
                     employeeInfo.FullNameEn = employeeInfo.FirstNameEn + " " + employeeInfo.SecondNameEn + " " + employeeInfo.ThirdNameEn + " " + employeeInfo.LastNameEn;
                     employeeInfo.DeleteFlag = 0;
-                    employeeInfo.UserId = 1;
+                    employeeInfo.UserId = HttpContext.Session.GetInt32("UserId");
                     _context.Update(employeeInfo);
                     await _context.SaveChangesAsync();
                 }
