@@ -43,9 +43,11 @@ else
                 </div>
 
                 <div class="col-md-4">
-                    <label asp-for="pdfFile1" class="control-label"></label>
-                    <input asp-for="pdfFile1" type="file" class="form-control" accept=".pdf,application/pdf" />
+                    <label asp-for="pdfFile1" class="form-label">الملف (PDF أو صورة)</label>
+                    <input asp-for="pdfFile1" type="file" class="form-control"
+                           accept=".pdf,application/pdf,.jpg,.jpeg,.png,.gif,.webp,image/*" />
                     <span asp-validation-for="pdfFile1" class="text-danger"></span>
+                    <small class="text-muted">الحد الأقصى 10 ميجابايت – PDF, JPG, PNG, GIF, WEBP</small>
                 </div>
 
                 <!-- Form Actions --> 
