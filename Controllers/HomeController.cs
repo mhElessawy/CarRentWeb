@@ -43,6 +43,16 @@ namespace CarRentWeb.Controllers
                 c.DiscountDate != null &&
                 c.DiscountDate >= today && c.DiscountDate <= thirtyDaysLater);
 
+            // Employee passport expiring within 30 days
+            ViewBag.NearPassportDateCount = _context.EmployeeInfos.Count(a =>
+                a.PassportEndDate != null &&
+                a.PassportEndDate >= today && a.PassportEndDate <= thirtyDaysLater);
+
+            // Employee civil ID expiring within 30 days
+            ViewBag.NearCivilIdDateCount = _context.EmployeeInfos.Count(a =>
+                a.CivilIdendDate != null &&
+                a.CivilIdendDate >= today && a.CivilIdendDate <= thirtyDaysLater);
+
             TempData["Username"] = HttpContext.Session.GetString("Username");
             ViewData["UserId"] = HttpContext.Session.GetInt32("UserId");
             TempData.Keep(); // Keeps all TempData values
@@ -131,6 +141,33 @@ namespace CarRentWeb.Controllers
 
                 ViewBag.Header = "عقود تقترب من موعد التخفيض";
                 ViewBag.DataType = "NearDiscountDate";
+                return View(data);
+            }
+
+            else if (id == 7)
+            {
+                var thirtyDaysLater = today.AddDays(30);
+                var data = _context.EmployeeInfos
+                    .Where(a => a.PassportEndDate != null &&
+                                a.PassportEndDate >= today && a.PassportEndDate <= thirtyDaysLater)
+                    .OrderBy(a => a.PassportEndDate)
+                    .ToList();
+
+                ViewBag.Header = "جوازات سفر تقترب من الانتهاء";
+                ViewBag.DataType = "NearPassportDate";
+                return View(data);
+            }
+            else if (id == 8)
+            {
+                var thirtyDaysLater = today.AddDays(30);
+                var data = _context.EmployeeInfos
+                    .Where(a => a.CivilIdendDate != null &&
+                                a.CivilIdendDate >= today && a.CivilIdendDate <= thirtyDaysLater)
+                    .OrderBy(a => a.CivilIdendDate)
+                    .ToList();
+
+                ViewBag.Header = "هويات مدنية تقترب من الانتهاء";
+                ViewBag.DataType = "NearCivilIdDate";
                 return View(data);
             }
 
