@@ -8,9 +8,13 @@ namespace CarRentWeb.Models
         [Key]
         public int Id { get; set; }
         public double? DebitPayLateDay { get; set; }
-        [ForeignKey("DeffPayLate")]  // This points to the navigation property
-        public int? DebitPayLatId { get; set; }  // Renamed for clarity
-        public virtual Deff? DeffPayLate { get; set; }  // Renamed for consistency
+        [ForeignKey("DeffPayLate")]
+        public int? DebitPayLatId { get; set; }
+        public virtual Deff? DeffPayLate { get; set; }
 
+        public DateOnly? VpsRenewalDate { get; set; }
+        public DateOnly? DomainRenewalDate { get; set; }
+        public DateOnly? SslRenewalDate { get; set; }
+        public DateOnly? MessageRenewalDate { get; set; }
     }
 }

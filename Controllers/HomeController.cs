@@ -43,15 +43,26 @@ namespace CarRentWeb.Controllers
                 c.DiscountDate != null &&
                 c.DiscountDate >= today && c.DiscountDate <= thirtyDaysLater);
 
-            // Employee passport expiring within 30 days
-            ViewBag.NearPassportDateCount = _context.EmployeeInfos.Count(a =>
-                a.PassportEndDate != null &&
-                a.PassportEndDate >= today && a.PassportEndDate <= thirtyDaysLater);
+            // Renewal dates from DeffInformation record id=1
+            var deffInfo = _context.DeffInformation.FirstOrDefault(d => d.Id == 1);
+            if (deffInfo != null)
+            {
+                ViewBag.VpsRenewalDate = deffInfo.VpsRenewalDate;
+                ViewBag.VpsDaysLeft = deffInfo.VpsRenewalDate.HasValue
+                    ? (int?)deffInfo.VpsRenewalDate.Value.DayNumber - today.DayNumber : null;
 
-            // Employee civil ID expiring within 30 days
-            ViewBag.NearCivilIdDateCount = _context.EmployeeInfos.Count(a =>
-                a.CivilIdendDate != null &&
-                a.CivilIdendDate >= today && a.CivilIdendDate <= thirtyDaysLater);
+                ViewBag.DomainRenewalDate = deffInfo.DomainRenewalDate;
+                ViewBag.DomainDaysLeft = deffInfo.DomainRenewalDate.HasValue
+                    ? (int?)deffInfo.DomainRenewalDate.Value.DayNumber - today.DayNumber : null;
+
+                ViewBag.SslRenewalDate = deffInfo.SslRenewalDate;
+                ViewBag.SslDaysLeft = deffInfo.SslRenewalDate.HasValue
+                    ? (int?)deffInfo.SslRenewalDate.Value.DayNumber - today.DayNumber : null;
+
+                ViewBag.MessageRenewalDate = deffInfo.MessageRenewalDate;
+                ViewBag.MessageDaysLeft = deffInfo.MessageRenewalDate.HasValue
+                    ? (int?)deffInfo.MessageRenewalDate.Value.DayNumber - today.DayNumber : null;
+            }
 
             TempData["Username"] = HttpContext.Session.GetString("Username");
             ViewData["UserId"] = HttpContext.Session.GetInt32("UserId");
@@ -141,33 +152,6 @@ namespace CarRentWeb.Controllers
 
                 ViewBag.Header = "عقود تقترب من موعد التخفيض";
                 ViewBag.DataType = "NearDiscountDate";
-                return View(data);
-            }
-
-            else if (id == 7)
-            {
-                var thirtyDaysLater = today.AddDays(30);
-                var data = _context.EmployeeInfos
-                    .Where(a => a.PassportEndDate != null &&
-                                a.PassportEndDate >= today && a.PassportEndDate <= thirtyDaysLater)
-                    .OrderBy(a => a.PassportEndDate)
-                    .ToList();
-
-                ViewBag.Header = "جوازات سفر تقترب من الانتهاء";
-                ViewBag.DataType = "NearPassportDate";
-                return View(data);
-            }
-            else if (id == 8)
-            {
-                var thirtyDaysLater = today.AddDays(30);
-                var data = _context.EmployeeInfos
-                    .Where(a => a.CivilIdendDate != null &&
-                                a.CivilIdendDate >= today && a.CivilIdendDate <= thirtyDaysLater)
-                    .OrderBy(a => a.CivilIdendDate)
-                    .ToList();
-
-                ViewBag.Header = "هويات مدنية تقترب من الانتهاء";
-                ViewBag.DataType = "NearCivilIdDate";
                 return View(data);
             }
 
