@@ -19,15 +19,15 @@ namespace CarRentWeb.Controllers
         {
             var today = DateOnly.FromDateTime(DateTime.Now);
             var sevenMonthAgo = today.AddMonths(-3); // Subtract 3 month
-            var count = _context.EmployeeInfos.Count(a => a.ResEndDate <= sevenMonthAgo   && a.DeleteFlag== 0);
+            var count = _context.EmployeeInfos.Count(a => a.ResEndDate <= sevenMonthAgo);
             ViewBag.ResignedEmployeeCount = count;
-            count = _context.CarInfos.Count(a => a.CarEndLicense <= sevenMonthAgo && a.DeleteFlag == 0);
+            count = _context.CarInfos.Count(a => a.CarEndLicense <= sevenMonthAgo);
             ViewBag.EndLicenseCarCount = count;
 
-            count = _context.EmployeeInfos.Count(a => a.EndPerm <= sevenMonthAgo && a.DeleteFlag == 0);
+            count = _context.EmployeeInfos.Count(a => a.EndPerm <= sevenMonthAgo);
             ViewBag.EndPermEmpCount = count;
 
-            count = _context.EmployeeInfos.Count(a => a.EndLicense <= sevenMonthAgo && a.DeleteFlag == 0);
+            count = _context.EmployeeInfos.Count(a => a.EndLicense <= sevenMonthAgo);
             ViewBag.EndLicenseEmpCount = count;
 
             // Contract notifications: contracts nearing EndDate (within 30 days)
@@ -42,6 +42,28 @@ namespace CarRentWeb.Controllers
                 c.DeleteFlag == 0 && c.Status == 0 &&
                 c.DiscountDate != null &&
                 c.DiscountDate >= today && c.DiscountDate <= thirtyDaysLater);
+
+            // Renewal dates from DeffInformation record id=1
+            var todayDt = DateTime.Today;
+            var deffInfo = _context.DeffInformation.FirstOrDefault(d => d.Id == 1);
+            if (deffInfo != null)
+            {
+                ViewBag.VpsRenewalDate = deffInfo.VpsRenewalDate;
+                ViewBag.VpsDaysLeft = deffInfo.VpsRenewalDate.HasValue
+                    ? (int?)(deffInfo.VpsRenewalDate.Value.Date - todayDt).TotalDays : null;
+
+                ViewBag.DomainRenewalDate = deffInfo.DomainRenewalDate;
+                ViewBag.DomainDaysLeft = deffInfo.DomainRenewalDate.HasValue
+                    ? (int?)(deffInfo.DomainRenewalDate.Value.Date - todayDt).TotalDays : null;
+
+                ViewBag.SslRenewalDate = deffInfo.SslRenewalDate;
+                ViewBag.SslDaysLeft = deffInfo.SslRenewalDate.HasValue
+                    ? (int?)(deffInfo.SslRenewalDate.Value.Date - todayDt).TotalDays : null;
+
+                ViewBag.MessageRenewalDate = deffInfo.MessageRenewalDate;
+                ViewBag.MessageDaysLeft = deffInfo.MessageRenewalDate.HasValue
+                    ? (int?)(deffInfo.MessageRenewalDate.Value.Date - todayDt).TotalDays : null;
+            }
 
             TempData["Username"] = HttpContext.Session.GetString("Username");
             ViewData["UserId"] = HttpContext.Session.GetInt32("UserId");
@@ -64,7 +86,7 @@ namespace CarRentWeb.Controllers
             if (id == 1)
             {
                 var data = _context.EmployeeInfos
-                    .Where(a => a.ResEndDate <= threeMonthsAgo && a.DeleteFlag == 0)
+                    .Where(a => a.ResEndDate <= threeMonthsAgo)
                     .ToList();
 
                 ViewBag.Header = "������ ��������";
@@ -74,7 +96,7 @@ namespace CarRentWeb.Controllers
             else if (id == 2)
             {
                 var data = _context.CarInfos
-                    .Where(a => a.CarEndLicense <= threeMonthsAgo && a.DeleteFlag == 0)
+                    .Where(a => a.CarEndLicense <= threeMonthsAgo)
                     .ToList();
 
                 ViewBag.Header = "������ ���� ����";
@@ -84,7 +106,7 @@ namespace CarRentWeb.Controllers
             else if (id == 3)
             {
                 var data = _context.EmployeeInfos
-                    .Where(a => a.EndPerm <= threeMonthsAgo && a.DeleteFlag == 0)
+                    .Where(a => a.EndPerm <= threeMonthsAgo)
                     .ToList();
 
                 ViewBag.Header = "������ ��� �����";
@@ -94,7 +116,7 @@ namespace CarRentWeb.Controllers
             else if (id == 4)
             {
                 var data = _context.EmployeeInfos
-                    .Where(a => a.EndLicense <= threeMonthsAgo && a.DeleteFlag == 0)
+                    .Where(a => a.EndLicense <= threeMonthsAgo)
                     .ToList();
 
                 ViewBag.Header = "������ ���� �������";
@@ -109,7 +131,7 @@ namespace CarRentWeb.Controllers
                     .Include(c => c.Car)
                     .Where(c => c.DeleteFlag == 0 && c.Status == 0 &&
                                 c.EndDate != null &&
-                                c.EndDate >= today && c.EndDate <= thirtyDaysLater && c.DeleteFlag == 0)
+                                c.EndDate >= today && c.EndDate <= thirtyDaysLater)
                     .OrderBy(c => c.EndDate)
                     .ToList();
 
@@ -125,7 +147,7 @@ namespace CarRentWeb.Controllers
                     .Include(c => c.Car)
                     .Where(c => c.DeleteFlag == 0 && c.Status == 0 &&
                                 c.DiscountDate != null &&
-                                c.DiscountDate >= today && c.DiscountDate <= thirtyDaysLater && c.DeleteFlag == 0)
+                                c.DiscountDate >= today && c.DiscountDate <= thirtyDaysLater)
                     .OrderBy(c => c.DiscountDate)
                     .ToList();
 

@@ -63,6 +63,22 @@
                     <th>موعد التخفيض</th>
                     <th>مبلغ التخفيض</th>
                 }
+                else if (dataType == "NearPassportDate")
+                {
+                    <th>كود الموظف</th>
+                    <th>اسم الموظف</th>
+                    <th>رقم الهاتف</th>
+                    <th>رقم الجواز</th>
+                    <th>تاريخ انتهاء الجواز</th>
+                }
+                else if (dataType == "NearCivilIdDate")
+                {
+                    <th>كود الموظف</th>
+                    <th>اسم الموظف</th>
+                    <th>رقم الهاتف</th>
+                    <th>رقم الهوية المدنية</th>
+                    <th>تاريخ انتهاء الهوية</th>
+                }
             </tr>
         </thead>
         <tbody>
@@ -143,6 +159,32 @@
                         <td>@item.StartDate</td>
                         <td>@item.DiscountDate</td>
                         <td>@item.DiscountAmount</td>
+                    </tr>
+                }
+            }
+            else if (dataType == "NearPassportDate")
+            {
+                foreach (var item in (Model as List<EmployeeInfo>) ?? Enumerable.Empty<EmployeeInfo>())
+                {
+                    <tr>
+                        <td>@item.EmpCode</td>
+                        <td>@item.FullNameAr</td>
+                        <td>@item.MobiileNo</td>
+                        <td>@item.PassportNo</td>
+                        <td>@item.PassportEndDate</td>
+                    </tr>
+                }
+            }
+            else if (dataType == "NearCivilIdDate")
+            {
+                foreach (var item in (Model as List<EmployeeInfo>) ?? Enumerable.Empty<EmployeeInfo>())
+                {
+                    <tr>
+                        <td>@item.EmpCode</td>
+                        <td>@item.FullNameAr</td>
+                        <td>@item.MobiileNo</td>
+                        <td>@item.CivilId</td>
+                        <td>@item.CivilIdendDate</td>
                     </tr>
                 }
             }
