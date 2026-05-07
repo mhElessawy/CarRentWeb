@@ -1,6 +1,5 @@
 ﻿@model IEnumerable<CarRentWeb.Models.CarInfoAtt>
-
-@{
+﻿@{
     ViewData["Title"] = "Car Att";
     var car = ViewBag.CarData as CarInfo; // Cast ViewBag to the correct type
     var attendances = ViewBag.CarAtts as List<CarInfoAtt>;
@@ -52,27 +51,45 @@ else
     <table class="bordered-table" dir="rtl">
         <thead>
             <tr>
-                <th>
-                    اسم الملف
-                </th>
+                <th>معاينة</th>
+                <th>اسم الملف</th>
                 <th></th>
             </tr>
         </thead>
         <tbody>
             @foreach (var item in attendances!)
             {
+                var ext = item.PathFileData != null ? System.IO.Path.GetExtension(item.PathFileData).ToLower() : "";
+                var isImage = ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".gif" || ext == ".webp";
                 <tr>
+                    <td style="width:80px;text-align:center;">
+                        @if (!string.IsNullOrEmpty(item.PathFileData))
+                        {
+                            @if (isImage)
+                            {
+                                <a href="@item.PathFileData" target="_blank">
+                                    <img src="@item.PathFileData" alt="@item.TitleData"
+                                         style="max-height:50px;max-width:70px;border-radius:4px;border:1px solid #dee2e6;" />
+                                </a>
+                            }
+                            else
+                            {
+                                <a asp-action="DownLoadAttatchment" asp-route-id="@item.Id">
+                                    <i class="fas fa-file-pdf fa-2x text-danger"></i>
+                                </a>
+                            }
+                        }
+                    </td>
                     <td>
                         @Html.DisplayFor(modelItem => item.TitleData)
                     </td>
                     <td class="action-links">
                         <a asp-action="EditAtt" asp-route-id="@item.Id" class="btn-edit"><i class="fas fa-edit"></i> تعديل</a>
-                        <a asp-action="DownLoadAttatchment" asp-route-id="@item.Id" class="btn-details"><i class="fas fa-info-circle"></i> تحميل</a>
+                        <a asp-action="DownLoadAttatchment" asp-route-id="@item.Id" class="btn-details"><i class="fas fa-download"></i> تحميل</a>
                         <a asp-action="DeleteAtt" asp-route-id="@item.Id" class="btn-delete"><i class="fas fa-trash-alt"></i> حذف</a>
                     </td>
                 </tr>
             }
-
         </tbody>
     </table>
 </div>

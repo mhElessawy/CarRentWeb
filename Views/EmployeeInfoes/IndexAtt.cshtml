@@ -56,22 +56,32 @@ else
 <table class="bordered-table" dir="rtl">
     <thead>
         <tr>
-            <th>
-                اسم الملف
-            </th>
+            <th>اسم الملف</th>
+            <th>معاينة</th>
             <th></th>
         </tr>
     </thead>
     <tbody>
         @foreach (var item in attendances!)
         {
+            var attExt = System.IO.Path.GetExtension(item.PathFileData ?? "").ToLower();
+            var attIsImage = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" }.Contains(attExt);
             <tr>
+                <td>@Html.DisplayFor(modelItem => item.TitleData)</td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.TitleData)
+                    @if (attIsImage && !string.IsNullOrEmpty(item.PathFileData))
+                    {
+                        <img src="@item.PathFileData" alt="@item.TitleData"
+                             style="max-height:60px;max-width:100px;border-radius:4px;border:1px solid #dee2e6;" />
+                    }
+                    else if (!string.IsNullOrEmpty(item.PathFileData))
+                    {
+                        <i class="fas fa-file-pdf fa-lg text-danger"></i>
+                    }
                 </td>
                 <td class="action-links">
                     <a asp-action="EditAtt" asp-route-id="@item.Id" class="btn-edit"><i class="fas fa-edit"></i> تعديل</a>
-                    <a asp-action="DownLoadAttatchment" asp-route-id="@item.Id" class="btn-details"><i class="fas fa-info-circle"></i> تحميل</a>
+                    <a asp-action="DownLoadAttatchment" asp-route-id="@item.Id" class="btn-details"><i class="fas fa-download"></i> تحميل</a>
                     <a asp-action="DeleteAtt" asp-route-id="@item.Id" class="btn-delete"><i class="fas fa-trash-alt"></i> حذف</a>
                 </td>
              </tr>

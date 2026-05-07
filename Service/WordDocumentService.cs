@@ -1,5 +1,6 @@
 ﻿using CarRentWeb.Data;
 using CarRentWeb.Models;
+using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.EntityFrameworkCore;
@@ -307,16 +308,122 @@ public class WordDocumentService
         }
     }
 
+    public byte[] GenerateEnglishContractDocument(int contractId)
+    {
+        var contract = _context.Contracts
+            .Include(c => c.Employee).ThenInclude(e => e!.Nationality)
+            .Include(c => c.Employee).ThenInclude(e => e!.JobTitle)
+            .Include(c => c.Employee).ThenInclude(e => e!.Company)
+            .FirstOrDefault(c => c.Id == contractId);
+
+        if (contract == null)
+            throw new Exception("Contract not found");
+
+        var emp = contract.Employee;
+        var company = emp?.Company;
+
+        string companyName = company?.CompNameEn ?? company?.CompNameAr ?? "";
+        string companyNameAr = company?.CompNameAr ?? companyName;
+        string fileNo = company?.ManpowerFileNo ?? company?.CompFileNo ?? "";
+        string ownerName = company?.OwnerName1 ?? "";
+        string ownerCivilId = company?.OwnerCivilId1 ?? "";
+        string empNameEn = emp?.FullNameEn ?? emp?.FullNameAr ?? "";
+        string empNameAr = emp?.FullNameAr ?? empNameEn;
+        string nationality = emp?.Nationality?.DeffName ?? "";
+        string civilId = emp?.CivilId ?? "";
+        string address = emp?.EmpAddress ?? "";
+        string jobTitle = emp?.JobTitle?.DeffName ?? "";
+        string salary = emp?.Salary?.ToString("F3") ?? "";
+        string startDate = contract.StartDate?.ToString("dd/MM/yyyy") ?? "";
+        string contractDate = contract.ContractDate?.ToString("dd/MM/yyyy") ?? "";
+        int years = 1;
+        if (contract.StartDate.HasValue && contract.EndDate.HasValue)
+            years = Math.Max(1, (int)Math.Round(
+                (contract.EndDate.Value.ToDateTime(TimeOnly.MinValue)
+                - contract.StartDate.Value.ToDateTime(TimeOnly.MinValue)).TotalDays / 365.25));
+
+        string templatePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Templates", "ContractNewEn.docx");
+        if (!File.Exists(templatePath))
+            throw new FileNotFoundException("Contract template not found", templatePath);
+
+        string tempFile = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.docx");
+        File.Copy(templatePath, tempFile, true);
+        try
+        {
+            using (var doc = WordprocessingDocument.Open(tempFile, true))
+            {
+                var body = doc.MainDocumentPart!.Document.Body!;
+
+                var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    // ── Arabic bookmarks ──────────────────────────────────
+                    ["CompPlaceAr"] = "الكويت",
+                    ["ContractDayAr"] = contractDate,
+                    ["ContractDateAr"] = contractDate,
+                    ["ContractDateAr1"] = contractDate,
+                    ["ContractStartDateAr"] = startDate,
+                    ["ContractPeriodAr"] = years.ToString(),
+                    ["CompNameAr"] = companyNameAr,
+                    ["CompNameAr1"] = companyNameAr,
+                    ["CompOwnerAr"] = ownerName,
+                    ["CompOwnerAr1"] = ownerName,
+                    ["CompFileNoAr"] = fileNo,
+                    ["CompOwnerCivilIDAr"] = ownerCivilId,
+                    ["CompActivateAr"] = "تأجير سيارات الأجرة",
+                    ["EmpNameAr"] = empNameAr,
+                    ["EmpNameAr1"] = empNameAr,
+                    ["EmpNationalityAr"] = nationality,
+                    ["EmpCivilIDAr"] = civilId,
+                    ["EmpResidenceAr"] = address,
+                    ["EmpJobTitleAr"] = jobTitle,
+                    ["EmpJobTitleAr1"] = jobTitle,
+                    ["EmpSalaryAr"] = salary,
+                    ["EmpSalarTafketAr"] = salary,
+                    // ── English bookmarks ─────────────────────────────────
+                    ["CompPlaceEng"] = "Kuwait",
+                    ["ContractDateEng1"] = contractDate,
+                    ["ContractStartDateEng"] = startDate,
+                    ["ContractPeriodEng"] = years.ToString(),
+                    ["CompNameEng"] = companyName,
+                    ["CompNameEng1"] = companyName,
+                    ["CompOwnerEng"] = ownerName,
+                    ["CompOwnerEng1"] = ownerName,
+                    ["CompFileNoEn"] = fileNo,
+                    ["CompOwnerCivilIDEng"] = ownerCivilId,
+                    ["CompActivateEng"] = "Car Rental",
+                    ["EmpNameEng"] = empNameEn,
+                    ["EmpNameEng1"] = empNameEn,
+                    ["EmpNationalityEng"] = nationality,
+                    ["EmpCivilIDEng"] = civilId,
+                    ["EmpResidenceEng"] = address,
+                    ["EmpJobTitleEng"] = jobTitle,
+                    ["EmpJobTitleEng1"] = jobTitle,
+                    ["EmpSalaryEng"] = salary,
+                };
+
+                foreach (var bk in body.Descendants<BookmarkStart>().ToList())
+                {
+                    if (bk.Name != null && values.TryGetValue(bk.Name, out var val))
+                        ReplaceBookmarkText(bk, val);
+                }
+
+                doc.Save();
+            }
+            return File.ReadAllBytes(tempFile);
+        }
+        finally
+        {
+            if (File.Exists(tempFile)) File.Delete(tempFile);
+        }
+    }
+
     // Method to list all bookmarks in template (for debugging)
     public List<string> GetTemplateBookmarks()
     {
         string templatePath = Path.Combine(Directory.GetCurrentDirectory(), "Templates", "NewPerm.docx");
-
         if (!File.Exists(templatePath))
             return new List<string> { "Template file not found" };
-
         var bookmarks = new List<string>();
-
         using (WordprocessingDocument doc = WordprocessingDocument.Open(templatePath, false))
         {
             var body = doc.MainDocumentPart.Document.Body;
@@ -327,7 +434,6 @@ public class WordDocumentService
                 bookmarks.Add(bookmark.Name);
             }
         }
-
         return bookmarks;
     }
 }

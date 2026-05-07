@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using CarRentWeb.Data;
-using CarRentWeb.Data;
 using CarRentWeb.Models;
 using CarRentWeb.Models.MyModel;
 
@@ -323,8 +322,7 @@ namespace CarRentWeb.Controllers
             var employeeInfo = await _context.EmployeeInfos.FindAsync(id);
             if (employeeInfo != null)
             {
-                employeeInfo.DeleteFlag = 1;
-                _context.Update(employeeInfo);
+                _context.EmployeeInfos.Remove(employeeInfo);
             }
 
             await _context.SaveChangesAsync();
@@ -371,20 +369,20 @@ namespace CarRentWeb.Controllers
                     try
                     {
                         // Validate file type (even though client-side validation exists)
-                        var allowedExtensions = new[] { ".pdf" };
+                        var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".webp" };
                         var fileExtension = Path.GetExtension(model.pdfFile1.FileName).ToLower();
 
                         if (!allowedExtensions.Contains(fileExtension))
                         {
-                            ModelState.AddModelError("pdfFile1", "Only PDF files are allowed.");
+                            ModelState.AddModelError("pdfFile1", "يُسمح فقط بملفات PDF والصور (JPG, PNG, GIF, WEBP).");
                             return View(model);
                         }
 
-                        // Set maximum file size (5MB in this example)
-                        var maxFileSize = 5 * 1024 * 1024; // 5MB
+                        // Set maximum file size (10MB)
+                        var maxFileSize = 10 * 1024 * 1024; // 10MB
                         if (model.pdfFile1.Length > maxFileSize)
                         {
-                            ModelState.AddModelError("pdfFile1", "File size cannot exceed 5MB.");
+                            ModelState.AddModelError("pdfFile1", "حجم الملف لا يجوز أن يتجاوز 10 ميجابايت.");
                             return View(model);
                         }
 
@@ -415,7 +413,7 @@ namespace CarRentWeb.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError("pdfFile1", "Please select a PDF file to upload.");
+                    ModelState.AddModelError("pdfFile1", "يرجى اختيار ملف PDF أو صورة للرفع.");
                     return View(model);
                 }
 
@@ -450,28 +448,51 @@ namespace CarRentWeb.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult EditAtt(EmployeeInfoAtt model, IFormFile pdfFile1)
+        public async Task<IActionResult> EditAtt(EmployeeInfoAtt model, IFormFile pdfFile1)
         {
             if (ModelState.IsValid)
             {
                 try
                 {
-                    // Handle file upload if a new file was provided
                     if (pdfFile1 != null && pdfFile1.Length > 0)
                     {
-                        // Save the new file and update model.PathFileData
+                        var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                        var fileExtension = Path.GetExtension(pdfFile1.FileName).ToLower();
+
+                        if (!allowedExtensions.Contains(fileExtension))
+                        {
+                            ModelState.AddModelError("pdfFile1", "يُسمح فقط بملفات PDF والصور (JPG, PNG, GIF, WEBP).");
+                            return View(model);
+                        }
+
+                        var maxFileSize = 10 * 1024 * 1024;
+                        if (pdfFile1.Length > maxFileSize)
+                        {
+                            ModelState.AddModelError("pdfFile1", "حجم الملف لا يجوز أن يتجاوز 10 ميجابايت.");
+                            return View(model);
+                        }
+
+                        var fileName = $"{Guid.NewGuid()}{fileExtension}";
+                        string uploadsFolder = Path.Combine("wwwroot", "Emp");
+                        Directory.CreateDirectory(uploadsFolder);
+                        var filePath = Path.Combine(uploadsFolder, fileName);
+
+                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await pdfFile1.CopyToAsync(fileStream);
+                        }
+
+                        model.PathFileData = $"/Emp/{fileName}";
                     }
 
-                    // Update the entity in database
                     _context.Update(model);
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync();
 
-                    return RedirectToAction(nameof(IndexAtt));
+                    return RedirectToAction(nameof(IndexAtt), new { id = model.EmpId });
                 }
                 catch (Exception)
                 {
-                    // Log error
-                    ModelState.AddModelError("", "Unable to save changes");
+                    ModelState.AddModelError("", "حدث خطأ أثناء حفظ التغييرات.");
                 }
             }
 

@@ -18,10 +18,12 @@ namespace CarRentWeb.Controllers
     public class ContractsController : Controller
     {
         private readonly CarRentWebContext _context;
+        private readonly WordDocumentService _wordService;
 
         public ContractsController(CarRentWebContext context)
         {
             _context = context;
+            _wordService = new WordDocumentService(context);
         }
 
         // GET: Contracts
@@ -852,7 +854,7 @@ namespace CarRentWeb.Controllers
                 .Include(c => c.Car)
                 .Include(c => c.Employee)
                 .Include(c => c.User)
-                .Where(m => m.Status == 0 || m.DeleteFlag == 0)
+                .Where(m => m.Status == 1)
                 .OrderByDescending(e => e.ContractNo)
                 .Select(c => new ContractCreditData
                 {
@@ -887,7 +889,7 @@ namespace CarRentWeb.Controllers
                 query = (IOrderedQueryable<ContractCreditData>)query.Where(e => e.Contract!.Employee!.CompanyId == companyId.Value);
             }
 
-            int pageSize = 100; // Set your page size
+            int pageSize = 10; // Set your page size
             return View(await PaginatedList<ContractCreditData>.CreateAsync(query.AsNoTracking(), pageNumber ?? 1, pageSize));
         }
 
@@ -1064,7 +1066,6 @@ namespace CarRentWeb.Controllers
         #endregion
 
         #region "ContractDaily"
-
         [HttpGet]
         public async Task<IActionResult> EditDailyContract(int? id)
         {
@@ -1082,15 +1083,20 @@ namespace CarRentWeb.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditDailyContract(int id, int? RentalType, DateOnly? DiscountDate)
+        public async Task<IActionResult> EditDailyContract(int id, Contract contract)
         {
-            var contractToUpdate = new Contract { Id = id, RentalType = RentalType, DiscountDate = DiscountDate };
-            _context.Attach(contractToUpdate);
-            var entry = _context.Entry(contractToUpdate);
-            entry.Property(x => x.RentalType).IsModified = true;
-            entry.Property(x => x.DiscountDate).IsModified = true;
+            if (id != contract.Id) return NotFound();
+
+            var existing = await _context.Contracts.FindAsync(id);
+            if (existing == null) return NotFound();
+
+            existing.EndDate = contract.EndDate;
+            existing.RentalType = contract.RentalType;
+            existing.DiscountDate = contract.DiscountDate;
+            existing.DiscountAmount = contract.DiscountAmount;
+
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(IndexDaily));
+            return RedirectToAction(nameof(DetailsDaily), new { id });
         }
 
         [HttpGet]
@@ -1559,6 +1565,29 @@ namespace CarRentWeb.Controllers
                 return RedirectToAction(nameof(IndexMonthly));
             }
             return View();
+        }
+
+        public IActionResult GenerateEnglishContract(int id)
+        {
+            try
+            {
+                var documentBytes = _wordService.GenerateEnglishContractDocument(id);
+                var contract = _context.Contracts
+                    .Include(c => c.Employee)
+                    .FirstOrDefault(c => c.Id == id);
+                string empName = contract?.Employee?.FullNameEn ?? contract?.Employee?.FullNameAr ?? "Employee";
+                string contractNo = contract?.ContractNo ?? id.ToString();
+                string fileName = $"Contract_{empName}_{contractNo}_{DateTime.Now:yyyyMMdd}.docx";
+                fileName = string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
+                return File(documentBytes,
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    fileName);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Error generating contract: {ex.Message}";
+                return RedirectToAction("DetailsDaily", new { id });
+            }
         }
     }
 }

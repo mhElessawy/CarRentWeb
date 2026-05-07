@@ -8,7 +8,7 @@ using CarRentWeb.Models;
 using CarRentWeb.Models.MyModel;
 
 namespace CarRentWeb.Controllers
-{      
+{
     public class CarInfoesController : Controller
     {
         private readonly CarRentWebContext _context;
@@ -334,20 +334,20 @@ namespace CarRentWeb.Controllers
                     try
                     {
                         // Validate file type (even though client-side validation exists)
-                        var allowedExtensions = new[] { ".pdf" };
+                        var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".webp" };
                         var fileExtension = Path.GetExtension(model.pdfFile1.FileName).ToLower();
 
                         if (!allowedExtensions.Contains(fileExtension))
                         {
-                            ModelState.AddModelError("pdfFile1", "Only PDF files are allowed.");
+                            ModelState.AddModelError("pdfFile1", "فقط ملفات PDF والصور مسموح بها.");
                             return View(model);
                         }
 
-                        // Set maximum file size (5MB in this example)
-                        var maxFileSize = 5 * 1024 * 1024; // 5MB
+                        // Set maximum file size (10MB)
+                        var maxFileSize = 10 * 1024 * 1024;
                         if (model.pdfFile1.Length > maxFileSize)
                         {
-                            ModelState.AddModelError("pdfFile1", "File size cannot exceed 5MB.");
+                            ModelState.AddModelError("pdfFile1", "حجم الملف لا يمكن أن يتجاوز 10MB.");
                             return View(model);
                         }
 
@@ -378,7 +378,7 @@ namespace CarRentWeb.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError("pdfFile1", "Please select a PDF file to upload.");
+                    ModelState.AddModelError("pdfFile1", "يرجى اختيار ملف PDF أو صورة للرفع.");
                     return View(model);
                 }
 
@@ -413,28 +413,51 @@ namespace CarRentWeb.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult EditAtt(EmployeeInfoAtt model, IFormFile pdfFile1)
+        public async Task<IActionResult> EditAtt(CarInfoAtt model, IFormFile pdfFile1)
         {
             if (ModelState.IsValid)
             {
                 try
                 {
-                    // Handle file upload if a new file was provided
                     if (pdfFile1 != null && pdfFile1.Length > 0)
                     {
-                        // Save the new file and update model.PathFileData
+                        var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                        var fileExtension = Path.GetExtension(pdfFile1.FileName).ToLower();
+
+                        if (!allowedExtensions.Contains(fileExtension))
+                        {
+                            ModelState.AddModelError("pdfFile1", "فقط ملفات PDF والصور مسموح بها.");
+                            return View(model);
+                        }
+
+                        var maxFileSize = 10 * 1024 * 1024;
+                        if (pdfFile1.Length > maxFileSize)
+                        {
+                            ModelState.AddModelError("pdfFile1", "حجم الملف لا يمكن أن يتجاوز 10MB.");
+                            return View(model);
+                        }
+
+                        var fileName = $"{Guid.NewGuid()}{fileExtension}";
+                        string uploadsFolder = Path.Combine("wwwroot", "Car");
+                        Directory.CreateDirectory(uploadsFolder);
+                        var filePath = Path.Combine(uploadsFolder, fileName);
+
+                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await pdfFile1.CopyToAsync(fileStream);
+                        }
+
+                        model.PathFileData = $"/Car/{fileName}";
                     }
 
-                    // Update the entity in database
                     _context.Update(model);
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync();
 
-                    return RedirectToAction(nameof(IndexAtt));
+                    return RedirectToAction(nameof(IndexAtt), new { id = model.CarId });
                 }
                 catch (Exception)
                 {
-                    // Log error
-                    ModelState.AddModelError("", "Unable to save changes");
+                    ModelState.AddModelError("", "حدث خطأ أثناء حفظ البيانات.");
                 }
             }
 
