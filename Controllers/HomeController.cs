@@ -44,24 +44,25 @@ namespace CarRentWeb.Controllers
                 c.DiscountDate >= today && c.DiscountDate <= thirtyDaysLater);
 
             // Renewal dates from DeffInformation record id=1
+            var todayDt = DateTime.Today;
             var deffInfo = _context.DeffInformation.FirstOrDefault(d => d.Id == 1);
             if (deffInfo != null)
             {
                 ViewBag.VpsRenewalDate = deffInfo.VpsRenewalDate;
                 ViewBag.VpsDaysLeft = deffInfo.VpsRenewalDate.HasValue
-                    ? (int?)deffInfo.VpsRenewalDate.Value.DayNumber - today.DayNumber : null;
+                    ? (int?)(deffInfo.VpsRenewalDate.Value.Date - todayDt).TotalDays : null;
 
                 ViewBag.DomainRenewalDate = deffInfo.DomainRenewalDate;
                 ViewBag.DomainDaysLeft = deffInfo.DomainRenewalDate.HasValue
-                    ? (int?)deffInfo.DomainRenewalDate.Value.DayNumber - today.DayNumber : null;
+                    ? (int?)(deffInfo.DomainRenewalDate.Value.Date - todayDt).TotalDays : null;
 
                 ViewBag.SslRenewalDate = deffInfo.SslRenewalDate;
                 ViewBag.SslDaysLeft = deffInfo.SslRenewalDate.HasValue
-                    ? (int?)deffInfo.SslRenewalDate.Value.DayNumber - today.DayNumber : null;
+                    ? (int?)(deffInfo.SslRenewalDate.Value.Date - todayDt).TotalDays : null;
 
                 ViewBag.MessageRenewalDate = deffInfo.MessageRenewalDate;
                 ViewBag.MessageDaysLeft = deffInfo.MessageRenewalDate.HasValue
-                    ? (int?)deffInfo.MessageRenewalDate.Value.DayNumber - today.DayNumber : null;
+                    ? (int?)(deffInfo.MessageRenewalDate.Value.Date - todayDt).TotalDays : null;
             }
 
             TempData["Username"] = HttpContext.Session.GetString("Username");

@@ -12,9 +12,9 @@ namespace CarRentWeb.Models
         public int? DebitPayLatId { get; set; }
         public virtual Deff? DeffPayLate { get; set; }
 
-        public DateOnly? VpsRenewalDate { get; set; }
-        public DateOnly? DomainRenewalDate { get; set; }
-        public DateOnly? SslRenewalDate { get; set; }
-        public DateOnly? MessageRenewalDate { get; set; }
+        public DateTime? VpsRenewalDate { get; set; }
+        public DateTime? DomainRenewalDate { get; set; }
+        public DateTime? SslRenewalDate { get; set; }
+        public DateTime? MessageRenewalDate { get; set; }
     }
 }

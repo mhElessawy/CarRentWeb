@@ -250,7 +250,7 @@
                             <i class="bi bi-server" style="font-size:2.5rem; color:@RenewalIconColor(vDays);"></i>
                         </div>
                         <h3 class="card-title">تجديد VPS</h3>
-                        <p class="renewal-date">@(((DateOnly)ViewBag.VpsRenewalDate).ToString("yyyy-MM-dd"))</p>
+                        <p class="renewal-date">@(((DateTime)ViewBag.VpsRenewalDate).ToString("yyyy-MM-dd"))</p>
                     </div>
                 </div>
             }
@@ -267,7 +267,7 @@
                             <i class="bi bi-globe" style="font-size:2.5rem; color:@RenewalIconColor(dDays);"></i>
                         </div>
                         <h3 class="card-title">تجديد Domain</h3>
-                        <p class="renewal-date">@(((DateOnly)ViewBag.DomainRenewalDate).ToString("yyyy-MM-dd"))</p>
+                        <p class="renewal-date">@(((DateTime)ViewBag.DomainRenewalDate).ToString("yyyy-MM-dd"))</p>
                     </div>
                 </div>
             }
@@ -284,7 +284,7 @@
                             <i class="bi bi-shield-lock" style="font-size:2.5rem; color:@RenewalIconColor(sDays);"></i>
                         </div>
                         <h3 class="card-title">تجديد SSL</h3>
-                        <p class="renewal-date">@(((DateOnly)ViewBag.SslRenewalDate).ToString("yyyy-MM-dd"))</p>
+                        <p class="renewal-date">@(((DateTime)ViewBag.SslRenewalDate).ToString("yyyy-MM-dd"))</p>
                     </div>
                 </div>
             }
@@ -301,7 +301,7 @@
                             <i class="bi bi-chat-dots" style="font-size:2.5rem; color:@RenewalIconColor(mDays);"></i>
                         </div>
                         <h3 class="card-title">تجديد Message</h3>
-                        <p class="renewal-date">@(((DateOnly)ViewBag.MessageRenewalDate).ToString("yyyy-MM-dd"))</p>
+                        <p class="renewal-date">@(((DateTime)ViewBag.MessageRenewalDate).ToString("yyyy-MM-dd"))</p>
                     </div>
                 </div>
             }

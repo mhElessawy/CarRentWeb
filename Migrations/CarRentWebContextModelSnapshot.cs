@@ -1144,17 +1144,17 @@ namespace CarRentWeb.Migrations
                     b.Property<double?>("DebitPayLateDay")
                         .HasColumnType("float");
 
-                    b.Property<DateOnly?>("VpsRenewalDate")
-                        .HasColumnType("date");
+                    b.Property<DateTime?>("VpsRenewalDate")
+                        .HasColumnType("datetime2");
 
-                    b.Property<DateOnly?>("DomainRenewalDate")
-                        .HasColumnType("date");
+                    b.Property<DateTime?>("DomainRenewalDate")
+                        .HasColumnType("datetime2");
 
-                    b.Property<DateOnly?>("SslRenewalDate")
-                        .HasColumnType("date");
+                    b.Property<DateTime?>("SslRenewalDate")
+                        .HasColumnType("datetime2");
 
-                    b.Property<DateOnly?>("MessageRenewalDate")
-                        .HasColumnType("date");
+                    b.Property<DateTime?>("MessageRenewalDate")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
