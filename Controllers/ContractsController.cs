@@ -18,10 +18,12 @@ namespace CarRentWeb.Controllers
     public class ContractsController : Controller
     {
         private readonly CarRentWebContext _context;
+        private readonly ContractDocService _contractDocService;
 
-        public ContractsController(CarRentWebContext context)
+        public ContractsController(CarRentWebContext context, ContractDocService contractDocService)
         {
             _context = context;
+            _contractDocService = contractDocService;
         }
 
         // GET: Contracts
@@ -330,163 +332,10 @@ namespace CarRentWeb.Controllers
 
             if (contract == null) return NotFound();
 
-            var emp     = contract.Employee;
-            var company = emp?.Company;
-
-            // Read stamp image as base64 (embedded inline so Word shows it without server)
-            string stampImg = "";
-            if (!string.IsNullOrEmpty(emp?.StampImagePath))
-            {
-                var stampPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot",
-                                             emp.StampImagePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
-                if (System.IO.File.Exists(stampPath))
-                {
-                    var bytes = await System.IO.File.ReadAllBytesAsync(stampPath);
-                    var ext   = Path.GetExtension(stampPath).TrimStart('.').ToLower();
-                    var mime  = ext == "png" ? "image/png" : ext == "gif" ? "image/gif" : "image/jpeg";
-                    stampImg  = $"<img src=\"data:{mime};base64,{Convert.ToBase64String(bytes)}\" " +
-                                $"style=\"max-width:130px;max-height:70px;object-fit:contain;\" />";
-                }
-            }
-
-            string secondPartySignature = string.IsNullOrEmpty(stampImg)
-                ? "<div style='border-bottom:1px solid #000;height:60px;width:180px;margin:0 auto;'></div>"
-                : stampImg;
-
-            var html = $@"<!DOCTYPE html>
-<html>
-<head>
-<meta charset='utf-8' />
-<style>
-  body {{ font-family: Arial, sans-serif; font-size: 10pt; margin: 20mm; }}
-  h2  {{ text-align: center; font-size: 13pt; }}
-  .header {{ text-align: center; margin-bottom: 10px; }}
-  table.contract {{ width: 100%; border-collapse: collapse; }}
-  table.contract td {{ vertical-align: top; padding: 3px 6px; width: 50%; }}
-  .article-title {{ font-weight: bold; margin-top: 8px; }}
-  table.sign {{ width: 100%; margin-top: 50px; border-collapse: collapse; }}
-  table.sign td {{ text-align: center; vertical-align: bottom; width: 50%; padding: 0 20px; }}
-  .sign-label {{ font-weight: bold; font-size: 11pt; margin-bottom: 8px; }}
-  .sign-line  {{ border-top: 1px solid #000; margin-top: 6px; padding-top: 4px; font-size: 9pt; }}
-</style>
-</head>
-<body>
-
-<div class='header'>
-  <div>State of Kuwait</div>
-  <div>Public Authority for Manpower</div>
-  <div>Labour Department</div>
-  <br/>
-  <div>On &nbsp;{contract.ContractDate?.ToString("dd/MM/yyyy")}&nbsp; the present contract was concluded by and between:</div>
-</div>
-
-<table class='contract'>
-<tr>
-  <td>
-    <b>1. Company:</b><br/>
-    Name: {company?.CompNameEn ?? company?.CompNameAr ?? ""}<br/>
-    File No: {company?.CompFileNo ?? ""}<br/>
-    Civil License No: {company?.CompLicenseNo ?? ""}<br/>
-    <b>(First Party)</b>
-  </td>
-  <td>
-    <b>2. Employee:</b><br/>
-    Name: {emp?.FullNameEn ?? emp?.FullNameAr ?? ""}<br/>
-    Nationality: {emp?.Nationality?.DeffName ?? ""}<br/>
-    Civil Card: {emp?.CivilId ?? ""}<br/>
-    <b>(Second Party)</b>
-  </td>
-</tr>
-</table>
-
-<br/>
-<b>Preamble</b><br/>
-The first party owns the facility working in the field of car rental, whereas it wishes to conclude a contract with the second party to work for it, whereas acknowledged their capacity to conclude this contract, they agreed upon the following:
-
-<br/><br/>
-<span class='article-title'>Article One</span><br/>
-The preamble above shall constitute an integral part of the present contract.
-
-<br/><br/>
-<span class='article-title'>Article Two &ndash; &ldquo;Nature of the Work&rdquo;</span><br/>
-The first party concluded a contract with the second party to work for it as a driver in the State of Kuwait.
-
-<br/><br/>
-<span class='article-title'>Article Three</span><br/>
-Contract term from {contract.StartDate?.ToString("dd/MM/yyyy")} to {contract.EndDate?.ToString("dd/MM/yyyy")} ({contract.NoOfDays} days).
-
-<br/><br/>
-<span class='article-title'>Article Four &ndash; &ldquo;Lease Value&rdquo;</span><br/>
-For executing the present contract, the second party shall receive the wage of {contract.DailyCredit} dinars per day. Total contract value: {contract.TotalCost} dinars.
-The first party may not decrease the wage during the term of the contract.
-
-<br/><br/>
-<span class='article-title'>Article Five &ndash; &ldquo;Contract Term&rdquo;</span><br/>
-The contract shall come into force on {contract.StartDate?.ToString("dd/MM/yyyy")}. The second party shall execute his work during the entire execution term thereof.
-
-<br/><br/>
-<span class='article-title'>Article Seven &ndash; &ldquo;Annual Leave&rdquo;</span><br/>
-The second party shall have the right to a paid annual leave with a term of 30 days. It shall not be due on the first year save after the expiration of nine months.
-
-<br/><br/>
-<span class='article-title'>Article Eight &ndash; &ldquo;Number of Work Hours&rdquo;</span><br/>
-The first party may not require that the second party work for a term exceeding eight daily work hours with rest periods not less than one hour except for the cases set forth in the law.
-
-<br/><br/>
-<span class='article-title'>Article Nine &ndash; &ldquo;Ticket Value&rdquo;</span><br/>
-The first party shall bear the expenses of the return of the second party to his country after the expiration of the work relationship and his final departure from the country.
-
-<br/><br/>
-<span class='article-title'>Article Ten &ndash; &ldquo;Insurance against Injuries and Work Maladies&rdquo;</span><br/>
-The first party shall insure the second party against injuries and work maladies in accordance with the law No. (1) of the year 1999.
-
-<br/><br/>
-<span class='article-title'>Article Eleven &ndash; &ldquo;End of Service Benefit&rdquo;</span><br/>
-The second party shall be due the end of service benefit as set forth in the regulating laws.
-
-<br/><br/>
-<span class='article-title'>Article Twelve &ndash; &ldquo;Applicable Law&rdquo;</span><br/>
-The provisions of the Labour code in the civil sector No. 6 of 2010 shall apply for all matters not provided for in the present contract.
-
-<br/><br/>
-<span class='article-title'>Article Thirteen &ndash; &ldquo;Special Conditions&rdquo;</span><br/>
-1- The revenues of the taxi are the exclusive property of the first party.<br/>
-2- The second party is committed to a work period of (5) years with a fixed term.<br/>
-3- The second party is not entitled to transfer to a competing activity.
-
-<br/><br/>
-<span class='article-title'>Article Fourteen &ndash; &ldquo;Specialized Court&rdquo;</span><br/>
-The court of first instance and its Labour departments, in accordance with the provisions of the law No. 46 of the year 1987, shall be competent to peruse any conflicts resulting from the execution or interpretation of the present contract.
-
-<br/><br/>
-<span class='article-title'>Article Fifteen &ndash; &ldquo;Contract Language&rdquo;</span><br/>
-The present contract was made in Arabic and English. The Arabic texts shall prevail in the case of any conflict between them.
-
-<br/><br/>
-<span class='article-title'>Article Sixteen &ndash; &ldquo;Contract Copies&rdquo;</span><br/>
-The present contract was made in three copies, one for each party to work in accordance therewith. The third copy shall be deposited at the Public Authority for Manpower.
-
-<table class='sign'>
-  <tr>
-    <td>
-      <div class='sign-label'>First Party</div>
-      <div style='border-bottom:1px solid #000;height:60px;width:180px;margin:0 auto;'></div>
-      <div class='sign-line'>Authorized Signature</div>
-    </td>
-    <td>
-      <div class='sign-label'>Second Party</div>
-      {secondPartySignature}
-      <div class='sign-line'>{emp?.FullNameEn ?? emp?.FullNameAr}<br/>{emp?.CivilId}</div>
-    </td>
-  </tr>
-</table>
-
-</body>
-</html>";
-
-            var fileName = $"Contract_{contract.ContractNo}_{emp?.FullNameEn?.Replace(" ", "_") ?? "Employee"}.doc";
-            var bytes2   = System.Text.Encoding.UTF8.GetBytes(html);
-            return File(bytes2, "application/msword", fileName);
+            var docBytes = _contractDocService.GenerateWithStamp(contract);
+            var emp      = contract.Employee;
+            var fileName = $"Contract_{contract.ContractNo}_{emp?.FullNameEn?.Replace(" ", "_") ?? "Employee"}.docx";
+            return File(docBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", fileName);
         }
 
         // POST: Contracts/Create
