@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace CarRentWeb.Models;
 
@@ -11,12 +12,12 @@ public partial class CompanyInfoAtt
     public int CompId { get; set; }
     public required string TitleData { get; set; }
 
-    // This will store the file path in the database
     public string? PathFileData { get; set; }
 
-    // This property should NOT be mapped to the database
-    [NotMapped] // This tells EF Core to ignore this property
+    [NotMapped]
+    [ValidateNever]
     public IFormFile? pdfFile1 { get; set; }
 
+    [ValidateNever]
     public virtual CompanyInfo? Comp { get; set; }
 }
