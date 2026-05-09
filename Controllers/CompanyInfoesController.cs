@@ -365,28 +365,58 @@ namespace CarRentWeb.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult EditAttatchment(CompanyInfoAtt model, IFormFile pdfFile1)
+        public async Task<IActionResult> EditAttatchment(CompanyInfoAtt model, IFormFile? pdfFile1)
         {
             if (ModelState.IsValid)
             {
                 try
                 {
-                    // Handle file upload if a new file was provided
                     if (pdfFile1 != null && pdfFile1.Length > 0)
                     {
-                        // Save the new file and update model.PathFileData
+                        var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                        var fileExtension = Path.GetExtension(pdfFile1.FileName).ToLower();
+
+                        if (!allowedExtensions.Contains(fileExtension))
+                        {
+                            ModelState.AddModelError("pdfFile1", "يُسمح فقط بملفات PDF والصور (jpg, jpeg, png, gif, webp).");
+                            return View(model);
+                        }
+
+                        if (pdfFile1.Length > 10 * 1024 * 1024)
+                        {
+                            ModelState.AddModelError("pdfFile1", "حجم الملف لا يمكن أن يتجاوز 10MB.");
+                            return View(model);
+                        }
+
+                        // Delete old file from disk
+                        if (!string.IsNullOrEmpty(model.PathFileData))
+                        {
+                            var oldPath = Path.Combine("wwwroot", model.PathFileData.TrimStart('/'));
+                            if (System.IO.File.Exists(oldPath))
+                                System.IO.File.Delete(oldPath);
+                        }
+
+                        // Save new file
+                        var fileName = $"{Guid.NewGuid()}{fileExtension}";
+                        var uploadsFolder = Path.Combine("wwwroot", "Comp");
+                        Directory.CreateDirectory(uploadsFolder);
+
+                        using (var fileStream = new FileStream(Path.Combine(uploadsFolder, fileName), FileMode.Create))
+                        {
+                            await pdfFile1.CopyToAsync(fileStream);
+                        }
+
+                        model.PathFileData = $"/Comp/{fileName}";
                     }
 
-                    // Update the entity in database
                     _context.Update(model);
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync();
 
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(Attatchment), new { id = model.CompId });
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    // Log error
-                    ModelState.AddModelError("", "Unable to save changes");
+                    ModelState.AddModelError("", "حدث خطأ أثناء حفظ البيانات.");
                 }
             }
 
