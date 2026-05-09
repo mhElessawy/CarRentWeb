@@ -27,7 +27,16 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<CarRentWebContext>();
-    db.Database.Migrate();
+    try { db.Database.Migrate(); } catch { }
+
+    // Ensure columns added outside EF migration tooling exist in the DB
+    db.Database.ExecuteSqlRaw(@"
+        IF NOT EXISTS (
+            SELECT 1 FROM sys.columns
+            WHERE object_id = OBJECT_ID(N'EmployeeInfo') AND name = N'StampImagePath'
+        )
+        ALTER TABLE [EmployeeInfo] ADD [StampImagePath] nvarchar(max) NULL;
+    ");
 }
 
 // Configure the HTTP request pipeline.
