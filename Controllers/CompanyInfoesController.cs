@@ -261,14 +261,13 @@ namespace CarRentWeb.Controllers
 
             TempData.Keep();
             var CompAtt = _context.CompanyInfoAtts.Include(c => c.Comp).Where(c => c.CompId == id);
-            if (CompAtt != null)
+            var first = await CompAtt.FirstOrDefaultAsync();
+            if (first != null)
             {
-                ViewBag.CompName = CompAtt.First().Comp!.CompNameAr;
-                ViewBag.CompId = CompAtt.First().CompId;
-
-
+                ViewBag.CompName = first.Comp!.CompNameAr;
+                ViewBag.CompId = first.CompId;
             }
-            return View(await CompAtt!.ToListAsync());
+            return View(await CompAtt.ToListAsync());
         }
 
         [HttpGet]
