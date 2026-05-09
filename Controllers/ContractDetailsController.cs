@@ -712,7 +712,7 @@ namespace CarRentWeb.Controllers
             if (KindOfPay.HasValue && selectMonth.HasValue && selectYear.HasValue)
             {
                 query = _context.ContractDetails
-                    .FromSqlRaw($"select * from ContractDetails where ContractId In (Select Id from Contract where DeleteFlag = 0 and status = 0 and  EmployeeId In ( Select Id From EmployeeInfo where CompanyId  IN ({companyIdsString})))")
+                    .FromSqlRaw($"select * from ContractDetails where ContractId In (Select Id from Contract where DeleteFlag = 0 and EmployeeId In ( Select Id From EmployeeInfo where CompanyId  IN ({companyIdsString})))")
                     .Include(c => c.Bill)
                     .Include(c => c.Contract)
                         .ThenInclude(c => c!.Employee)
@@ -733,21 +733,11 @@ namespace CarRentWeb.Controllers
                     a.DailyCreditDate!.Value.Month == selectMonth &&
                     a.DailyCreditDate!.Value.Year == selectYear);
 
-                if (companyId == null || companyId.Length == 0)
-                {
-
-                }
-                else
-                {
-
-                    query = query.Where(e => e.Contract!.Employee!.CompanyId == companyId[0]);   //== companyId.Value
-                }
-
-
                 if (companyId != null && companyId.Length > 0)
                 {
                     var selectedCompanyIds = companyId.ToList();
-                    query = query.Where(e => selectedCompanyIds.Contains((int)e.Contract!.Employee!.CompanyId));
+                    query = query.Where(e => e.Contract!.Employee!.CompanyId != null &&
+                                             selectedCompanyIds.Contains(e.Contract!.Employee!.CompanyId.Value));
                 }
 
             }
