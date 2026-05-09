@@ -288,21 +288,19 @@ namespace CarRentWeb.Controllers
                 {
                     try
                     {
-                        // Validate file type (even though client-side validation exists)
-                        var allowedExtensions = new[] { ".pdf" };
+                        var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".webp" };
                         var fileExtension = Path.GetExtension(model.pdfFile1.FileName).ToLower();
 
                         if (!allowedExtensions.Contains(fileExtension))
                         {
-                            ModelState.AddModelError("pdfFile1", "Only PDF files are allowed.");
+                            ModelState.AddModelError("pdfFile1", "يُسمح فقط بملفات PDF والصور (jpg, jpeg, png, gif, webp).");
                             return View(model);
                         }
 
-                        // Set maximum file size (5MB in this example)
-                        var maxFileSize = 5 * 1024 * 1024; // 5MB
+                        var maxFileSize = 10 * 1024 * 1024; // 10MB
                         if (model.pdfFile1.Length > maxFileSize)
                         {
-                            ModelState.AddModelError("pdfFile1", "File size cannot exceed 5MB.");
+                            ModelState.AddModelError("pdfFile1", "حجم الملف لا يمكن أن يتجاوز 10MB.");
                             return View(model);
                         }
 
@@ -333,7 +331,7 @@ namespace CarRentWeb.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError("pdfFile1", "Please select a PDF file to upload.");
+                    ModelState.AddModelError("pdfFile1", "يرجى اختيار ملف PDF أو صورة للرفع.");
                     return View(model);
                 }
 
