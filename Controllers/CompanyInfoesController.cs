@@ -258,22 +258,22 @@ namespace CarRentWeb.Controllers
 
         public async Task<IActionResult> Attatchment(int? id)
         {
-
             TempData.Keep();
-            var CompAtt = _context.CompanyInfoAtts.Include(c => c.Comp).Where(c => c.CompId == id);
-            var first = await CompAtt.FirstOrDefaultAsync();
-            if (first != null)
-            {
-                ViewBag.CompName = first.Comp!.CompNameAr;
-                ViewBag.CompId = first.CompId;
-            }
-            return View(await CompAtt.ToListAsync());
+            var company = await _context.CompanyInfos.FirstOrDefaultAsync(c => c.Id == id);
+            if (company == null) return NotFound();
+
+            ViewBag.CompanyData = company;
+            ViewBag.CompId = id;
+
+            var compAtts = _context.CompanyInfoAtts.Where(c => c.CompId == id);
+            return View(await compAtts.ToListAsync());
         }
 
         [HttpGet]
-        public IActionResult CreateAttatch(int? CompId)
+        public async Task<IActionResult> CreateAttatch(int? CompId)
         {
             TempData.Keep();
+            ViewBag.CompanyData = await _context.CompanyInfos.FirstOrDefaultAsync(c => c.Id == CompId);
             ViewBag.CompId = CompId;
             return View();
         }
@@ -339,7 +339,7 @@ namespace CarRentWeb.Controllers
                 _context.CompanyInfoAtts.Add(model);
                 await _context.SaveChangesAsync();
 
-                return RedirectToAction(nameof(Index), new { CompId = model.CompId });
+                return RedirectToAction(nameof(Attatchment), new { id = model.CompId });
             }
 
             return View(model);

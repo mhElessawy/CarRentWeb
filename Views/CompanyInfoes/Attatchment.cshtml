@@ -1,51 +1,46 @@
-﻿@model IEnumerable<CarRentWeb.Models.CompanyInfoAtt>
+@using CarRentWeb.Models
+@model IEnumerable<CarRentWeb.Models.CompanyInfoAtt>
 
 @{
     ViewData["Title"] = "Attatchment";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var company = ViewBag.CompanyData as CompanyInfo;
 }
 
+@if (company != null)
+{
+    <div class="company-details" dir="rtl">
+        <h3>بيانات الشركة</h3>
+        <p><strong>الاسم :</strong> @company.CompNameAr</p>
+        <p><strong>كود الشركة :</strong> @company.CompCode</p>
+    </div>
+}
 
-<div dir="rtl">
-    <h3>اسم الشركة : @ViewBag.CompName </h3>
-</div>
-
+<h1 dir="rtl">مرفقات الشركة</h1>
 <p dir="rtl">
     <a asp-action="CreateAttatch" asp-route-CompId="@ViewBag.CompId" class="btn btn-create-outline">
-        <i class="fas fa-plus-circle"></i> ملف جديد
+        <i class="fas fa-plus-circle"></i> إضافة مرفق
     </a>
 </p>
-
 
 <table class="bordered-table" dir="rtl">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.TitleData)
-            </th>
-           @*  <th>
-                @Html.DisplayNameFor(model => model.PathFileData)
-            </th> *@
-           
+            <th>اسم الملف</th>
             <th></th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.TitleData)
-            </td>
-           @*  <td>
-                @Html.DisplayFor(modelItem => item.PathFileData)
-            </td> *@
-          
-            <td>
-                <a asp-action="EditAttatchment" asp-route-id="@item.Id" class="btn-edit"><i class="fas fa-edit"></i> تعديل</a>
-                    <a asp-action="DownLoadAttatchment" asp-route-id="@item.Id" class="btn-success"><i class="fas fa-download"></i> تحميل </a>
-                <a asp-action="DeleteAttatchment" asp-route-id="@item.Id" class="btn-delete"><i class="fas fa-trash-alt"></i> حذف</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.TitleData)</td>
+                <td class="action-links">
+                    <a asp-action="EditAttatchment" asp-route-id="@item.Id" class="btn-edit"><i class="fas fa-edit"></i> تعديل</a>
+                    <a asp-action="DownLoadAttatchment" asp-route-id="@item.Id" class="btn-details"><i class="fas fa-info-circle"></i> تحميل</a>
+                    <a asp-action="DeleteAttatchment" asp-route-id="@item.Id" class="btn-delete"><i class="fas fa-trash-alt"></i> حذف</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
