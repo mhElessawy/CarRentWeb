@@ -5,14 +5,56 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<style>
+    @@media print {
+        .no-print { display: none !important; }
+        .print-only { display: block !important; }
+        .signature-section { display: flex !important; }
+        body { font-family: Arial, sans-serif; font-size: 11pt; }
+    }
+    @@media screen {
+        .print-only { display: none; }
+    }
 
-
+    .signature-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-top: 60px;
+        padding-top: 20px;
+        border-top: 1px solid #ccc;
+        gap: 40px;
+    }
+    .signature-party {
+        flex: 1;
+        text-align: center;
+    }
+    .signature-party p {
+        margin: 4px 0;
+        font-size: 11pt;
+    }
+    .signature-line {
+        border-bottom: 1px solid #333;
+        height: 50px;
+        margin: 8px auto;
+        width: 80%;
+    }
+    .stamp-img {
+        max-width: 160px;
+        max-height: 90px;
+        object-fit: contain;
+        display: block;
+        margin: 8px auto;
+    }
+</style>
 
 <div class="company-info-container" dir="rtl">
     <div class="company-info-header">
         <h4>بيانات العقد</h4>
-        <div class="action-buttons">
-            @*  <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">تعديل</a> *@
+        <div class="action-buttons no-print">
+            <button onclick="window.print()" class="btn btn-success">
+                <i class="fas fa-print"></i> طباعة العقد الإنجليزي
+            </button>
             <a asp-action="IndexDaily" class="btn btn-secondary">العوده لصفحة العقود</a>
         </div>
     </div>
@@ -75,19 +117,15 @@
                                     @:عقد تأجير عادي
                                     break;
                                 case 1:
-
                                     @:تأجير مواعده بالتخفيض ثم التملك
                                     break;
                                 case 2:
-
                                     @:تأجير مخفض ملكية سائق
                                     break;
                                 case 3:
-
                                     @:تأجير مخفض ملكية شركة
                                     break;
                                 default:
-
                                     @:عقد تأجير عادي
                                     break;
                             }
@@ -106,11 +144,29 @@
                     }
                 </div>
             </div>
-
         </div>
     </div>
 
+    <!-- Signature section — visible on screen and in print -->
+    <div class="signature-section print-only" style="display:flex">
+        <div class="signature-party">
+            <p><strong>First Party</strong></p>
+            <div class="signature-line"></div>
+            <p>Authorized Signature</p>
+        </div>
 
-
-
+        <div class="signature-party">
+            <p><strong>Second Party</strong></p>
+            @if (!string.IsNullOrEmpty(Model.Employee?.StampImagePath))
+            {
+                <img src="@Model.Employee.StampImagePath" class="stamp-img" alt="Signature" />
+            }
+            else
+            {
+                <div class="signature-line"></div>
+            }
+            <p>@Model.Employee?.FullNameEn</p>
+            <p style="font-size:9pt; color:#555;">@Model.Employee?.CivilId</p>
+        </div>
+    </div>
 </div>
