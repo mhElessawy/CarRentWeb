@@ -7,6 +7,7 @@
     var totalDaily = Model?.Sum(item => item?.TotalDailyCredit ?? 0) ?? 0;
     var totalCar = Model?.Sum(item => item?.TotalCarCredit ?? 0) ?? 0;
     var totalRemaining = Model?.Sum(item => item?.RemainingDebt ?? 0) ?? 0;
+    var totalOverdue = Model?.Sum(item => item?.OverdueRental ?? 0) ?? 0;
     var grandTotal = totalDaily + totalCar;
 
 
@@ -377,6 +378,7 @@
             <th style="color:#3498db;">الإيجار المدفوع</th>
             <th style="color:#e67e22;">الديون المدفوعة</th>
             <th style="color:#e74c3c;">المتبقي</th>
+            <th style="color:#8e44ad;">الإيجار المتأخر</th>
             <th>الإجمالي</th>
         </tr>
     </thead>
@@ -393,6 +395,7 @@
                 <td style="color:#3498db;">@item.TotalDailyCredit.ToString("N2")</td>
                 <td style="color:#e67e22;">@item.TotalCarCredit.ToString("N2")</td>
                 <td style="color:#e74c3c;">@item.RemainingDebt.ToString("N2")</td>
+                <td style="color:#8e44ad;">@item.OverdueRental.ToString("N2")</td>
                 <td>@((item.TotalDailyCredit + item.TotalCarCredit).ToString("N2"))</td>
             </tr>
         }
@@ -401,6 +404,7 @@
             <td style="color:#3498db;">@totalDaily.ToString("N2")</td>
             <td style="color:#e67e22;">@totalCar.ToString("N2")</td>
             <td style="color:#e74c3c;">@totalRemaining.ToString("N2")</td>
+            <td style="color:#8e44ad;">@totalOverdue.ToString("N2")</td>
             <td>@grandTotal.ToString("N2")</td>
         </tr>
     </tbody>
