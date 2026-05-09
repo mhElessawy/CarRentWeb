@@ -283,10 +283,19 @@ namespace CarRentWeb.Controllers
                         }
                     }
 
+                    // Preserve fields that are not submitted in the form
+                    var existing = await _context.EmployeeInfos.AsNoTracking()
+                        .FirstOrDefaultAsync(e => e.Id == id);
+                    if (existing != null)
+                    {
+                        employeeInfo.UserId = existing.UserId;
+                        if (string.IsNullOrEmpty(employeeInfo.StampImagePath))
+                            employeeInfo.StampImagePath = existing.StampImagePath;
+                    }
+
                     employeeInfo.FullNameAr = employeeInfo.FirstNameAr + " " + employeeInfo.SecondNameAr + " " + employeeInfo.ThirdNameAr + " " + employeeInfo.LastNameAr;
                     employeeInfo.FullNameEn = employeeInfo.FirstNameEn + " " + employeeInfo.SecondNameEn + " " + employeeInfo.ThirdNameEn + " " + employeeInfo.LastNameEn;
                     employeeInfo.DeleteFlag = 0;
-                    employeeInfo.UserId = 1;
                     _context.Update(employeeInfo);
                     await _context.SaveChangesAsync();
                 }
