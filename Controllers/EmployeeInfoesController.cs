@@ -240,7 +240,7 @@ namespace CarRentWeb.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, EmployeeInfo employeeInfo)
+        public async Task<IActionResult> Edit(int id, EmployeeInfo employeeInfo, IFormFile? stampImage)
         {
             if (id != employeeInfo.Id)
             {
@@ -260,6 +260,29 @@ namespace CarRentWeb.Controllers
             {
                 try
                 {
+                    if (stampImage != null && stampImage.Length > 0)
+                    {
+                        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                        var ext = Path.GetExtension(stampImage.FileName).ToLower();
+                        if (allowedExtensions.Contains(ext))
+                        {
+                            // Delete old stamp if exists
+                            if (!string.IsNullOrEmpty(employeeInfo.StampImagePath))
+                            {
+                                var oldPath = Path.Combine("wwwroot", employeeInfo.StampImagePath.TrimStart('/'));
+                                if (System.IO.File.Exists(oldPath))
+                                    System.IO.File.Delete(oldPath);
+                            }
+
+                            var fileName = $"stamp_{employeeInfo.Id}_{Guid.NewGuid()}{ext}";
+                            var folder = Path.Combine("wwwroot", "Stamps");
+                            Directory.CreateDirectory(folder);
+                            using var fs = new FileStream(Path.Combine(folder, fileName), FileMode.Create);
+                            await stampImage.CopyToAsync(fs);
+                            employeeInfo.StampImagePath = $"/Stamps/{fileName}";
+                        }
+                    }
+
                     employeeInfo.FullNameAr = employeeInfo.FirstNameAr + " " + employeeInfo.SecondNameAr + " " + employeeInfo.ThirdNameAr + " " + employeeInfo.LastNameAr;
                     employeeInfo.FullNameEn = employeeInfo.FirstNameEn + " " + employeeInfo.SecondNameEn + " " + employeeInfo.ThirdNameEn + " " + employeeInfo.LastNameEn;
                     employeeInfo.DeleteFlag = 0;

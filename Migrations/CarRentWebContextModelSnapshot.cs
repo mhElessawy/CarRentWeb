@@ -1297,6 +1297,9 @@ namespace CarRentWeb.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<string>("StampImagePath")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateOnly?>("StartLicense")
                         .HasColumnType("date");
 
