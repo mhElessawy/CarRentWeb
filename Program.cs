@@ -23,6 +23,13 @@ builder.Services.AddSession();
 
 var app = builder.Build();
 
+// Apply pending migrations automatically on startup
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<CarRentWebContext>();
+    db.Database.Migrate();
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
