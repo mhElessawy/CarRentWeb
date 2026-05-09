@@ -697,10 +697,13 @@ namespace CarRentWeb.Controllers
                     MobileNo = g.First().Contract!.Employee!.MobiileNo ?? "",
                     EmployeeName = g.First().Contract!.Employee!.FullNameAr ?? "",
                     CompanyName = g.First().Contract!.Employee!.Company!.CompNameAr ?? "",
-                    TotalDailyCredit = (decimal)g.Where(c => c.Status == 3).Sum(c => c.DailyCredit),
-                    TotalCarCredit = (decimal)g.Where(c => c.Status == 3).Sum(c => c.CarCredit),
+                    TotalDailyCredit = (decimal)g.Where(c => c.Status == 3).Sum(c => c.DailyCredit ?? 0),
+                    RemainingRent = (decimal)g.Where(c => c.Status == 0).Sum(c => c.DailyCredit ?? 0),
+                    TotalCarCredit = (decimal)g.Where(c => c.Status == 3).Sum(c => c.CarCredit ?? 0),
+                    RemainingCarCredit = (decimal)g.Where(c => c.Status == 0).Sum(c => c.CarCredit ?? 0),
                     RemainingDebt = (decimal)g.Where(c => c.Status == 0).Sum(c => (c.DailyCredit ?? 0) + (c.CarCredit ?? 0)),
-                    OverdueRental = (decimal)g.Where(c => c.Status == 0 && c.DailyCreditDate < DateOnly.FromDateTime(DateTime.Today)).Sum(c => c.DailyCredit ?? 0)
+                    OverdueRental = (decimal)g.Where(c => c.Status == 0 && c.DailyCreditDate < DateOnly.FromDateTime(DateTime.Today))
+                                                  .Sum(c => (c.DailyCredit ?? 0) + (c.CarCredit ?? 0))
                 })
                 .OrderBy(x => x.EmpCode)
                 .ToListAsync();
