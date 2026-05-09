@@ -667,7 +667,7 @@ namespace CarRentWeb.Controllers
                     .ThenInclude(c => c!.Employee)
                         .ThenInclude(e => e!.Company)
                 .Where(a => a.DeleteFlag == 0
-                            && a.Status == 3
+                            && (a.Status == 3 || a.Status == 0)
                             && (a.DailyCredit != 0 || a.CarCredit != 0));
 
             if (fromDate.HasValue)
@@ -697,8 +697,9 @@ namespace CarRentWeb.Controllers
                     MobileNo = g.First().Contract!.Employee!.MobiileNo ?? "",
                     EmployeeName = g.First().Contract!.Employee!.FullNameAr ?? "",
                     CompanyName = g.First().Contract!.Employee!.Company!.CompNameAr ?? "",
-                    TotalDailyCredit = (decimal)g.Sum(c => c.DailyCredit),
-                    TotalCarCredit = (decimal)g.Sum(c => c.CarCredit)
+                    TotalDailyCredit = (decimal)g.Where(c => c.Status == 3).Sum(c => c.DailyCredit),
+                    TotalCarCredit = (decimal)g.Where(c => c.Status == 3).Sum(c => c.CarCredit),
+                    RemainingDebt = (decimal)g.Where(c => c.Status == 0).Sum(c => (c.DailyCredit ?? 0) + (c.CarCredit ?? 0))
                 })
                 .OrderBy(x => x.EmpCode)
                 .ToListAsync();

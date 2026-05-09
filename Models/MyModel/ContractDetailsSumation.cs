@@ -9,6 +9,7 @@
         public string? CompanyName { get; set; }
         public decimal TotalDailyCredit { get; set; }
         public decimal TotalCarCredit { get; set; }
+        public decimal RemainingDebt { get; set; }
     }
     public class CarInfoWithCreditsViewModel
     {
