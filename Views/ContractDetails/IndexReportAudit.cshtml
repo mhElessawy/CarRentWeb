@@ -3,12 +3,11 @@
 @{
     ViewData["Title"] = "متابعة التحصيل";
     Layout = "~/Views/Shared/_Layout.cshtml";
- // Calculate totals safely
-    var totalDaily = Model?.Sum(item => item?.TotalDailyCredit ?? 0) ?? 0;
-    var totalCar = Model?.Sum(item => item?.TotalCarCredit ?? 0) ?? 0;
-    var totalRemaining = Model?.Sum(item => item?.RemainingDebt ?? 0) ?? 0;
-    var totalOverdue = Model?.Sum(item => item?.OverdueRental ?? 0) ?? 0;
-    var grandTotal = totalDaily + totalCar;
+    var totalDailyPaid     = Model?.Sum(i => i.TotalDailyCredit)   ?? 0;
+    var totalRentRemaining = Model?.Sum(i => i.RemainingRent)      ?? 0;
+    var totalCarPaid       = Model?.Sum(i => i.TotalCarCredit)     ?? 0;
+    var totalCarRemaining  = Model?.Sum(i => i.RemainingCarCredit) ?? 0;
+    var totalOverdue       = Model?.Sum(i => i.OverdueRental)      ?? 0;
 
 
 }
@@ -367,6 +366,10 @@
         </div>
     </form>
 </div>
+<h4 dir="rtl" style="color:#2c3e50; border-bottom:2px solid #3498db; padding-bottom:6px; margin-bottom:16px;">
+    متابعة التحصيل
+</h4>
+
 <table class="bordered-table" dir="rtl">
     <thead>
         <tr>
@@ -375,11 +378,11 @@
             <th>اسم الموظف</th>
             <th>رقم الهاتف</th>
             <th>الشركة</th>
-            <th style="color:#3498db;">الإيجار المدفوع</th>
-            <th style="color:#e67e22;">الديون المدفوعة</th>
-            <th style="color:#e74c3c;">المتبقي</th>
-            <th style="color:#8e44ad;">الإيجار المتأخر</th>
-            <th>الإجمالي</th>
+            <th style="color:#27ae60;">الإيجار المدفوع</th>
+            <th style="color:#e74c3c;">الباقي من العقد</th>
+            <th style="color:#27ae60;">الديون المدفوعة</th>
+            <th style="color:#e67e22;">الديون الباقية</th>
+            <th style="color:#8e44ad;">إجمالي المتأخير</th>
         </tr>
     </thead>
     <tbody>
@@ -392,36 +395,31 @@
                 <td>@item.EmployeeName</td>
                 <td>@item.MobileNo</td>
                 <td>@item.CompanyName</td>
-                <td style="color:#3498db;">@item.TotalDailyCredit.ToString("N2")</td>
-                <td style="color:#e67e22;">@item.TotalCarCredit.ToString("N2")</td>
-                <td style="color:#e74c3c;">@item.RemainingDebt.ToString("N2")</td>
-                <td style="color:#8e44ad;">@item.OverdueRental.ToString("N2")</td>
-                <td>@((item.TotalDailyCredit + item.TotalCarCredit).ToString("N2"))</td>
+                <td style="color:#27ae60;">@item.TotalDailyCredit.ToString("N2")</td>
+                <td style="color:#e74c3c;">@item.RemainingRent.ToString("N2")</td>
+                <td style="color:#27ae60;">@item.TotalCarCredit.ToString("N2")</td>
+                <td style="color:#e67e22;">@item.RemainingCarCredit.ToString("N2")</td>
+                <td style="color:#8e44ad; font-weight:600;">@item.OverdueRental.ToString("N2")</td>
             </tr>
         }
         <tr style="font-weight:bold; background-color:#f5f5f5;">
             <td colspan="5" style="text-align:right;">الإجمالي:</td>
-            <td style="color:#3498db;">@totalDaily.ToString("N2")</td>
-            <td style="color:#e67e22;">@totalCar.ToString("N2")</td>
-            <td style="color:#e74c3c;">@totalRemaining.ToString("N2")</td>
+            <td style="color:#27ae60;">@totalDailyPaid.ToString("N2")</td>
+            <td style="color:#e74c3c;">@totalRentRemaining.ToString("N2")</td>
+            <td style="color:#27ae60;">@totalCarPaid.ToString("N2")</td>
+            <td style="color:#e67e22;">@totalCarRemaining.ToString("N2")</td>
             <td style="color:#8e44ad;">@totalOverdue.ToString("N2")</td>
-            <td>@grandTotal.ToString("N2")</td>
         </tr>
     </tbody>
 </table>
 
-<button onclick="printBills()" class="btn btn-success">طباعة</button>
+<button onclick="printBills()" class="btn btn-success" style="margin-top:10px;">طباعة</button>
 
 <script>
     function printBills() {
         var printContents = document.querySelector('.bordered-table').outerHTML;
         var originalContents = document.body.innerHTML;
-
-        document.body.innerHTML =
-            '<h1 style="text-align:center">@ViewBag.Header</h1>' +
-            printContents
-
-
+        document.body.innerHTML = '<h2 style="text-align:center;direction:rtl">متابعة التحصيل</h2>' + printContents;
         window.print();
         document.body.innerHTML = originalContents;
     }
