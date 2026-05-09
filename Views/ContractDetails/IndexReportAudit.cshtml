@@ -1,13 +1,15 @@
 ﻿@model IEnumerable<CarRentWeb.Models.MyModel.ContractDetailsSumation>
-
-@{
+﻿@{
     ViewData["Title"] = "متابعة التحصيل";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    // Fix CS1977: Cast Model to IEnumerable<CarRentWeb.Models.MyModel.ContractDetailsSumation> before using Sum with lambda
-    var typedModel = Model as IEnumerable<CarRentWeb.Models.MyModel.ContractDetailsSumation>;
-    var totalRent  = typedModel?.Sum((Func<CarRentWeb.Models.MyModel.ContractDetailsSumation, decimal?>)(item => item?.RentPaid  ?? 0)) ?? 0;
-    var totalDebt  = typedModel?.Sum((Func<CarRentWeb.Models.MyModel.ContractDetailsSumation, decimal?>)(item => item?.DebtPaid  ?? 0)) ?? 0;
-    var grandTotal = totalRent + totalDebt;
+ // Calculate totals safely
+    var totalDaily = Model?.Sum(item => item?.TotalDailyCredit ?? 0) ?? 0;
+    var totalCar = Model?.Sum(item => item?.TotalCarCredit ?? 0) ?? 0;
+    var totalRemaining = Model?.Sum(item => item?.RemainingDebt ?? 0) ?? 0;
+    var totalOverdue = Model?.Sum(item => item?.OverdueRental ?? 0) ?? 0;
+    var grandTotal = totalDaily + totalCar;
+
+
 }
 
 <style>
@@ -339,35 +341,14 @@
         }
     }
 </style>
-<h1 dir="rtl">متابعة التحصيل</h1>
-
-<!-- Summary cards -->
-@if (Model != null && Model.Any())
-{
-    <div dir="rtl" style="display:flex;gap:16px;margin:14px 0;">
-        <div style="flex:1;background:#fff;border:1px solid #dce3ea;border-radius:10px;padding:16px 20px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.07)">
-            <div style="color:#999;font-size:.85em;margin-bottom:8px">إجمالي الإيجار المدفوع</div>
-            <div style="color:#2980b9;font-size:1.5em;font-weight:700">@String.Format("{0:N2}", totalRent)</div>
-        </div>
-        <div style="flex:1;background:#fff;border:1px solid #dce3ea;border-radius:10px;padding:16px 20px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.07)">
-            <div style="color:#999;font-size:.85em;margin-bottom:8px">إجمالي الديون المدفوعة</div>
-            <div style="color:#e67e22;font-size:1.5em;font-weight:700">@String.Format("{0:N2}", totalDebt)</div>
-        </div>
-        <div style="flex:1;background:#fff;border:1px solid #dce3ea;border-radius:10px;padding:16px 20px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.07)">
-            <div style="color:#999;font-size:.85em;margin-bottom:8px">إجمالي التحصيل</div>
-            <div style="color:#27ae60;font-size:1.5em;font-weight:700">@String.Format("{0:N2}", grandTotal)</div>
-        </div>
-    </div>
-}
-
 <div class="search-container" dir="rtl">
     <form asp-action="IndexReportAudit" method="get">
         <div class="form-group">
             <label>من تاريخ:</label>
-            <input type="date" name="FromDate" value="@ViewData["FromDateFilter"]" style="width:140px" class="form-control" />
+            <input type="date" name="fromDate" value="@ViewBag.FromDate" class="form-control" style="width:150px" />
 
             <label>إلى تاريخ:</label>
-            <input type="date" name="ToDate" value="@ViewData["ToDateFilter"]" style="width:140px" class="form-control" />
+            <input type="date" name="toDate" value="@ViewBag.ToDate" class="form-control" style="width:150px" />
 
             <label>الشركة:</label>
             <select name="companyId" asp-items="ViewBag.Companies" class="form-control" style="width:200px">
@@ -375,17 +356,16 @@
             </select>
 
             <label>رقم الموظف:</label>
-            <input type="number" name="empCode" value="@ViewData["EmpCodeFilter"]" placeholder="رقم الموظف" style="width:110px" class="form-control" />
+            <input type="text" name="empCode" value="@ViewBag.EmpCode" class="form-control" style="width:110px" placeholder="رقم الموظف" />
 
             <label>اسم الموظف:</label>
-            <input type="text" name="empName" value="@ViewData["EmpNameFilter"]" placeholder="اسم الموظف" style="width:160px" class="form-control" />
+            <input type="text" name="empName" value="@ViewBag.EmpName" class="form-control" style="width:150px" placeholder="اسم الموظف" />
 
-            <button type="submit" class="btn btn-primary">بحث</button>
+            <input type="submit" value="بحث" class="btn btn-primary" />
             <a asp-action="IndexReportAudit" class="btn btn-secondary">إعادة تعيين</a>
         </div>
     </form>
 </div>
-
 <table class="bordered-table" dir="rtl">
     <thead>
         <tr>
@@ -394,58 +374,54 @@
             <th>اسم الموظف</th>
             <th>رقم الهاتف</th>
             <th>الشركة</th>
-            <th>الإيجار المدفوع</th>
-            <th>الديون المدفوعة</th>
+            <th style="color:#3498db;">الإيجار المدفوع</th>
+            <th style="color:#e67e22;">الديون المدفوعة</th>
+            <th style="color:#e74c3c;">المتبقي</th>
+            <th style="color:#8e44ad;">الإيجار المتأخر</th>
             <th>الإجمالي</th>
         </tr>
     </thead>
     <tbody>
-        @{ int rowNum = 0; }
+        @{ int rowNum = 1; }
         @foreach (var item in Model)
         {
-            rowNum++;
             <tr>
-                <td>@rowNum</td>
+                <td>@rowNum++</td>
                 <td>@item.EmpCode</td>
                 <td>@item.EmployeeName</td>
                 <td>@item.MobileNo</td>
                 <td>@item.CompanyName</td>
-                <td style="color:#2980b9;font-weight:600">@String.Format("{0:N2}", item.RentPaid)</td>
-                <td style="color:#e67e22;font-weight:600">@String.Format("{0:N2}", item.DebtPaid)</td>
-                <td style="font-weight:bold">@String.Format("{0:N2}", item.TotalPaid)</td>
+                <td style="color:#3498db;">@item.TotalDailyCredit.ToString("N2")</td>
+                <td style="color:#e67e22;">@item.TotalCarCredit.ToString("N2")</td>
+                <td style="color:#e74c3c;">@item.RemainingDebt.ToString("N2")</td>
+                <td style="color:#8e44ad;">@item.OverdueRental.ToString("N2")</td>
+                <td>@((item.TotalDailyCredit + item.TotalCarCredit).ToString("N2"))</td>
             </tr>
         }
-        <tr style="font-weight:bold;background-color:#f0f4f8;">
-            <td colspan="5" style="text-align:right">الإجمالي:</td>
-            <td style="color:#2980b9">@String.Format("{0:N2}", totalRent)</td>
-            <td style="color:#e67e22">@String.Format("{0:N2}", totalDebt)</td>
-            <td>@String.Format("{0:N2}", grandTotal)</td>
+        <tr style="font-weight:bold; background-color:#f5f5f5;">
+            <td colspan="5" style="text-align:right;">الإجمالي:</td>
+            <td style="color:#3498db;">@totalDaily.ToString("N2")</td>
+            <td style="color:#e67e22;">@totalCar.ToString("N2")</td>
+            <td style="color:#e74c3c;">@totalRemaining.ToString("N2")</td>
+            <td style="color:#8e44ad;">@totalOverdue.ToString("N2")</td>
+            <td>@grandTotal.ToString("N2")</td>
         </tr>
     </tbody>
 </table>
 
-<div class="mt-3" dir="rtl">
-    <button onclick="printBills()" class="btn btn-success">
-        <i class="bi bi-printer"></i> طباعة
-    </button>
-</div>
+<button onclick="printBills()" class="btn btn-success">طباعة</button>
 
 <script>
     function printBills() {
-        var from  = '@(ViewData["FromDateFilter"]?.ToString() ?? "")';
-        var to    = '@(ViewData["ToDateFilter"]?.ToString()   ?? "")';
-        var period = (from || to) ? ('الفترة: ' + (from || '...') + ' إلى ' + (to || '...')) : 'جميع الفترات';
         var printContents = document.querySelector('.bordered-table').outerHTML;
         var originalContents = document.body.innerHTML;
+
         document.body.innerHTML =
-            '<div style="direction:rtl;text-align:center"><h2>متابعة التحصيل</h2><p>' + period + '</p></div>' +
-            '<div style="direction:rtl;display:flex;gap:12px;margin:10px 0">' +
-            '<div style="flex:1;border:1px solid #ccc;padding:10px;text-align:center"><div style="font-size:.8em;color:#999">إجمالي الإيجار المدفوع</div><div style="color:#2980b9;font-weight:bold">@String.Format("{0:N2}", totalRent)</div></div>' +
-            '<div style="flex:1;border:1px solid #ccc;padding:10px;text-align:center"><div style="font-size:.8em;color:#999">إجمالي الديون المدفوعة</div><div style="color:#e67e22;font-weight:bold">@String.Format("{0:N2}", totalDebt)</div></div>' +
-            '<div style="flex:1;border:1px solid #ccc;padding:10px;text-align:center"><div style="font-size:.8em;color:#999">إجمالي التحصيل</div><div style="color:#27ae60;font-weight:bold">@String.Format("{0:N2}", grandTotal)</div></div>' +
-            '</div>' + printContents;
+            '<h1 style="text-align:center">@ViewBag.Header</h1>' +
+            printContents
+
+
         window.print();
         document.body.innerHTML = originalContents;
-        location.reload();
     }
 </script>

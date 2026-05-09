@@ -9,11 +9,8 @@
         public string? CompanyName { get; set; }
         public decimal TotalDailyCredit { get; set; }
         public decimal TotalCarCredit { get; set; }
-        public decimal OverdueRental { get; set; }
         public decimal RemainingDebt { get; set; }
-        public decimal RentPaid { get; set; }
-        public decimal DebtPaid { get; set; }
-        public decimal TotalPaid => RentPaid + DebtPaid;
+        public decimal OverdueRental { get; set; }
     }
     public class CarInfoWithCreditsViewModel
     {
