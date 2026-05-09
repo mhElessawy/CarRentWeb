@@ -1,7 +1,7 @@
 ﻿@model IEnumerable<CarRentWeb.Models.MyModel.ContractDetailsSumation>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "متابعة التحصيل";
     Layout = "~/Views/Shared/_Layout.cshtml";
  // Calculate totals safely
     var totalDaily = Model?.Sum(item => item?.TotalDailyCredit ?? 0) ?? 0;
@@ -343,88 +343,62 @@
 <div class="search-container" dir="rtl">
     <form asp-action="IndexReportAudit" method="get">
         <div class="form-group">
-            <label for="SelectMonth"> الشهر:</label>
-            <select name="SelectMonth" asp-items="ViewBag.SelectMonth" class="form-control" style="width:120px">
-                <option value="">-- إختيار الأشهر --</option>
-            </select>
-            <label for="SelectYear"> السنه:</label>
-            <select name="SelectYear" asp-items="ViewBag.SelectYear" class="form-control" style="width:120px">
-                <option value="">-- إختيار السنه --</option>
+            <label>من تاريخ:</label>
+            <input type="date" name="fromDate" value="@ViewBag.FromDate" class="form-control" style="width:150px" />
+
+            <label>إلى تاريخ:</label>
+            <input type="date" name="toDate" value="@ViewBag.ToDate" class="form-control" style="width:150px" />
+
+            <label>الشركة:</label>
+            <select name="companyId" asp-items="ViewBag.Companies" class="form-control" style="width:200px">
+                <option value="">-- جميع الشركات --</option>
             </select>
 
-            <label for="KindOfPay"> حالة الدفع:</label>
-            <select name="KindOfPay" asp-items="ViewBag.KindOfPay" class="form-control">
-                <option value="">-- اختر حالة الدفع --</option>
-            </select>
-            <div>
-				<label for="companyId"> الشركة:</label>
-				<select name="companyId" asp-items="ViewBag.Companies" class="form-control" style="width:300px" multiple>
-					
-				</select>
-            </div>
-          
+            <label>رقم الموظف:</label>
+            <input type="text" name="empCode" value="@ViewBag.EmpCode" class="form-control" style="width:110px" placeholder="رقم الموظف" />
+
+            <label>اسم الموظف:</label>
+            <input type="text" name="empName" value="@ViewBag.EmpName" class="form-control" style="width:150px" placeholder="اسم الموظف" />
+
             <input type="submit" value="بحث" class="btn btn-primary" />
             <a asp-action="IndexReportAudit" class="btn btn-secondary">إعادة تعيين</a>
-
         </div>
     </form>
 </div>
 <table class="bordered-table" dir="rtl">
     <thead>
         <tr>
-            <th>
-                كود الموظف
-            </th>
-            <th>
-                اسم الموظف
-            </th>
-            <th>
-                رقم الهاتف
-            </th>
-            <th>
-                مبلغ الإيجار
-            </th>
-            <th>
-                مبلغ القسط
-            </th>
-            <th>
-                الإيجمالي
-            </th>
+            <th>#</th>
+            <th>كود الموظف</th>
+            <th>اسم الموظف</th>
+            <th>رقم الهاتف</th>
+            <th>الشركة</th>
+            <th style="color:#3498db;">الإيجار المدفوع</th>
+            <th style="color:#e67e22;">الديون المدفوعة</th>
+            <th>الإجمالي</th>
         </tr>
     </thead>
     <tbody>
-            @foreach (var item in Model)
-            {
-                <tr>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.EmpCode)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.EmployeeName)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.MobileNo)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.TotalDailyCredit)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.TotalCarCredit)
-                    </td>
-                   
-                     <td>
-                         @((item?.TotalCarCredit ?? 0) + (item?.TotalDailyCredit ?? 0))
-                     </td>
-                    
-                </tr>
-            }
+        @{ int rowNum = 1; }
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@rowNum++</td>
+                <td>@item.EmpCode</td>
+                <td>@item.EmployeeName</td>
+                <td>@item.MobileNo</td>
+                <td>@item.CompanyName</td>
+                <td style="color:#3498db;">@item.TotalDailyCredit.ToString("N2")</td>
+                <td style="color:#e67e22;">@item.TotalCarCredit.ToString("N2")</td>
+                <td>@((item.TotalDailyCredit + item.TotalCarCredit).ToString("N2"))</td>
+            </tr>
+        }
         <tr style="font-weight:bold; background-color:#f5f5f5;">
-            <td colspan="3" style="text-align:left;">المجموع:</td>
-            <td>@totalDaily</td>
-            <td>@totalCar</td>
-            <td>@grandTotal</td>
+            <td colspan="5" style="text-align:right;">الإجمالي:</td>
+            <td style="color:#3498db;">@totalDaily.ToString("N2")</td>
+            <td style="color:#e67e22;">@totalCar.ToString("N2")</td>
+            <td>@grandTotal.ToString("N2")</td>
         </tr>
-        
     </tbody>
 </table>
 

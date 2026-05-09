@@ -4,9 +4,9 @@
     {
         public int EmployeeId { get; set; }
         public int EmpCode {  get; set; }
-
         public string? MobileNo {  get; set; }
         public string? EmployeeName { get; set; }
+        public string? CompanyName { get; set; }
         public decimal TotalDailyCredit { get; set; }
         public decimal TotalCarCredit { get; set; }
     }
