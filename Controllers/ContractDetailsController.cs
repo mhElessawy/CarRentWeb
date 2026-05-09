@@ -691,7 +691,7 @@ namespace CarRentWeb.Controllers
                     "Value",
                     "Text",
                     KindOfPay);
-
+             
             if (KindOfPay == null)
             {
                 ModelState.AddModelError("KindOfPay", "يجب إختيار حالة الدفع");
