@@ -1033,7 +1033,7 @@ namespace CarRentWeb.Controllers
                         fileDownloadName: fileName);
                 }
             }
-            catch (Exception ex)
+            catch (Exception )
             {
                 // Log error
                 // _logger.LogError(ex, "Error exporting employees to Excel");

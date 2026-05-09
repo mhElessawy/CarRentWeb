@@ -439,10 +439,8 @@ namespace CarRentWeb.Controllers
         }
         public IActionResult DebitPayPrint(int Id)
         {
-            if (Id == null)
-            {
-                return NotFound();
-            }
+            // Removed: if (Id == null) { return NotFound(); }
+            // 'Id' is of type int (non-nullable), so this check is unnecessary and causes CS0472.
             var printBill = _context.DebitPayInfos.Include(c => c.DebitInfo).Include(c => c.User).Where(c => c.Id == Id).FirstOrDefault();
 
             if (printBill == null)

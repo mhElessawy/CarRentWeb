@@ -52,7 +52,7 @@ namespace CarRentWeb.Controllers
         }
 
         // GET: EmployeeTakeMoneys/Create
-        public IActionResult Create()
+        public IActionResult? Create()
         {
             TempData.Keep();
             ViewBag.Username = HttpContext.Session.GetString("Username");
@@ -198,7 +198,7 @@ namespace CarRentWeb.Controllers
             return View(summary);
         }
 
-        public List<UserTakeMoneySummary> GetCombinedUserSummary(
+        public List<UserTakeMoneySummary>? GetCombinedUserSummary(
             List<EmployeeTakeMoney> takeMoneyList,
             List<Purshase> purshaseList)
         {
@@ -221,9 +221,9 @@ namespace CarRentWeb.Controllers
 
                 // Get user name from related entity if available
                 var userName = _context.PasswordData
-                                .Where(x => x.Id == userId)
-                                .Select(x => x.UserName)
-                                .FirstOrDefault();
+                    .Where(x => x.Id == userId)
+                    .Select(x => x.UserName)
+                    .FirstOrDefault() ?? string.Empty;
 
                 result.Add(new UserTakeMoneySummary
                 {

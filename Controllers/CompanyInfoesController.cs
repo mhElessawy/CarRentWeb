@@ -324,7 +324,7 @@ namespace CarRentWeb.Controllers
                         // Store relative path in database
                         model.PathFileData = $"/Comp/{fileName}";
                     }
-                    catch (Exception ex)
+                    catch (Exception )
                     {
                         // Log the error
                         // _logger.LogError(ex, "Error uploading file");
@@ -386,7 +386,7 @@ namespace CarRentWeb.Controllers
 
                     return RedirectToAction(nameof(Index));
                 }
-                catch (Exception ex)
+                catch (Exception )
                 {
                     // Log error
                     ModelState.AddModelError("", "Unable to save changes");

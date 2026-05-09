@@ -134,7 +134,18 @@ namespace CarRentWeb.Controllers
                 maxCompDebitNo = _context.CompanyDebits.Max(a => Convert.ToInt32(a.CompDebitNo));
                 companyDebit.CompDebitNo = maxCompDebitNo + 1;
                 companyDebit.ReminderQty = companyDebit.DebitQty;
-                companyDebit.UserId = (int)ViewData["UserId"];
+                
+                if (ViewData["UserId"] is int userId)
+                {
+                    companyDebit.UserId = userId;
+                }
+                else
+                {
+                    // Handle the case where UserId is not present or not an int (optional: throw, log, or set a default)
+                    ModelState.AddModelError("", "User ID is missing or invalid.");
+                    return View(companyDebit);
+                }
+                
                 companyDebit.Employee = null;
                 _context.Add(companyDebit);
                 await _context.SaveChangesAsync();
@@ -151,6 +162,9 @@ namespace CarRentWeb.Controllers
                     //    _context.CompanyDebitDetails.Max(a => Convert.ToInt32(a.CompDebitDetailsNo)) : 0;
                     maxCompDebitDetailsNo++;
 
+                    int userIdForDetails = ViewData["UserId"] is int tempUserId ? tempUserId : 0;
+                    int userRecievedIdForDetails = ViewData["UserId"] is int tempUserRecievedId ? tempUserRecievedId : 0;
+
                     var newContractDebitDetails = new CompanyDebitDetails
                     {
                         CompDebitId = CompDebitId,
@@ -158,9 +172,9 @@ namespace CarRentWeb.Controllers
                         CompDebitPayed = companyDebit.DebitQty,
                         CompDebitDate = companyDebit.DebitDate,
                         CompDebitType = 1,
-                        UserId = (int)ViewData["UserId"],
-                        UserRecievedId = (int)ViewData["UserId"],
-                        UserRecievedDate = DateOnly.FromDateTime(DateTime.Now) // Add this
+                        UserId = userIdForDetails,
+                        UserRecievedId = userRecievedIdForDetails,
+                        UserRecievedDate = DateOnly.FromDateTime(DateTime.Now)
                     };
 
                     _context.CompanyDebitDetails.Add(newContractDebitDetails);
@@ -313,7 +327,7 @@ namespace CarRentWeb.Controllers
 
                 return Ok(new { success = false });
             }
-            catch (Exception ex)
+            catch (Exception )
             {
                 return Ok(new { success = false });
             }

@@ -233,7 +233,7 @@ namespace CarRentWeb.Controllers
             {
                 try
                 {
-                    carInfo.UserId = (int)ViewData["UserId"];
+                    carInfo.UserId = (int)(ViewData["UserId"] ?? 0);
                     _context.Update(carInfo);
                     await _context.SaveChangesAsync();
                 }

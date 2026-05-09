@@ -160,7 +160,7 @@
 
 
 <div dir="rtl">
-    إجمالي الإيراد: @(@Model.TotalBillPayed != null ? String.Format("{0:C}", @Model.TotalBillPayed) : "0.00")
+    إجمالي الإيراد: @(Model.TotalBillPayed != 0 ? String.Format("{0:C}", Model.TotalBillPayed) : "0.00")
 </div>
 
 

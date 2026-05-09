@@ -51,7 +51,13 @@ public class WordDocumentService
         {
             using (WordprocessingDocument doc = WordprocessingDocument.Open(tempFilePath, true))
             {
-                var body = doc.MainDocumentPart.Document.Body;
+                var mainPart = doc.MainDocumentPart;
+                if (mainPart == null || mainPart.Document == null)
+                    throw new Exception("Invalid Word document: missing main part or document.");
+
+                var body = mainPart.Document.Body;
+                if (body == null)
+                    throw new Exception("Invalid Word document: missing body.");
 
                 // Update bookmarks
                 UpdateBookmarks(doc, employee);
@@ -124,7 +130,7 @@ public class WordDocumentService
         }
     }
 
-    private BookmarkEnd FindBookmarkEnd(BookmarkStart bookmarkStart)
+    private BookmarkEnd? FindBookmarkEnd(BookmarkStart bookmarkStart)
     {
         var body = bookmarkStart.Ancestors<Body>().FirstOrDefault();
         if (body == null)
@@ -134,7 +140,7 @@ public class WordDocumentService
         return bookmarkEnds.FirstOrDefault(be => be.Id == bookmarkStart.Id);
     }
 
-    private string GetBookmarkValue(string bookmarkName, EmployeeInfo employee)
+    private string? GetBookmarkValue(string bookmarkName, EmployeeInfo employee)
     {
         // Map bookmark names to employee properties
         switch (bookmarkName)
@@ -426,12 +432,22 @@ public class WordDocumentService
         var bookmarks = new List<string>();
         using (WordprocessingDocument doc = WordprocessingDocument.Open(templatePath, false))
         {
-            var body = doc.MainDocumentPart.Document.Body;
+            var mainPart = doc.MainDocumentPart;
+            if (mainPart == null || mainPart.Document == null)
+                return new List<string> { "Invalid Word document: missing main part or document." };
+
+            var body = mainPart.Document.Body;
+            if (body == null)
+                return new List<string> { "Invalid Word document: missing body." };
+
             var bookmarkStarts = body.Descendants<BookmarkStart>().ToList();
 
             foreach (var bookmark in bookmarkStarts)
             {
-                bookmarks.Add(bookmark.Name);
+                if (bookmark.Name != null)
+                {
+                    bookmarks.Add(bookmark.Name);
+                }
             }
         }
         return bookmarks;

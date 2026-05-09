@@ -963,7 +963,6 @@ namespace CarRentWeb.Controllers
         public async Task<IActionResult> ChangeMonthlyRent(int id)
         {
 
-
             if (id == null)
             {
                 return NotFound();

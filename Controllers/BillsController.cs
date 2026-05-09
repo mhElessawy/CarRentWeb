@@ -933,7 +933,7 @@ namespace CarRentWeb.Controllers
                         fileDownloadName: fileName);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Log error
                 return RedirectToAction("Index");

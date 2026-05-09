@@ -1,7 +1,7 @@
 ﻿using CarRentWeb.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using CarRentWeb.Data;
+
 using CarRentWeb.Models;
 using CarRentWeb.Models.MyModel;
 using System.Diagnostics;
