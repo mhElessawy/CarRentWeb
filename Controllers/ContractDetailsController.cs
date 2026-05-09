@@ -709,6 +709,71 @@ namespace CarRentWeb.Controllers
 
 
         }
+
+        public async Task<IActionResult> BalanceReport(
+            int? companyId,
+            string? empCode,
+            string? empName,
+            DateOnly? fromDate,
+            DateOnly? toDate)
+        {
+            TempData.Keep();
+            TempData["UserCompanyData"] = HttpContext.Session.GetString("UserCompanyData");
+
+            var userCompanyData = TempData["UserCompanyData"]?.ToString();
+            var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
+
+            var companies = companyIds.Any()
+                ? await _context.CompanyInfos
+                    .FromSqlRaw($"SELECT * FROM CompanyInfo WHERE DeleteFlag = 0 AND Id IN ({companyIdsString})")
+                    .OrderBy(c => c.CompNameAr)
+                    .ToListAsync()
+                : new List<CompanyInfo>();
+
+            ViewBag.Companies = new SelectList(companies, "Id", "CompNameAr", companyId);
+            ViewData["EmpCodeFilter"] = empCode;
+            ViewData["EmpNameFilter"] = empName;
+
+            var query = _context.ContractDetails
+                .FromSqlRaw($"select * from ContractDetails where ContractId In (Select Id from Contract where DeleteFlag = 0 and EmployeeId In (Select Id From EmployeeInfo where CompanyId IN ({companyIdsString})))")
+                .Include(c => c.Contract)
+                    .ThenInclude(c => c!.Employee)
+                        .ThenInclude(e => e!.Company)
+                .Where(a => a.DeleteFlag == 0 && (a.DailyCredit != 0 || a.CarCredit != 0));
+
+            if (companyId.HasValue)
+                query = query.Where(e => e.Contract!.Employee!.CompanyId == companyId.Value);
+
+            if (!string.IsNullOrWhiteSpace(empCode) && int.TryParse(empCode.Trim(), out int empCodeInt))
+                query = query.Where(e => e.Contract!.Employee!.EmpCode == empCodeInt);
+
+            if (!string.IsNullOrWhiteSpace(empName))
+                query = query.Where(e => e.Contract!.Employee!.FullNameAr!.Contains(empName.Trim()));
+
+            var today = DateOnly.FromDateTime(DateTime.Today);
+
+            var result = await query
+                .Where(c => c.Contract != null && c.Contract.Employee != null && c.Contract.Employee.EmpCode != null)
+                .GroupBy(c => c.Contract!.Employee!.Id)
+                .Select(g => new ContractDetailsSumation
+                {
+                    EmployeeId = g.Key,
+                    EmpCode = (int)g.First().Contract!.Employee!.EmpCode!,
+                    MobileNo = g.First().Contract!.Employee!.MobiileNo ?? "",
+                    EmployeeName = g.First().Contract!.Employee!.FullNameAr ?? "",
+                    CompanyName = g.First().Contract!.Employee!.Company!.CompNameAr ?? "",
+                    TotalDailyCredit = (decimal)g.Sum(c => c.DailyCredit ?? 0),
+                    TotalCarCredit = (decimal)g.Sum(c => c.CarCredit ?? 0),
+                    RemainingDebt = (decimal)g.Where(c => c.Status == 0).Sum(c => (c.DailyCredit ?? 0) + (c.CarCredit ?? 0)),
+                    OverdueRental = (decimal)g.Where(c => c.Status == 0 && c.DailyCreditDate < today).Sum(c => c.DailyCredit ?? 0)
+                })
+                .OrderBy(x => x.EmpCode)
+                .ToListAsync();
+
+            return View(result);
+        }
+
         [HttpGet]
         public IActionResult IndexMonthlyDetailsPayed(int? id)
         {
