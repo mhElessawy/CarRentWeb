@@ -266,6 +266,11 @@ ServiceFabricBackup/
 *.ldf
 *.ndf
 
+# Database backup files (too large for GitHub)
+DB/*.sql
+DB/*.bak
+*.bak
+
 # Business Intelligence projects
 *.rdl.data
 *.bim.layout
