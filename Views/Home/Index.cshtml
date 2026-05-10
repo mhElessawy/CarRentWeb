@@ -286,8 +286,8 @@
                         </div>
                         <div class="info-row">
                             <span class="info-label">تاريخ الانتهاء</span>
-                            <span class="info-value @(info.SslExpiry.HasValue && info.SslExpiry.Value <= DateTime.Now.AddDays(30) ? "text-danger fw-bold" : "")">
-                                @(info.SslExpiry.HasValue ? info.SslExpiry.Value.ToString("yyyy-MM-dd") : "—")
+                            <span class="info-value @(info.SslRenewalDate.HasValue && info.SslRenewalDate.Value <= DateTime.Now.AddDays(30) ? "text-danger fw-bold" : "")">
+                                @(info.SslRenewalDate.HasValue ? info.SslRenewalDate.Value.ToString("yyyy-MM-dd") : "—")
                             </span>
                         </div>
                     </div>

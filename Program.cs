@@ -49,8 +49,10 @@ using (var scope = app.Services.CreateScope())
             ALTER TABLE DeffInformation ADD DomainPassword nvarchar(max) NULL;
         IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('DeffInformation') AND name = 'SslUrl')
             ALTER TABLE DeffInformation ADD SslUrl nvarchar(max) NULL;
-        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('DeffInformation') AND name = 'SslExpiry')
-            ALTER TABLE DeffInformation ADD SslExpiry datetime2 NULL;
+        IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('DeffInformation') AND name = 'SslExpiry')
+            EXEC sp_rename 'DeffInformation.SslExpiry', 'SslRenewalDate', 'COLUMN';
+        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('DeffInformation') AND name = 'SslRenewalDate')
+            ALTER TABLE DeffInformation ADD SslRenewalDate datetime2 NULL;
         IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('DeffInformation') AND name = 'SslUsername')
             ALTER TABLE DeffInformation ADD SslUsername nvarchar(max) NULL;
         IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('DeffInformation') AND name = 'SslPassword')

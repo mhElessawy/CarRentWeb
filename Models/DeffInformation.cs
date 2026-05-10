@@ -26,7 +26,7 @@ namespace CarRentWeb.Models
 
         // SSL Fields
         public string? SslUrl { get; set; }
-        public DateTime? SslExpiry { get; set; }
+        public DateTime? SslRenewalDate { get; set; }
         public string? SslUsername { get; set; }
         public string? SslPassword { get; set; }
 

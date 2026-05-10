@@ -1168,7 +1168,7 @@ namespace CarRentWeb.Migrations
                     b.Property<string>("SslUrl")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("SslExpiry")
+                    b.Property<DateTime?>("SslRenewalDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("SslUsername")
