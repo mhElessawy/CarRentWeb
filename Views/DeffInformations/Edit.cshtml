@@ -1,10 +1,9 @@
-﻿@model CarRentWeb.Models.DeffInformation
+@model CarRentWeb.Models.DeffInformation
 
 @{
     ViewData["Title"] = "Edit";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-
 
 <div class="container mt-4" dir="rtl">
     <div class="card shadow">
@@ -15,8 +14,8 @@
             <form asp-action="Edit" class="row g-3">
                 <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
                 <input type="hidden" asp-for="Id" />
-             
-                <!-- Personal Information Section -->
+
+                <!-- البيانات العامة -->
                 <div class="col-md-12">
                     <h5 class="border-bottom pb-2">البيانات العامة</h5>
                 </div>
@@ -25,13 +24,97 @@
                     <input asp-for="DebitPayLateDay" class="form-control" readonly />
                 </div>
                 <div class="col-md-2">
-                    <label asp-for="DebitPayLateDay" class="form-label">يتحول إلى دين </label>
+                    <label class="form-label">يتحول إلى دين</label>
                     @Html.DropDownList("DebitPayLatId", ViewBag.DebitPayLatId as SelectList, "-- إختيار نوع الغرامة --", new { @class = "form-control", id = "DebitPayLatId", required = "required" })
                 </div>
+
+                <!-- بيانات VPS -->
+                <div class="col-md-12 mt-3">
+                    <h5 class="border-bottom pb-2"><i class="fas fa-server me-1"></i> بيانات VPS</h5>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="VpsRenewalDate" class="form-label">تاريخ التجديد</label>
+                    <input asp-for="VpsRenewalDate" type="date" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="SiteUrl" class="form-label">الموقع</label>
+                    <input asp-for="SiteUrl" class="form-control" placeholder="https://..." />
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="SiteUsername" class="form-label">اسم المستخدم</label>
+                    <input asp-for="SiteUsername" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="SitePassword" class="form-label">كلمة المرور</label>
+                    <input asp-for="SitePassword" type="password" class="form-control" />
+                </div>
+
+                <!-- بيانات Domain -->
+                <div class="col-md-12 mt-3">
+                    <h5 class="border-bottom pb-2"><i class="fas fa-globe me-1"></i> بيانات Domain</h5>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="Domain" class="form-label">الموقع</label>
+                    <input asp-for="Domain" class="form-control" placeholder="example.com" />
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="DomainRenewalDate" class="form-label">تاريخ التجديد</label>
+                    <input asp-for="DomainRenewalDate" type="date" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="DomainUsername" class="form-label">اسم المستخدم</label>
+                    <input asp-for="DomainUsername" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="DomainPassword" class="form-label">كلمة المرور</label>
+                    <input asp-for="DomainPassword" type="password" class="form-control" />
+                </div>
+
+                <!-- بيانات SSL -->
+                <div class="col-md-12 mt-3">
+                    <h5 class="border-bottom pb-2"><i class="fas fa-lock me-1"></i> بيانات SSL</h5>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="SslUrl" class="form-label">الموقع</label>
+                    <input asp-for="SslUrl" class="form-control" placeholder="https://..." />
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="SslRenewalDate" class="form-label">تاريخ التجديد</label>
+                    <input asp-for="SslRenewalDate" type="date" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="SslUsername" class="form-label">اسم المستخدم</label>
+                    <input asp-for="SslUsername" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="SslPassword" class="form-label">كلمة المرور</label>
+                    <input asp-for="SslPassword" type="password" class="form-control" />
+                </div>
+
+                <!-- بيانات خدمة الرسائل -->
+                <div class="col-md-12 mt-3">
+                    <h5 class="border-bottom pb-2"><i class="fas fa-sms me-1"></i> بيانات خدمة الرسائل (Message)</h5>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="MessageUrl" class="form-label">الموقع</label>
+                    <input asp-for="MessageUrl" class="form-control" placeholder="https://..." />
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="MessageRenewalDate" class="form-label">تاريخ التجديد</label>
+                    <input asp-for="MessageRenewalDate" type="date" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="MessageUsername" class="form-label">اسم المستخدم</label>
+                    <input asp-for="MessageUsername" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="MessagePassword" class="form-label">كلمة المرور</label>
+                    <input asp-for="MessagePassword" type="password" class="form-control" />
+                </div>
+
                 <!-- Form Actions -->
                 <div class="col-md-12 mt-4">
                     <div class="d-flex justify-content-between">
-                        
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-save"></i> تعديل البيانات العامة
                         </button>
@@ -60,4 +143,3 @@
         color: #0d6efd;
     }
 </style>
-

@@ -1,4 +1,4 @@
-﻿using CarRentWeb.Data;
+using CarRentWeb.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CarRentWeb.Data;
@@ -15,7 +15,7 @@ namespace CarRentWeb.Controllers
         {
             _context = context;
         }
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             var today = DateOnly.FromDateTime(DateTime.Now);
             var sevenMonthAgo = today.AddMonths(-3); // Subtract 3 month
@@ -53,6 +53,8 @@ namespace CarRentWeb.Controllers
 
             HttpContext.Session.SetObjectAsJson("CurrentUser", _context.PasswordData.Find(HttpContext.Session.GetInt32("UserId"))!);
             var user = HttpContext.Session.GetObjectFromJson<PasswordDatum>("CurrentUser");
+
+            ViewBag.DeffInfo = await _context.DeffInformation.FirstOrDefaultAsync();
 
             return View();
         }
@@ -153,9 +155,7 @@ namespace CarRentWeb.Controllers
 
 
             var items = _context.DeffTypes.AsQueryable(); // Assuming DbSet is named "DeffTypes"
-                                                          //  var paginatedItems = await PaginatedList<DeffType>.CreateAsync(items, pageNumber, pageSize);
             return View(await PaginatedList<DeffType>.CreateAsync(items.AsNoTracking(), pageNumber ?? 1, pageSize));
-            //  return View(paginatedItems);
         }
 
 

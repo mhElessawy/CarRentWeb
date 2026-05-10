@@ -1,4 +1,4 @@
-﻿
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -62,11 +62,9 @@ namespace CarRentWeb.Controllers
         }
 
         // POST: DeffInformations/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,DebitPayLateDay,DebitPayLatId")] DeffInformation deffInformation)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,DebitPayLateDay,DebitPayLatId,VpsRenewalDate,SiteUrl,SiteUsername,SitePassword,Domain,DomainRenewalDate,DomainUsername,DomainPassword,SslUrl,SslRenewalDate,SslUsername,SslPassword,MessageUrl,MessageRenewalDate,MessageUsername,MessagePassword")] DeffInformation deffInformation)
         {
             if (id != deffInformation.Id)
             {
