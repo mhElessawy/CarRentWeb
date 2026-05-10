@@ -491,24 +491,21 @@ namespace CarRentWeb.Controllers
                 { DistanceFromTop = 0U, DistanceFromBottom = 0U,
                   DistanceFromLeft = 0U, DistanceFromRight = 0U });
 
-            // Find the last table (signature table), locate the "Second Party" paragraph,
-            // then insert the stamp as a centred paragraph right after it.
-            var lastTable = body.Descendants<Table>().LastOrDefault();
-            if (lastTable == null) return;
+            // Find the EmpNameAr1 bookmark and insert stamp in its parent paragraph's cell.
+            var empBookmark = body.Descendants<BookmarkStart>()
+                .LastOrDefault(b => b.Name?.Value == "EmpNameAr1");
+            if (empBookmark == null) return;
 
-            var secondPartyPara = lastTable.Descendants<Paragraph>()
-                .LastOrDefault(p =>
-                    string.Concat(p.Descendants<Text>().Select(t => t.Text))
-                          .Contains("الطرف الثاني", StringComparison.Ordinal));
-
-            if (secondPartyPara == null) return;
+            // Walk up to the containing paragraph
+            var anchorPara = empBookmark.Ancestors<Paragraph>().FirstOrDefault();
+            if (anchorPara == null) return;
 
             var stampPara = new Paragraph(
                 new ParagraphProperties(
                     new Justification { Val = JustificationValues.Center }),
                 new Run(drawing));
 
-            secondPartyPara.InsertAfterSelf(stampPara);
+            anchorPara.InsertAfterSelf(stampPara);
         }
 
         // POST: Contracts/Create
