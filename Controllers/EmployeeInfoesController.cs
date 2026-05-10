@@ -240,7 +240,7 @@ namespace CarRentWeb.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, EmployeeInfo employeeInfo)
+        public async Task<IActionResult> Edit(int id, EmployeeInfo employeeInfo, IFormFile? stampImage)
         {
             if (id != employeeInfo.Id)
             {
@@ -260,10 +260,42 @@ namespace CarRentWeb.Controllers
             {
                 try
                 {
+                    if (stampImage != null && stampImage.Length > 0)
+                    {
+                        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                        var ext = Path.GetExtension(stampImage.FileName).ToLower();
+                        if (allowedExtensions.Contains(ext))
+                        {
+                            // Delete old stamp if exists
+                            if (!string.IsNullOrEmpty(employeeInfo.StampImagePath))
+                            {
+                                var oldPath = Path.Combine("wwwroot", employeeInfo.StampImagePath.TrimStart('/'));
+                                if (System.IO.File.Exists(oldPath))
+                                    System.IO.File.Delete(oldPath);
+                            }
+
+                            var fileName = $"stamp_{employeeInfo.Id}_{Guid.NewGuid()}{ext}";
+                            var folder = Path.Combine("wwwroot", "Stamps");
+                            Directory.CreateDirectory(folder);
+                            using var fs = new FileStream(Path.Combine(folder, fileName), FileMode.Create);
+                            await stampImage.CopyToAsync(fs);
+                            employeeInfo.StampImagePath = $"/Stamps/{fileName}";
+                        }
+                    }
+
+                    // Preserve fields that are not submitted in the form
+                    var existing = await _context.EmployeeInfos.AsNoTracking()
+                        .FirstOrDefaultAsync(e => e.Id == id);
+                    if (existing != null)
+                    {
+                        employeeInfo.UserId = existing.UserId;
+                        if (string.IsNullOrEmpty(employeeInfo.StampImagePath))
+                            employeeInfo.StampImagePath = existing.StampImagePath;
+                    }
+
                     employeeInfo.FullNameAr = employeeInfo.FirstNameAr + " " + employeeInfo.SecondNameAr + " " + employeeInfo.ThirdNameAr + " " + employeeInfo.LastNameAr;
                     employeeInfo.FullNameEn = employeeInfo.FirstNameEn + " " + employeeInfo.SecondNameEn + " " + employeeInfo.ThirdNameEn + " " + employeeInfo.LastNameEn;
                     employeeInfo.DeleteFlag = 0;
-                    employeeInfo.UserId = 1;
                     _context.Update(employeeInfo);
                     await _context.SaveChangesAsync();
                 }
@@ -369,20 +401,20 @@ namespace CarRentWeb.Controllers
                     try
                     {
                         // Validate file type (even though client-side validation exists)
-                        var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                        var allowedExtensions = new[] { ".pdf" };
                         var fileExtension = Path.GetExtension(model.pdfFile1.FileName).ToLower();
 
                         if (!allowedExtensions.Contains(fileExtension))
                         {
-                            ModelState.AddModelError("pdfFile1", "يُسمح فقط بملفات PDF والصور (JPG, PNG, GIF, WEBP).");
+                            ModelState.AddModelError("pdfFile1", "Only PDF files are allowed.");
                             return View(model);
                         }
 
-                        // Set maximum file size (10MB)
-                        var maxFileSize = 10 * 1024 * 1024; // 10MB
+                        // Set maximum file size (5MB in this example)
+                        var maxFileSize = 5 * 1024 * 1024; // 5MB
                         if (model.pdfFile1.Length > maxFileSize)
                         {
-                            ModelState.AddModelError("pdfFile1", "حجم الملف لا يجوز أن يتجاوز 10 ميجابايت.");
+                            ModelState.AddModelError("pdfFile1", "File size cannot exceed 5MB.");
                             return View(model);
                         }
 
@@ -413,7 +445,7 @@ namespace CarRentWeb.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError("pdfFile1", "يرجى اختيار ملف PDF أو صورة للرفع.");
+                    ModelState.AddModelError("pdfFile1", "Please select a PDF file to upload.");
                     return View(model);
                 }
 
@@ -448,51 +480,28 @@ namespace CarRentWeb.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditAtt(EmployeeInfoAtt model, IFormFile pdfFile1)
+        public IActionResult EditAtt(EmployeeInfoAtt model, IFormFile pdfFile1)
         {
             if (ModelState.IsValid)
             {
                 try
                 {
+                    // Handle file upload if a new file was provided
                     if (pdfFile1 != null && pdfFile1.Length > 0)
                     {
-                        var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-                        var fileExtension = Path.GetExtension(pdfFile1.FileName).ToLower();
-
-                        if (!allowedExtensions.Contains(fileExtension))
-                        {
-                            ModelState.AddModelError("pdfFile1", "يُسمح فقط بملفات PDF والصور (JPG, PNG, GIF, WEBP).");
-                            return View(model);
-                        }
-
-                        var maxFileSize = 10 * 1024 * 1024;
-                        if (pdfFile1.Length > maxFileSize)
-                        {
-                            ModelState.AddModelError("pdfFile1", "حجم الملف لا يجوز أن يتجاوز 10 ميجابايت.");
-                            return View(model);
-                        }
-
-                        var fileName = $"{Guid.NewGuid()}{fileExtension}";
-                        string uploadsFolder = Path.Combine("wwwroot", "Emp");
-                        Directory.CreateDirectory(uploadsFolder);
-                        var filePath = Path.Combine(uploadsFolder, fileName);
-
-                        using (var fileStream = new FileStream(filePath, FileMode.Create))
-                        {
-                            await pdfFile1.CopyToAsync(fileStream);
-                        }
-
-                        model.PathFileData = $"/Emp/{fileName}";
+                        // Save the new file and update model.PathFileData
                     }
 
+                    // Update the entity in database
                     _context.Update(model);
-                    await _context.SaveChangesAsync();
+                    _context.SaveChanges();
 
-                    return RedirectToAction(nameof(IndexAtt), new { id = model.EmpId });
+                    return RedirectToAction(nameof(IndexAtt));
                 }
                 catch (Exception)
                 {
-                    ModelState.AddModelError("", "حدث خطأ أثناء حفظ التغييرات.");
+                    // Log error
+                    ModelState.AddModelError("", "Unable to save changes");
                 }
             }
 
@@ -1033,7 +1042,7 @@ namespace CarRentWeb.Controllers
                         fileDownloadName: fileName);
                 }
             }
-            catch (Exception )
+            catch (Exception ex)
             {
                 // Log error
                 // _logger.LogError(ex, "Error exporting employees to Excel");

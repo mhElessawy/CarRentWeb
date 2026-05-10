@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace CarRentWeb.Models;
 
@@ -56,6 +58,12 @@ public partial class EmployeeInfo
     public decimal? Salary { get; set; }
 
     public string? EmpPic { get; set; }
+
+    public string? StampImagePath { get; set; }
+
+    [NotMapped]
+    [ValidateNever]
+    public IFormFile? StampImage { get; set; }
 
     public string? EmpAddress { get; set; }
 

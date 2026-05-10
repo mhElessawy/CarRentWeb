@@ -12,7 +12,7 @@
             <h4 class="mb-0" style="color:white">تعديل بيانات موظف</h4>
         </div>
         <div class="card-body">
-            <form asp-action="Edit" class="row g-3">
+            <form asp-action="Edit" class="row g-3" enctype="multipart/form-data">
                 <input type="hidden" asp-for="Id" />
                 <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
@@ -183,6 +183,29 @@
                     <span asp-validation-for="EmpDepMang" class="text-danger small"></span>
                 </div>
               
+                <!-- Stamp / Signature Section -->
+                <div class="col-md-12 mt-3">
+                    <h5 class="border-bottom pb-2">صورة التوقيع (الختم)</h5>
+                </div>
+
+                <input type="hidden" asp-for="StampImagePath" />
+
+                <div class="col-md-4">
+                    <label class="form-label">رفع صورة التوقيع</label>
+                    <input type="file" name="stampImage" class="form-control"
+                           accept="image/jpeg,image/png,image/gif,image/webp" />
+                    <small class="text-muted">يُقبل: JPG, PNG, GIF, WEBP — اتركه فارغاً للإبقاء على الختم الحالي</small>
+                </div>
+
+                @if (Model != null && !string.IsNullOrEmpty(Model.StampImagePath))
+                {
+                    <div class="col-md-4 text-center">
+                        <label class="form-label d-block">الختم الحالي</label>
+                        <img src="@Model.StampImagePath" alt="توقيع الموظف"
+                             style="max-height:120px; max-width:250px; border:1px solid #dee2e6; border-radius:6px; padding:4px;" />
+                    </div>
+                }
+
                 <!-- Form Actions -->
                 <div class="col-md-12 mt-4">
                     <div class="d-flex justify-content-between">
@@ -216,6 +239,3 @@
         color: #0d6efd;
     }
 </style>
-
-
-

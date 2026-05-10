@@ -23,6 +23,22 @@ builder.Services.AddSession();
 
 var app = builder.Build();
 
+// Apply pending migrations automatically on startup
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<CarRentWebContext>();
+    try { db.Database.Migrate(); } catch { }
+
+    // Ensure columns added outside EF migration tooling exist in the DB
+    db.Database.ExecuteSqlRaw(@"
+        IF NOT EXISTS (
+            SELECT 1 FROM sys.columns
+            WHERE object_id = OBJECT_ID(N'EmployeeInfo') AND name = N'StampImagePath'
+        )
+        ALTER TABLE [EmployeeInfo] ADD [StampImagePath] nvarchar(max) NULL;
+    ");
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
