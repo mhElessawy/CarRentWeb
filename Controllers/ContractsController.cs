@@ -18,12 +18,10 @@ namespace CarRentWeb.Controllers
     public class ContractsController : Controller
     {
         private readonly CarRentWebContext _context;
-        private readonly ContractDocService _contractDocService;
 
-        public ContractsController(CarRentWebContext context, ContractDocService contractDocService)
+        public ContractsController(CarRentWebContext context)
         {
             _context = context;
-            _contractDocService = contractDocService;
         }
 
         // GET: Contracts
@@ -332,10 +330,191 @@ namespace CarRentWeb.Controllers
 
             if (contract == null) return NotFound();
 
-            var docBytes = _contractDocService.GenerateWithData(contract);
-            var emp      = contract.Employee;
+            var emp     = contract.Employee;
+            var company = emp?.Company;
+
+            string cDate     = contract.ContractDate?.ToString("dd/MM/yyyy") ?? "";
+            string startDate = contract.StartDate?.ToString("dd/MM/yyyy") ?? "";
+            string endDate   = contract.EndDate?.ToString("dd/MM/yyyy") ?? "";
+            string noOfDays  = contract.NoOfDays?.ToString() ?? "";
+            string compName  = company?.CompNameEn ?? company?.CompNameAr ?? "";
+            string fileNo    = company?.CompFileNo ?? "";
+            string licNo     = company?.CompLicenseNo ?? "";
+            string empName   = emp?.FullNameEn ?? emp?.FullNameAr ?? "";
+            string natName   = emp?.Nationality?.DeffName ?? "";
+            string civilId   = emp?.CivilId ?? "";
+            string wage      = contract.DailyCredit?.ToString("F0") ?? "";
+            string total     = contract.TotalCost?.ToString("F0") ?? "";
+
+            var html = $@"<html xmlns:o='urn:schemas-microsoft-com:office:office'
+      xmlns:w='urn:schemas-microsoft-com:office:word'
+      xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+<meta charset='utf-8'/>
+<style>
+  @page Section1 {{
+    size: 21cm 29.7cm;
+    margin: 2cm 2.5cm 2cm 2.5cm;
+    mso-header-margin: 1cm;
+    mso-footer-margin: 1cm;
+    mso-paper-source: 0;
+  }}
+  div.Section1 {{ page: Section1; }}
+  body {{
+    font-family: 'Times New Roman', serif;
+    font-size: 11pt;
+    line-height: 1.4;
+  }}
+  h3 {{ text-align: center; font-size: 13pt; margin: 4pt 0; }}
+  p  {{ margin: 3pt 0; text-align: justify; }}
+  .center {{ text-align: center; }}
+  .bold   {{ font-weight: bold; }}
+  table   {{ border-collapse: collapse; width: 100%; }}
+  td      {{ vertical-align: top; padding: 4pt 6pt; width: 50%; }}
+  .sign-table td {{ text-align: center; padding-top: 30pt; }}
+  .underline {{ text-decoration: underline; }}
+  .art {{ font-weight: bold; margin-top: 8pt; }}
+</style>
+<!--[if gte mso 9]>
+<xml><w:WordDocument><w:View>Print</w:View></w:WordDocument></xml>
+<![endif]-->
+</head>
+<body>
+<div class='Section1'>
+
+<h3>State of Kuwait</h3>
+<h3>Public Authority for Manpower</h3>
+<h3>Labour Department</h3>
+
+<p class='center' style='margin-top:10pt;'>
+On <span class='underline'>&nbsp;{cDate}&nbsp;</span>
+the present contract was concluded by and between:
+</p>
+
+<table style='margin:10pt 0;'>
+<tr>
+  <td style='border:1pt solid #000;'>
+    <p><b>1. Company:</b></p>
+    <p>Name: <span class='underline'>&nbsp;{compName}&nbsp;</span></p>
+    <p>File No: <span class='underline'>&nbsp;{fileNo}&nbsp;</span></p>
+    <p>Civil license number: <span class='underline'>&nbsp;{licNo}&nbsp;</span></p>
+    <p><b>(First Party)</b></p>
+  </td>
+  <td style='border:1pt solid #000;'>
+    <p><b>2. Employee:</b></p>
+    <p>Name: <span class='underline'>&nbsp;{empName}&nbsp;</span></p>
+    <p>Nationality: <span class='underline'>&nbsp;{natName}&nbsp;</span></p>
+    <p>Civil card: <span class='underline'>&nbsp;{civilId}&nbsp;</span></p>
+    <p><b>(Second Party)</b></p>
+  </td>
+</tr>
+</table>
+
+<p class='bold'>Preamble</p>
+<p>The first party owns the facility entitled <span class='underline'>&nbsp;{compName}&nbsp;</span>
+working in the field of Car Rental, whereas it wishes to conclude a contract with the
+second party to work for it in the profession of Car Driver, whereas acknowledged their
+capacity to conclude this contract, they agreed upon the following:</p>
+
+<p class='art'>Article One</p>
+<p>The preamble above shall constitute an integral part of the present contract.</p>
+
+<p class='art'>Article Two &ndash; &ldquo;Nature of the Work&rdquo;</p>
+<p>The first party concluded a contract with the second party to work for it as a
+<span class='underline'>&nbsp;Car Driver&nbsp;</span> in the State of Kuwait.</p>
+
+<p class='art'>Article Three</p>
+<p>Contract term: from <span class='underline'>&nbsp;{startDate}&nbsp;</span>
+to <span class='underline'>&nbsp;{endDate}&nbsp;</span>
+(<span class='underline'>&nbsp;{noOfDays}&nbsp;</span> days).</p>
+
+<p class='art'>Article Four &ndash; &ldquo;Lease Value&rdquo;</p>
+<p>For executing the present contract, the second party shall receive the wage of
+<span class='underline'>&nbsp;{wage}&nbsp;</span> KWD
+to be paid at the end of every month. The first party may not decrease the wage during
+the term of the contract. It may not transfer the second party to daily wage without
+his approval.</p>
+
+<p class='art'>Article Five &ndash; &ldquo;Contract Term&rdquo;</p>
+<p>The contract shall come into force on
+<span class='underline'>&nbsp;{startDate}&nbsp;</span>.
+The second party shall execute his work during the entire execution term thereof.</p>
+
+<p class='art'>Article Six &ndash; &ldquo;Contract Term&rdquo;</p>
+<p>The present contract has a definite term. It shall come into force on
+<span class='underline'>&nbsp;{startDate}&nbsp;</span>
+and shall end on <span class='underline'>&nbsp;{endDate}&nbsp;</span>
+(<span class='underline'>&nbsp;{noOfDays}&nbsp;</span> days).</p>
+
+<p class='art'>Article Seven &ndash; &ldquo;Annual Leave&rdquo;</p>
+<p>The second party shall have the right to a paid annual leave with a term of 30 days.
+It shall not be due on the first year save after the expiration of nine months to be
+calculated from the date of the contract coming into force.</p>
+
+<p class='art'>Article Eight &ndash; &ldquo;Number of Work Hours&rdquo;</p>
+<p>The first party may not require that the second party work for a term exceeding
+eight daily work hours with rest periods not less than one hour except for the cases
+set forth in the law.</p>
+
+<p class='art'>Article Nine &ndash; &ldquo;Ticket Value&rdquo;</p>
+<p>The first party shall bear the expenses of the return of the second party to his
+country after the expiration of the work relationship and his final departure from the country.</p>
+
+<p class='art'>Article Ten &ndash; &ldquo;Insurance against Injuries and Work Maladies&rdquo;</p>
+<p>The first party shall insure the second party against injuries and work maladies
+in accordance with the law No. (1) of the year 1999.</p>
+
+<p class='art'>Article Eleven &ndash; &ldquo;End of Service Benefit&rdquo;</p>
+<p>The second party shall be due the end of service benefit as set forth in the
+regulating laws.</p>
+
+<p class='art'>Article Twelve &ndash; &ldquo;Applicable Law&rdquo;</p>
+<p>The provisions of the Labour code in the civil sector No. 6 of 2010 shall apply
+for all matters not provided for in the present contract.</p>
+
+<p class='art'>Article Thirteen &ndash; &ldquo;Special Conditions&rdquo;</p>
+<p>1- The revenues of the taxi are the exclusive property of the first party.</p>
+<p>2- The second party is committed to a work period of (5) years with a fixed term.</p>
+<p>3- The second party is not entitled to transfer to a competing activity.</p>
+
+<p class='art'>Article Fourteen &ndash; &ldquo;Specialized Court&rdquo;</p>
+<p>The court of first instance and its Labour departments, in accordance with the
+provisions of the law No. 46 of the year 1987, shall be competent to peruse any
+conflicts resulting from the execution or interpretation of the present contract.</p>
+
+<p class='art'>Article Fifteen &ndash; &ldquo;Contract Language&rdquo;</p>
+<p>The present contract was made in Arabic and English. The Arabic texts shall
+prevail in the case of any conflict between them.</p>
+
+<p class='art'>Article Sixteen &ndash; &ldquo;Contract Copies&rdquo;</p>
+<p>The present contract was made in three copies, one for each party to work in
+accordance therewith. The third copy shall be deposited at the Public Authority
+for Manpower.</p>
+
+<table class='sign-table' style='margin-top:40pt;'>
+<tr>
+  <td>
+    <p class='bold'>First Party</p>
+    <p style='margin-top:50pt; border-top:1pt solid #000; padding-top:4pt;'>
+      Authorized Signature
+    </p>
+  </td>
+  <td>
+    <p class='bold'>Second Party</p>
+    <p style='margin-top:50pt; border-top:1pt solid #000; padding-top:4pt;'>
+      {empName}<br/>{civilId}
+    </p>
+  </td>
+</tr>
+</table>
+
+</div>
+</body>
+</html>";
+
             var fileName = $"Contract_{contract.ContractNo}_{emp?.FullNameEn?.Replace(" ", "_") ?? "Employee"}.doc";
-            return File(docBytes, "application/msword", fileName);
+            var bytes    = System.Text.Encoding.UTF8.GetBytes(html);
+            return File(bytes, "application/msword", fileName);
         }
 
         // POST: Contracts/Create
