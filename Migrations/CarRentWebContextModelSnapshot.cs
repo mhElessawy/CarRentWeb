@@ -1144,6 +1144,27 @@ namespace CarRentWeb.Migrations
                     b.Property<double?>("DebitPayLateDay")
                         .HasColumnType("float");
 
+                    b.Property<string>("Domain")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Message")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SitePassword")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SiteUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SiteUsername")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("SslExpiry")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("VpsRenewalDate")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("Id");
 
                     b.HasIndex("DebitPayLatId")

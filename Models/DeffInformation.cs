@@ -12,5 +12,15 @@ namespace CarRentWeb.Models
         public int? DebitPayLatId { get; set; }  // Renamed for clarity
         public virtual Deff? DeffPayLate { get; set; }  // Renamed for consistency
 
+        // VPS Fields
+        public DateTime? VpsRenewalDate { get; set; }
+        public string? SiteUrl { get; set; }
+        public string? SiteUsername { get; set; }
+        public string? SitePassword { get; set; }
+
+        // Domain & SSL Fields
+        public string? Domain { get; set; }
+        public DateTime? SslExpiry { get; set; }
+        public string? Message { get; set; }
     }
 }

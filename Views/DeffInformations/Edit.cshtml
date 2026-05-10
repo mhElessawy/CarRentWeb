@@ -1,4 +1,4 @@
-﻿@model CarRentWeb.Models.DeffInformation
+@model CarRentWeb.Models.DeffInformation
 
 @{
     ViewData["Title"] = "Edit";
@@ -15,8 +15,8 @@
             <form asp-action="Edit" class="row g-3">
                 <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
                 <input type="hidden" asp-for="Id" />
-             
-                <!-- Personal Information Section -->
+
+                <!-- البيانات العامة -->
                 <div class="col-md-12">
                     <h5 class="border-bottom pb-2">البيانات العامة</h5>
                 </div>
@@ -28,10 +28,48 @@
                     <label asp-for="DebitPayLateDay" class="form-label">يتحول إلى دين </label>
                     @Html.DropDownList("DebitPayLatId", ViewBag.DebitPayLatId as SelectList, "-- إختيار نوع الغرامة --", new { @class = "form-control", id = "DebitPayLatId", required = "required" })
                 </div>
+
+                <!-- بيانات VPS -->
+                <div class="col-md-12 mt-3">
+                    <h5 class="border-bottom pb-2">بيانات VPS</h5>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="VpsRenewalDate" class="form-label">تاريخ تجديد VPS</label>
+                    <input asp-for="VpsRenewalDate" type="date" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="SiteUrl" class="form-label">الموقع</label>
+                    <input asp-for="SiteUrl" class="form-control" placeholder="https://..." />
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="SiteUsername" class="form-label">اسم المستخدم</label>
+                    <input asp-for="SiteUsername" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="SitePassword" class="form-label">كلمة المرور</label>
+                    <input asp-for="SitePassword" type="password" class="form-control" />
+                </div>
+
+                <!-- بيانات Domain و SSL -->
+                <div class="col-md-12 mt-3">
+                    <h5 class="border-bottom pb-2">Domain و SSL</h5>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Domain" class="form-label">Domain</label>
+                    <input asp-for="Domain" class="form-control" placeholder="example.com" />
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="SslExpiry" class="form-label">SSL (تاريخ الانتهاء)</label>
+                    <input asp-for="SslExpiry" type="date" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Message" class="form-label">Message</label>
+                    <textarea asp-for="Message" class="form-control" rows="3"></textarea>
+                </div>
+
                 <!-- Form Actions -->
                 <div class="col-md-12 mt-4">
                     <div class="d-flex justify-content-between">
-                        
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-save"></i> تعديل البيانات العامة
                         </button>
@@ -60,4 +98,3 @@
         color: #0d6efd;
     }
 </style>
-
