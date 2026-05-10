@@ -497,7 +497,7 @@ namespace CarRentWeb.Controllers
             if (lastTable == null) return;
 
             var secondPartyPara = lastTable.Descendants<Paragraph>()
-                .FirstOrDefault(p =>
+                .LastOrDefault(p =>
                     string.Concat(p.Descendants<Text>().Select(t => t.Text))
                           .Contains("الطرف الثاني", StringComparison.Ordinal));
 
