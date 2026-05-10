@@ -5,11 +5,10 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using CarRentWeb.Data;
-
 using CarRentWeb.Models;
 using CarRentWeb.Models.MyModel;
-
-
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Wordprocessing;
 using System.Globalization;
 
 
@@ -18,12 +17,12 @@ namespace CarRentWeb.Controllers
     public class ContractsController : Controller
     {
         private readonly CarRentWebContext _context;
-        private readonly ContractDocService _contractDocService;
+        private readonly IWebHostEnvironment _hostEnv;
 
-        public ContractsController(CarRentWebContext context, ContractDocService contractDocService)
+        public ContractsController(CarRentWebContext context, IWebHostEnvironment hostEnv)
         {
             _context = context;
-            _contractDocService = contractDocService;
+            _hostEnv = hostEnv;
         }
 
         // GET: Contracts
@@ -332,10 +331,102 @@ namespace CarRentWeb.Controllers
 
             if (contract == null) return NotFound();
 
-            var emp      = contract.Employee;
-            var docBytes = _contractDocService.GenerateWithData(contract);
-            var fileName = $"Contract_{contract.ContractNo}_{emp?.FullNameEn?.Replace(" ", "_") ?? "Employee"}.docx";
-            return File(docBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", fileName);
+            var emp     = contract.Employee;
+            var company = emp?.Company;
+
+            string cDate     = contract.ContractDate?.ToString("dd/MM/yyyy") ?? "";
+            string startDate = contract.StartDate?.ToString("dd/MM/yyyy") ?? "";
+            string noOfDays  = contract.NoOfDays?.ToString() ?? "";
+            string compEn    = company?.CompNameEn ?? company?.CompNameAr ?? "";
+            string compAr    = company?.CompNameAr ?? company?.CompNameEn ?? "";
+            string fileNo    = company?.CompFileNo ?? "";
+            string licNo     = company?.CompLicenseNo ?? "";
+            string owner     = company?.OwnerName1 ?? "";
+            string empEn     = emp?.FullNameEn ?? emp?.FullNameAr ?? "";
+            string empAr     = emp?.FullNameAr ?? emp?.FullNameEn ?? "";
+            string nat       = emp?.Nationality?.DeffName ?? "";
+            string civilId   = emp?.CivilId ?? "";
+            string address   = emp?.EmpAddress ?? "";
+            string wage      = contract.DailyCredit?.ToString("F0") ?? "";
+
+            var templatePath = Path.Combine(_hostEnv.WebRootPath, "Templates", "ContractNewEn.docx");
+            var templateBytes = await System.IO.File.ReadAllBytesAsync(templatePath);
+
+            using var ms = new MemoryStream();
+            ms.Write(templateBytes, 0, templateBytes.Length);
+
+            using (var doc = WordprocessingDocument.Open(ms, true))
+            {
+                var body = doc.MainDocumentPart!.Document.Body!;
+
+                // English bookmarks
+                FillBookmark(body, "CompNameEng",          compEn);
+                FillBookmark(body, "CompNameEng1",         compEn);
+                FillBookmark(body, "CompFileNoEn",         fileNo);
+                FillBookmark(body, "CompOwnerEng",         owner);
+                FillBookmark(body, "CompOwnerEng1",        owner);
+                FillBookmark(body, "CompOwnerCivilIDEng",  licNo);
+                FillBookmark(body, "CompActivateEng",      "Car Rental");
+                FillBookmark(body, "EmpNameEng",           empEn);
+                FillBookmark(body, "EmpNameEng1",          empEn);
+                FillBookmark(body, "EmpNationalityEng",    nat);
+                FillBookmark(body, "EmpCivilIDEng",        civilId);
+                FillBookmark(body, "EmpResidenceEng",      address);
+                FillBookmark(body, "EmpJobTitleEng",       "Car Driver");
+                FillBookmark(body, "EmpJobTitleEng1",      "Car Driver");
+                FillBookmark(body, "EmpSalaryEng",         wage);
+                FillBookmark(body, "ContractDateEng1",     startDate);
+                FillBookmark(body, "ContractStartDateEng", startDate);
+                FillBookmark(body, "ContractPeriodEng",    noOfDays);
+
+                // Arabic bookmarks
+                FillBookmark(body, "CompNameAr",           compAr);
+                FillBookmark(body, "CompNameAr1",          compAr);
+                FillBookmark(body, "CompFileNoAr",         fileNo);
+                FillBookmark(body, "CompOwnerAr",          owner);
+                FillBookmark(body, "CompOwnerAr1",         owner);
+                FillBookmark(body, "CompOwnerCivilIDAr",   licNo);
+                FillBookmark(body, "CompActivateAr",       "تأجير سيارات");
+                FillBookmark(body, "EmpNameAr",            empAr);
+                FillBookmark(body, "EmpNameAr1",           empAr);
+                FillBookmark(body, "EmpNationalityAr",     nat);
+                FillBookmark(body, "EmpCivilIDAr",         civilId);
+                FillBookmark(body, "EmpResidenceAr",       address);
+                FillBookmark(body, "EmpJobTitleAr",        "سائق");
+                FillBookmark(body, "EmpJobTitleAr1",       "سائق");
+                FillBookmark(body, "EmpSalaryAr",          wage);
+                FillBookmark(body, "EmpSalarTafketAr",     wage);
+                FillBookmark(body, "ContractDayAr",        cDate);
+                FillBookmark(body, "ContractDateAr",       cDate);
+                FillBookmark(body, "ContractDateAr1",      cDate);
+                FillBookmark(body, "ContractStartDateAr",  startDate);
+                FillBookmark(body, "ContractPeriodAr",     noOfDays);
+
+                // Preamble date has no English bookmark – replace directly in the run
+                foreach (var t in body.Descendants<Text>())
+                    if (t.Text.Contains("On  corresponding to  the"))
+                        t.Text = t.Text.Replace("On  corresponding to  the", $"On {cDate} the");
+
+                doc.MainDocumentPart.Document.Save();
+            }
+
+            var fileName = $"Contract_{contract.ContractNo}_{empEn.Replace(" ", "_")}.docx";
+            return File(ms.ToArray(),
+                        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                        fileName);
+        }
+
+        private static void FillBookmark(Body body, string name, string value)
+        {
+            if (string.IsNullOrEmpty(value)) return;
+            var start = body.Descendants<BookmarkStart>()
+                            .FirstOrDefault(b => b.Name?.Value == name);
+            if (start == null) return;
+            var sibRun = start.Parent?.Descendants<Run>().FirstOrDefault();
+            var rPr    = sibRun?.RunProperties?.CloneNode(true) as RunProperties;
+            var run    = new Run(new Text(value) { Space = SpaceProcessingModeValues.Preserve });
+            if (rPr != null) run.InsertAt(rPr, 0);
+            start.InsertAfterSelf(run);
         }
 
         // POST: Contracts/Create
