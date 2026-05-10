@@ -202,3 +202,167 @@
 <section class="hero" style="text-align:center">
     <img src="~/assets/img/hero.jpg" alt="Hero Image" class="hero-image">
 </section>
+
+@{
+    var info = ViewBag.DeffInfo as CarRentWeb.Models.DeffInformation;
+}
+@if (info != null)
+{
+    <div class="container mt-4" dir="rtl">
+        <div class="row g-3">
+
+            <!-- VPS -->
+            <div class="col-md-3 col-sm-6">
+                <div class="info-card" style="border-top: 4px solid #4e54c8;">
+                    <div class="info-card-header">
+                        <i class="fas fa-server"></i> VPS
+                    </div>
+                    <div class="info-card-body">
+                        <div class="info-row">
+                            <span class="info-label">الموقع</span>
+                            <span class="info-value">
+                                @if (!string.IsNullOrEmpty(info.SiteUrl))
+                                { <a href="@info.SiteUrl" target="_blank">@info.SiteUrl</a> }
+                                else { <span class="text-muted">—</span> }
+                            </span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">اسم المستخدم</span>
+                            <span class="info-value">@(info.SiteUsername ?? "—")</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">تاريخ التجديد</span>
+                            <span class="info-value @(info.VpsRenewalDate.HasValue && info.VpsRenewalDate.Value <= DateTime.Now.AddDays(30) ? "text-danger fw-bold" : "")">
+                                @(info.VpsRenewalDate.HasValue ? info.VpsRenewalDate.Value.ToString("yyyy-MM-dd") : "—")
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Domain -->
+            <div class="col-md-3 col-sm-6">
+                <div class="info-card" style="border-top: 4px solid #11998e;">
+                    <div class="info-card-header">
+                        <i class="fas fa-globe"></i> Domain
+                    </div>
+                    <div class="info-card-body">
+                        <div class="info-row">
+                            <span class="info-label">الموقع</span>
+                            <span class="info-value">@(info.Domain ?? "—")</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">اسم المستخدم</span>
+                            <span class="info-value">@(info.DomainUsername ?? "—")</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">تاريخ التجديد</span>
+                            <span class="info-value @(info.DomainRenewalDate.HasValue && info.DomainRenewalDate.Value <= DateTime.Now.AddDays(30) ? "text-danger fw-bold" : "")">
+                                @(info.DomainRenewalDate.HasValue ? info.DomainRenewalDate.Value.ToString("yyyy-MM-dd") : "—")
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SSL -->
+            <div class="col-md-3 col-sm-6">
+                <div class="info-card" style="border-top: 4px solid #f7971e;">
+                    <div class="info-card-header">
+                        <i class="fas fa-lock"></i> SSL
+                    </div>
+                    <div class="info-card-body">
+                        <div class="info-row">
+                            <span class="info-label">الموقع</span>
+                            <span class="info-value">
+                                @if (!string.IsNullOrEmpty(info.SslUrl))
+                                { <a href="@info.SslUrl" target="_blank">@info.SslUrl</a> }
+                                else { <span class="text-muted">—</span> }
+                            </span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">اسم المستخدم</span>
+                            <span class="info-value">@(info.SslUsername ?? "—")</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">تاريخ الانتهاء</span>
+                            <span class="info-value @(info.SslExpiry.HasValue && info.SslExpiry.Value <= DateTime.Now.AddDays(30) ? "text-danger fw-bold" : "")">
+                                @(info.SslExpiry.HasValue ? info.SslExpiry.Value.ToString("yyyy-MM-dd") : "—")
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Message -->
+            <div class="col-md-3 col-sm-6">
+                <div class="info-card" style="border-top: 4px solid #ff6b6b;">
+                    <div class="info-card-header">
+                        <i class="fas fa-sms"></i> Message
+                    </div>
+                    <div class="info-card-body">
+                        <div class="info-row">
+                            <span class="info-label">الموقع</span>
+                            <span class="info-value">
+                                @if (!string.IsNullOrEmpty(info.MessageUrl))
+                                { <a href="@info.MessageUrl" target="_blank">@info.MessageUrl</a> }
+                                else { <span class="text-muted">—</span> }
+                            </span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">اسم المستخدم</span>
+                            <span class="info-value">@(info.MessageUsername ?? "—")</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">تاريخ التجديد</span>
+                            <span class="info-value @(info.MessageRenewalDate.HasValue && info.MessageRenewalDate.Value <= DateTime.Now.AddDays(30) ? "text-danger fw-bold" : "")">
+                                @(info.MessageRenewalDate.HasValue ? info.MessageRenewalDate.Value.ToString("yyyy-MM-dd") : "—")
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <style>
+        .info-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            overflow: hidden;
+            height: 100%;
+        }
+        .info-card-header {
+            background: #f8f9fa;
+            padding: 10px 16px;
+            font-weight: 700;
+            font-size: 15px;
+            color: #343a40;
+        }
+        .info-card-body {
+            padding: 12px 16px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid #f0f0f0;
+            gap: 8px;
+        }
+        .info-row:last-child { border-bottom: none; }
+        .info-label {
+            color: #6c757d;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+        .info-value {
+            font-size: 13px;
+            font-weight: 500;
+            text-align: left;
+            word-break: break-all;
+        }
+    </style>
+}

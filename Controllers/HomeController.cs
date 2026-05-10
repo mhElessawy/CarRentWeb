@@ -54,6 +54,8 @@ namespace CarRentWeb.Controllers
             HttpContext.Session.SetObjectAsJson("CurrentUser", _context.PasswordData.Find(HttpContext.Session.GetInt32("UserId"))!);
             var user = HttpContext.Session.GetObjectFromJson<PasswordDatum>("CurrentUser");
 
+            ViewBag.DeffInfo = await _context.DeffInformation.FirstOrDefaultAsync();
+
             return View();
         }
         public IActionResult PrintData(int id)
