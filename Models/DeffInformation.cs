@@ -18,9 +18,22 @@ namespace CarRentWeb.Models
         public string? SiteUsername { get; set; }
         public string? SitePassword { get; set; }
 
-        // Domain & SSL Fields
+        // Domain Fields
         public string? Domain { get; set; }
+        public DateTime? DomainRenewalDate { get; set; }
+        public string? DomainUsername { get; set; }
+        public string? DomainPassword { get; set; }
+
+        // SSL Fields
+        public string? SslUrl { get; set; }
         public DateTime? SslExpiry { get; set; }
-        public string? Message { get; set; }
+        public string? SslUsername { get; set; }
+        public string? SslPassword { get; set; }
+
+        // Message Service Fields
+        public string? MessageUrl { get; set; }
+        public DateTime? MessageRenewalDate { get; set; }
+        public string? MessageUsername { get; set; }
+        public string? MessagePassword { get; set; }
     }
 }

@@ -1147,7 +1147,13 @@ namespace CarRentWeb.Migrations
                     b.Property<string>("Domain")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Message")
+                    b.Property<DateTime?>("DomainRenewalDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DomainUsername")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DomainPassword")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SitePassword")
@@ -1159,8 +1165,29 @@ namespace CarRentWeb.Migrations
                     b.Property<string>("SiteUsername")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("SslUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("SslExpiry")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("SslUsername")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SslPassword")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MessageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("MessageRenewalDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("MessageUsername")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MessagePassword")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("VpsRenewalDate")
                         .HasColumnType("datetime2");

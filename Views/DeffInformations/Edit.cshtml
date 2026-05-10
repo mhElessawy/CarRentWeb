@@ -5,7 +5,6 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-
 <div class="container mt-4" dir="rtl">
     <div class="card shadow">
         <div class="card-header bg-primary text-white">
@@ -25,16 +24,16 @@
                     <input asp-for="DebitPayLateDay" class="form-control" readonly />
                 </div>
                 <div class="col-md-2">
-                    <label asp-for="DebitPayLateDay" class="form-label">يتحول إلى دين </label>
+                    <label class="form-label">يتحول إلى دين</label>
                     @Html.DropDownList("DebitPayLatId", ViewBag.DebitPayLatId as SelectList, "-- إختيار نوع الغرامة --", new { @class = "form-control", id = "DebitPayLatId", required = "required" })
                 </div>
 
                 <!-- بيانات VPS -->
                 <div class="col-md-12 mt-3">
-                    <h5 class="border-bottom pb-2">بيانات VPS</h5>
+                    <h5 class="border-bottom pb-2"><i class="fas fa-server me-1"></i> بيانات VPS</h5>
                 </div>
                 <div class="col-md-3">
-                    <label asp-for="VpsRenewalDate" class="form-label">تاريخ تجديد VPS</label>
+                    <label asp-for="VpsRenewalDate" class="form-label">تاريخ التجديد</label>
                     <input asp-for="VpsRenewalDate" type="date" class="form-control" />
                 </div>
                 <div class="col-md-3">
@@ -50,21 +49,67 @@
                     <input asp-for="SitePassword" type="password" class="form-control" />
                 </div>
 
-                <!-- بيانات Domain و SSL -->
+                <!-- بيانات Domain -->
                 <div class="col-md-12 mt-3">
-                    <h5 class="border-bottom pb-2">Domain و SSL</h5>
+                    <h5 class="border-bottom pb-2"><i class="fas fa-globe me-1"></i> بيانات Domain</h5>
                 </div>
-                <div class="col-md-4">
-                    <label asp-for="Domain" class="form-label">Domain</label>
+                <div class="col-md-3">
+                    <label asp-for="Domain" class="form-label">الموقع</label>
                     <input asp-for="Domain" class="form-control" placeholder="example.com" />
                 </div>
-                <div class="col-md-4">
-                    <label asp-for="SslExpiry" class="form-label">SSL (تاريخ الانتهاء)</label>
+                <div class="col-md-3">
+                    <label asp-for="DomainRenewalDate" class="form-label">تاريخ التجديد</label>
+                    <input asp-for="DomainRenewalDate" type="date" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="DomainUsername" class="form-label">اسم المستخدم</label>
+                    <input asp-for="DomainUsername" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="DomainPassword" class="form-label">كلمة المرور</label>
+                    <input asp-for="DomainPassword" type="password" class="form-control" />
+                </div>
+
+                <!-- بيانات SSL -->
+                <div class="col-md-12 mt-3">
+                    <h5 class="border-bottom pb-2"><i class="fas fa-lock me-1"></i> بيانات SSL</h5>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="SslUrl" class="form-label">الموقع</label>
+                    <input asp-for="SslUrl" class="form-control" placeholder="https://..." />
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="SslExpiry" class="form-label">تاريخ الانتهاء</label>
                     <input asp-for="SslExpiry" type="date" class="form-control" />
                 </div>
-                <div class="col-md-4">
-                    <label asp-for="Message" class="form-label">Message</label>
-                    <textarea asp-for="Message" class="form-control" rows="3"></textarea>
+                <div class="col-md-3">
+                    <label asp-for="SslUsername" class="form-label">اسم المستخدم</label>
+                    <input asp-for="SslUsername" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="SslPassword" class="form-label">كلمة المرور</label>
+                    <input asp-for="SslPassword" type="password" class="form-control" />
+                </div>
+
+                <!-- بيانات خدمة الرسائل -->
+                <div class="col-md-12 mt-3">
+                    <h5 class="border-bottom pb-2"><i class="fas fa-sms me-1"></i> بيانات خدمة الرسائل (Message)</h5>
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="MessageUrl" class="form-label">الموقع</label>
+                    <input asp-for="MessageUrl" class="form-control" placeholder="https://..." />
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="MessageRenewalDate" class="form-label">تاريخ التجديد</label>
+                    <input asp-for="MessageRenewalDate" type="date" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="MessageUsername" class="form-label">اسم المستخدم</label>
+                    <input asp-for="MessageUsername" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label asp-for="MessagePassword" class="form-label">كلمة المرور</label>
+                    <input asp-for="MessagePassword" type="password" class="form-control" />
                 </div>
 
                 <!-- Form Actions -->
