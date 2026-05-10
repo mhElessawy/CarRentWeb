@@ -334,8 +334,8 @@ namespace CarRentWeb.Controllers
 
             var emp      = contract.Employee;
             var docBytes = _contractDocService.GenerateWithData(contract);
-            var fileName = $"Contract_{contract.ContractNo}_{emp?.FullNameEn?.Replace(" ", "_") ?? "Employee"}.doc";
-            return File(docBytes, "application/msword", fileName);
+            var fileName = $"Contract_{contract.ContractNo}_{emp?.FullNameEn?.Replace(" ", "_") ?? "Employee"}.docx";
+            return File(docBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", fileName);
         }
 
         // POST: Contracts/Create

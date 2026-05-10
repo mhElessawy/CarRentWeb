@@ -1,6 +1,6 @@
 using CarRentWeb.Models;
-using NPOI.HWPF;
-using NPOI.HWPF.UserModel;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace CarRentWeb.Service;
 
@@ -14,8 +14,9 @@ public class ContractDocService
     }
 
     /// <summary>
-    /// Loads ContractNewEn.doc (original binary .doc) and fills in contract data
-    /// using HWPFDocument.Range.ReplaceText — no conversion, formatting preserved.
+    /// Copies ContractNewEn.docx, fills every named bookmark with contract data
+    /// using DocumentFormat.OpenXml (no third-party libraries), and returns the
+    /// modified .docx bytes.  The original template file is never modified.
     /// </summary>
     public byte[] GenerateWithData(Contract contract)
     {
@@ -26,91 +27,106 @@ public class ContractDocService
         string startDate = contract.StartDate?.ToString("dd/MM/yyyy") ?? "";
         string endDate   = contract.EndDate?.ToString("dd/MM/yyyy") ?? "";
         string noOfDays  = contract.NoOfDays?.ToString() ?? "";
-        string compName  = company?.CompNameEn ?? company?.CompNameAr ?? "";
+        string compEn    = company?.CompNameEn ?? company?.CompNameAr ?? "";
+        string compAr    = company?.CompNameAr ?? company?.CompNameEn ?? "";
         string fileNo    = company?.CompFileNo ?? "";
         string licNo     = company?.CompLicenseNo ?? "";
-        string empName   = emp?.FullNameEn ?? emp?.FullNameAr ?? "";
-        string natName   = emp?.Nationality?.DeffName ?? "";
+        string owner     = company?.OwnerName1 ?? "";
+        string empEn     = emp?.FullNameEn ?? emp?.FullNameAr ?? "";
+        string empAr     = emp?.FullNameAr ?? emp?.FullNameEn ?? "";
+        string nat       = emp?.Nationality?.DeffName ?? "";
         string civilId   = emp?.CivilId ?? "";
         string address   = emp?.EmpAddress ?? "";
         string wage      = contract.DailyCredit?.ToString("F0") ?? "";
 
-        var templatePath = Path.Combine(_env.ContentRootPath, "ContractNewEn.doc");
-
-        HWPFDocument hwpf;
-        using (var fs = File.OpenRead(templatePath))
-            hwpf = new HWPFDocument(fs);
-
-        var range = hwpf.GetRange();
-
-        // Preamble – contract date
-        // Template has double-space gaps: "On  corresponding to  the present contract..."
-        range.ReplaceText("On  corresponding to  the", $"On {cDate} the");
-
-        // Preamble – company name and field
-        range.ReplaceText("facility  entitled", $"facility entitled {compName}");
-        range.ReplaceText("working in the field of  whereas", "working in the field of Car Rental, whereas");
-        range.ReplaceText("profession of  whereas", "profession of Car Driver, whereas");
-
-        // First party (company) – table cell labels followed by blank spaces
-        range.ReplaceText("1.Company ", $"1.Company {compName} ");
-        range.ReplaceText("File No / ", $"File No: {fileNo} / ");
-        range.ReplaceText("Civil license number  / ", $"Civil license No: {licNo} / ");
-
-        // Second party (employee) – table cell labels followed by blank spaces
-        range.ReplaceText("Name: ", $"Name: {empName} ");
-        range.ReplaceText("Nationality: ", $"Nationality: {natName} ");
-        range.ReplaceText("Civil card:", $"Civil card: {civilId}");
-        if (!string.IsNullOrWhiteSpace(address))
-            range.ReplaceText(" Residence:", $" Residence: {address}");
-
-        // Article Two – profession blank
-        range.ReplaceText("profession of   in the State", "profession of Car Driver in the State");
-
-        // Article Three – fill blank paragraphs after heading
-        TryFillArticleThree(range, startDate, endDate, noOfDays);
-
-        // Article Four – wage blank (double-space gap)
-        range.ReplaceText("the wage of  dinars", $"the wage of {wage} KWD");
-
-        // Article Five – start date blank
-        range.ReplaceText("come into force on  The second party",
-            $"come into force on {startDate}. The second party");
-
-        // Article Six – start date + duration blanks
-        range.ReplaceText("come into force on  for a term of   years",
-            $"come into force on {startDate} and shall end on {endDate} ({noOfDays} days)");
+        var templatePath = Path.Combine(_env.WebRootPath, "Templates", "ContractNewEn.docx");
+        var templateBytes = File.ReadAllBytes(templatePath);
 
         using var ms = new MemoryStream();
-        hwpf.Write(ms);
+        ms.Write(templateBytes, 0, templateBytes.Length);
+
+        using (var doc = WordprocessingDocument.Open(ms, true))
+        {
+            var body = doc.MainDocumentPart!.Document.Body!;
+
+            // ── English bookmarks ──────────────────────────────────────────────
+            Fill(body, "CompNameEng",         compEn);
+            Fill(body, "CompNameEng1",        compEn);
+            Fill(body, "CompFileNoEn",        fileNo);
+            Fill(body, "CompOwnerEng",        owner);
+            Fill(body, "CompOwnerEng1",       owner);
+            Fill(body, "CompOwnerCivilIDEng", licNo);
+            Fill(body, "CompActivateEng",     "Car Rental");
+            Fill(body, "EmpNameEng",          empEn);
+            Fill(body, "EmpNameEng1",         empEn);
+            Fill(body, "EmpNationalityEng",   nat);
+            Fill(body, "EmpCivilIDEng",       civilId);
+            Fill(body, "EmpResidenceEng",     address);
+            Fill(body, "EmpJobTitleEng",      "Car Driver");
+            Fill(body, "EmpJobTitleEng1",     "Car Driver");
+            Fill(body, "EmpSalaryEng",        wage);
+            Fill(body, "ContractDateEng1",    startDate);
+            Fill(body, "ContractStartDateEng",startDate);
+            Fill(body, "ContractPeriodEng",   noOfDays);
+
+            // ── Arabic bookmarks ───────────────────────────────────────────────
+            Fill(body, "CompNameAr",          compAr);
+            Fill(body, "CompNameAr1",         compAr);
+            Fill(body, "CompFileNoAr",        fileNo);
+            Fill(body, "CompOwnerAr",         owner);
+            Fill(body, "CompOwnerAr1",        owner);
+            Fill(body, "CompOwnerCivilIDAr",  licNo);
+            Fill(body, "CompActivateAr",      "تأجير سيارات");
+            Fill(body, "EmpNameAr",           empAr);
+            Fill(body, "EmpNameAr1",          empAr);
+            Fill(body, "EmpNationalityAr",    nat);
+            Fill(body, "EmpCivilIDAr",        civilId);
+            Fill(body, "EmpResidenceAr",      address);
+            Fill(body, "EmpJobTitleAr",       "سائق");
+            Fill(body, "EmpJobTitleAr1",      "سائق");
+            Fill(body, "EmpSalaryAr",         wage);
+            Fill(body, "EmpSalarTafketAr",    wage);
+            Fill(body, "ContractDayAr",       cDate);
+            Fill(body, "ContractDateAr",      cDate);
+            Fill(body, "ContractDateAr1",     cDate);
+            Fill(body, "ContractStartDateAr", startDate);
+            Fill(body, "ContractPeriodAr",    noOfDays);
+
+            // ── Preamble date has no English bookmark – replace the text run ──
+            ReplaceText(body, "On  corresponding to  the", $"On {cDate} the");
+
+            doc.MainDocumentPart.Document.Save();
+        }
+
         return ms.ToArray();
     }
 
-    // Article Three's body is blank paragraphs in the template.
-    // Insert the contract-term sentence before the first blank paragraph after the heading.
-    private static void TryFillArticleThree(Range range, string startDate, string endDate, string noOfDays)
+    // Insert value as a new run immediately after the named bookmark start.
+    // Copies run formatting from the nearest sibling run so the inserted text
+    // matches the surrounding font/size.
+    private static void Fill(Body body, string bookmarkName, string value)
     {
-        try
-        {
-            bool found = false;
-            for (int i = 0; i < range.NumParagraphs; i++)
-            {
-                string text = range.GetParagraph(i).Text.Trim();
-                if (!found)
-                {
-                    if (text.Equals("Article Three", StringComparison.OrdinalIgnoreCase))
-                        found = true;
-                    continue;
-                }
-                if (string.IsNullOrWhiteSpace(text))
-                {
-                    range.GetParagraph(i).InsertBefore(
-                        $"Contract term: from {startDate} to {endDate} ({noOfDays} days).");
-                    break;
-                }
-                break; // hit non-blank content before finding a blank paragraph
-            }
-        }
-        catch { /* InsertBefore may not be supported; silently skip */ }
+        if (string.IsNullOrEmpty(value)) return;
+
+        var start = body.Descendants<BookmarkStart>()
+                        .FirstOrDefault(b => b.Name?.Value == bookmarkName);
+        if (start == null) return;
+
+        // Clone run properties from a sibling run for consistent formatting
+        var sibRun = start.Parent?.Descendants<Run>().FirstOrDefault();
+        var rPr    = sibRun?.RunProperties?.CloneNode(true) as RunProperties;
+
+        var run = new Run(new Text(value) { Space = SpaceProcessingModeValues.Preserve });
+        if (rPr != null) run.InsertAt(rPr, 0);
+
+        start.InsertAfterSelf(run);
+    }
+
+    // Direct text-node replacement for runs that have no bookmark.
+    private static void ReplaceText(Body body, string search, string replacement)
+    {
+        foreach (var t in body.Descendants<Text>())
+            if (t.Text.Contains(search))
+                t.Text = t.Text.Replace(search, replacement);
     }
 }
