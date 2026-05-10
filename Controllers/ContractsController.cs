@@ -415,7 +415,7 @@ namespace CarRentWeb.Controllers
                 {
                     var stampAbs = Path.Combine(_hostEnv.WebRootPath,
                         emp.StampImagePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
-                    InsertStamp(doc, body, stampAbs, "EmpNameEng1");
+                    InsertStamp(doc, body, stampAbs);
                 }
 
                 doc.MainDocumentPart.Document.Save();
@@ -440,9 +440,9 @@ namespace CarRentWeb.Controllers
             start.InsertAfterSelf(run);
         }
 
-        // Inserts the employee stamp image after the named bookmark (Second Party signature area).
+        // Inserts the employee stamp image under the "Second Party" label in the signature table.
         private static void InsertStamp(WordprocessingDocument doc, Body body,
-                                        string stampPath, string bookmarkName)
+                                        string stampPath)
         {
             if (!System.IO.File.Exists(stampPath)) return;
 
@@ -461,9 +461,9 @@ namespace CarRentWeb.Controllers
 
             string relId = doc.MainDocumentPart.GetIdOfPart(imgPart);
 
-            // 130 pt × 70 pt  (1 pt = 12700 EMU)
-            const long cx = 130L * 12700;
-            const long cy =  70L * 12700;
+            // 80 pt × 40 pt  (1 pt = 12700 EMU)
+            const long cx = 80L * 12700;
+            const long cy = 40L * 12700;
 
             var drawing = new Drawing(
                 new Wp.Inline(
@@ -491,10 +491,24 @@ namespace CarRentWeb.Controllers
                 { DistanceFromTop = 0U, DistanceFromBottom = 0U,
                   DistanceFromLeft = 0U, DistanceFromRight = 0U });
 
-            var start = body.Descendants<BookmarkStart>()
-                            .FirstOrDefault(b => b.Name?.Value == bookmarkName);
-            if (start != null)
-                start.InsertAfterSelf(new Run(drawing));
+            // Find the last table (signature table), locate the "Second Party" paragraph,
+            // then insert the stamp as a centred paragraph right after it.
+            var lastTable = body.Descendants<Table>().LastOrDefault();
+            if (lastTable == null) return;
+
+            var secondPartyPara = lastTable.Descendants<Paragraph>()
+                .FirstOrDefault(p =>
+                    string.Concat(p.Descendants<Text>().Select(t => t.Text))
+                          .Contains("Second Party", StringComparison.OrdinalIgnoreCase));
+
+            if (secondPartyPara == null) return;
+
+            var stampPara = new Paragraph(
+                new ParagraphProperties(
+                    new Justification { Val = JustificationValues.Center }),
+                new Run(drawing));
+
+            secondPartyPara.InsertAfterSelf(stampPara);
         }
 
         // POST: Contracts/Create
