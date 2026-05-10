@@ -10,6 +10,9 @@ using CarRentWeb.Models.MyModel;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using System.Globalization;
+using Wp  = DocumentFormat.OpenXml.Drawing.Wordprocessing;
+using A   = DocumentFormat.OpenXml.Drawing;
+using Pic = DocumentFormat.OpenXml.Drawing.Pictures;
 
 
 namespace CarRentWeb.Controllers
@@ -407,6 +410,14 @@ namespace CarRentWeb.Controllers
                     if (t.Text.Contains("On  corresponding to  the"))
                         t.Text = t.Text.Replace("On  corresponding to  the", $"On {cDate} the");
 
+                // Stamp image in the Second Party signature area
+                if (!string.IsNullOrEmpty(emp?.StampImagePath))
+                {
+                    var stampAbs = Path.Combine(_hostEnv.WebRootPath,
+                        emp.StampImagePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                    InsertStamp(doc, body, stampAbs, "EmpNameEng1");
+                }
+
                 doc.MainDocumentPart.Document.Save();
             }
 
@@ -427,6 +438,63 @@ namespace CarRentWeb.Controllers
             var run    = new Run(new Text(value) { Space = SpaceProcessingModeValues.Preserve });
             if (rPr != null) run.InsertAt(rPr, 0);
             start.InsertAfterSelf(run);
+        }
+
+        // Inserts the employee stamp image after the named bookmark (Second Party signature area).
+        private static void InsertStamp(WordprocessingDocument doc, Body body,
+                                        string stampPath, string bookmarkName)
+        {
+            if (!System.IO.File.Exists(stampPath)) return;
+
+            var ext = Path.GetExtension(stampPath).ToLower();
+            var partType = ext switch
+            {
+                ".png" => ImagePartType.Png,
+                ".gif" => ImagePartType.Gif,
+                ".bmp" => ImagePartType.Bmp,
+                _      => ImagePartType.Jpeg
+            };
+
+            var imgPart = doc.MainDocumentPart!.AddImagePart(partType);
+            using (var fs = System.IO.File.OpenRead(stampPath))
+                imgPart.FeedData(fs);
+
+            string relId = doc.MainDocumentPart.GetIdOfPart(imgPart);
+
+            // 130 pt × 70 pt  (1 pt = 12700 EMU)
+            const long cx = 130L * 12700;
+            const long cy =  70L * 12700;
+
+            var drawing = new Drawing(
+                new Wp.Inline(
+                    new Wp.Extent            { Cx = cx, Cy = cy },
+                    new Wp.EffectExtent      { LeftEdge = 0L, TopEdge = 0L, RightEdge = 0L, BottomEdge = 0L },
+                    new Wp.DocProperties     { Id = 1U, Name = "Stamp" },
+                    new Wp.NonVisualGraphicFrameDrawingProperties(
+                        new A.GraphicFrameLocks { NoChangeAspect = true }),
+                    new A.Graphic(
+                        new A.GraphicData(
+                            new Pic.Picture(
+                                new Pic.NonVisualPictureProperties(
+                                    new Pic.NonVisualDrawingProperties { Id = 0U, Name = "Stamp" },
+                                    new Pic.NonVisualPictureDrawingProperties()),
+                                new Pic.BlipFill(
+                                    new A.Blip { Embed = relId },
+                                    new A.Stretch(new A.FillRectangle())),
+                                new Pic.ShapeProperties(
+                                    new A.Transform2D(
+                                        new A.Offset  { X = 0L, Y = 0L },
+                                        new A.Extents { Cx = cx, Cy = cy }),
+                                    new A.PresetGeometry(new A.AdjustValueList())
+                                        { Preset = A.ShapeTypeValues.Rectangle })))
+                        { Uri = "http://schemas.openxmlformats.org/drawingml/2006/picture" }))
+                { DistanceFromTop = 0U, DistanceFromBottom = 0U,
+                  DistanceFromLeft = 0U, DistanceFromRight = 0U });
+
+            var start = body.Descendants<BookmarkStart>()
+                            .FirstOrDefault(b => b.Name?.Value == bookmarkName);
+            if (start != null)
+                start.InsertAfterSelf(new Run(drawing));
         }
 
         // POST: Contracts/Create
