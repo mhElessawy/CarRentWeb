@@ -18,12 +18,10 @@ namespace CarRentWeb.Controllers
     public class ContractsController : Controller
     {
         private readonly CarRentWebContext _context;
-        private readonly ContractDocService _contractDocService;
 
-        public ContractsController(CarRentWebContext context, ContractDocService contractDocService)
+        public ContractsController(CarRentWebContext context)
         {
             _context = context;
-            _contractDocService = contractDocService;
         }
 
         // GET: Contracts
@@ -321,21 +319,12 @@ namespace CarRentWeb.Controllers
             return View(contract);
         }
 
-        public async Task<IActionResult> DownloadEnglishContract(int? id)
+        public IActionResult DownloadEnglishContract()
         {
-            if (id == null) return NotFound();
-
-            var contract = await _context.Contracts
-                .Include(c => c.Employee).ThenInclude(e => e!.Company)
-                .Include(c => c.Employee).ThenInclude(e => e!.Nationality)
-                .FirstOrDefaultAsync(m => m.Id == id);
-
-            if (contract == null) return NotFound();
-
-            var docBytes = _contractDocService.GenerateWithStamp(contract);
-            var emp      = contract.Employee;
-            var fileName = $"Contract_{contract.ContractNo}_{emp?.FullNameEn?.Replace(" ", "_") ?? "Employee"}.docx";
-            return File(docBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", fileName);
+            var templatePath = Path.Combine(Directory.GetCurrentDirectory(), "ContractNewEn.doc");
+            if (!System.IO.File.Exists(templatePath)) return NotFound();
+            var bytes = System.IO.File.ReadAllBytes(templatePath);
+            return File(bytes, "application/msword", "ContractNewEn.doc");
         }
 
         // POST: Contracts/Create
