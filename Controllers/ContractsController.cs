@@ -18,10 +18,12 @@ namespace CarRentWeb.Controllers
     public class ContractsController : Controller
     {
         private readonly CarRentWebContext _context;
+        private readonly ContractDocService _contractDocService;
 
-        public ContractsController(CarRentWebContext context)
+        public ContractsController(CarRentWebContext context, ContractDocService contractDocService)
         {
             _context = context;
+            _contractDocService = contractDocService;
         }
 
         // GET: Contracts
@@ -319,12 +321,21 @@ namespace CarRentWeb.Controllers
             return View(contract);
         }
 
-        public IActionResult DownloadEnglishContract()
+        public async Task<IActionResult> DownloadEnglishContract(int? id)
         {
-            var templatePath = Path.Combine(Directory.GetCurrentDirectory(), "ContractNewEn.doc");
-            if (!System.IO.File.Exists(templatePath)) return NotFound();
-            var bytes = System.IO.File.ReadAllBytes(templatePath);
-            return File(bytes, "application/msword", "ContractNewEn.doc");
+            if (id == null) return NotFound();
+
+            var contract = await _context.Contracts
+                .Include(c => c.Employee).ThenInclude(e => e!.Company)
+                .Include(c => c.Employee).ThenInclude(e => e!.Nationality)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (contract == null) return NotFound();
+
+            var docBytes = _contractDocService.GenerateWithData(contract);
+            var emp      = contract.Employee;
+            var fileName = $"Contract_{contract.ContractNo}_{emp?.FullNameEn?.Replace(" ", "_") ?? "Employee"}.doc";
+            return File(docBytes, "application/msword", fileName);
         }
 
         // POST: Contracts/Create
