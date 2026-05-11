@@ -410,20 +410,20 @@ namespace CarRentWeb.Controllers
                     if (t.Text.Contains("On  corresponding to  the"))
                         t.Text = t.Text.Replace("On  corresponding to  the", $"On {cDate} the");
 
-                // Employee stamp — Second Party (after EmpNameAr1)
-                if (!string.IsNullOrEmpty(emp?.StampImagePath))
+                // Both signatures on one line:
+                // company sig (right / الطرف الأول) + employee stamp (left / الطرف الثاني)
                 {
-                    var stampAbs = Path.Combine(_hostEnv.WebRootPath,
-                        emp.StampImagePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
-                    InsertImageAfterBookmark(doc, body, stampAbs, "EmpNameAr1");
-                }
+                    string? stampAbs = null, sigAbs = null;
 
-                // Company signature — First Party (after CompOwnerAr1)
-                if (!string.IsNullOrEmpty(company?.CompSignature))
-                {
-                    var sigAbs = Path.Combine(_hostEnv.WebRootPath, "UploadCompSignature",
-                        company.CompSignature.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
-                    InsertImageAfterBookmark(doc, body, sigAbs, "CompOwnerAr1", JustificationValues.Right);
+                    if (!string.IsNullOrEmpty(emp?.StampImagePath))
+                        stampAbs = Path.Combine(_hostEnv.WebRootPath,
+                            emp.StampImagePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+
+                    if (!string.IsNullOrEmpty(company?.CompSignature))
+                        sigAbs = Path.Combine(_hostEnv.WebRootPath, "UploadCompSignature",
+                            company.CompSignature.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+
+                    InsertSignaturesOnSameLine(doc, body, sigAbs, stampAbs);
                 }
 
                 doc.MainDocumentPart.Document.Save();
@@ -448,11 +448,9 @@ namespace CarRentWeb.Controllers
             start.InsertAfterSelf(run);
         }
 
-        private static void InsertImageAfterBookmark(WordprocessingDocument doc, Body body,
-                                                      string imagePath, string bookmarkName,
-                                                      JustificationValues? justify = null)
+        private static Drawing? BuildInlineDrawing(WordprocessingDocument doc, string imagePath, string name, uint drawingId)
         {
-            if (!System.IO.File.Exists(imagePath)) return;
+            if (!System.IO.File.Exists(imagePath)) return null;
 
             var ext = Path.GetExtension(imagePath).ToLower();
             var partType = ext switch
@@ -469,22 +467,21 @@ namespace CarRentWeb.Controllers
 
             string relId = doc.MainDocumentPart.GetIdOfPart(imgPart);
 
-            // 80 pt × 40 pt  (1 pt = 12700 EMU)
             const long cx = 80L * 12700;
             const long cy = 40L * 12700;
 
-            var drawing = new Drawing(
+            return new Drawing(
                 new Wp.Inline(
                     new Wp.Extent            { Cx = cx, Cy = cy },
                     new Wp.EffectExtent      { LeftEdge = 0L, TopEdge = 0L, RightEdge = 0L, BottomEdge = 0L },
-                    new Wp.DocProperties     { Id = 1U, Name = bookmarkName },
+                    new Wp.DocProperties     { Id = drawingId, Name = name },
                     new Wp.NonVisualGraphicFrameDrawingProperties(
                         new A.GraphicFrameLocks { NoChangeAspect = true }),
                     new A.Graphic(
                         new A.GraphicData(
                             new Pic.Picture(
                                 new Pic.NonVisualPictureProperties(
-                                    new Pic.NonVisualDrawingProperties { Id = 0U, Name = bookmarkName },
+                                    new Pic.NonVisualDrawingProperties { Id = 0U, Name = name },
                                     new Pic.NonVisualPictureDrawingProperties()),
                                 new Pic.BlipFill(
                                     new A.Blip { Embed = relId },
@@ -498,20 +495,41 @@ namespace CarRentWeb.Controllers
                         { Uri = "http://schemas.openxmlformats.org/drawingml/2006/picture" }))
                 { DistanceFromTop = 0U, DistanceFromBottom = 0U,
                   DistanceFromLeft = 0U, DistanceFromRight = 0U });
+        }
 
+        private static void InsertSignaturesOnSameLine(WordprocessingDocument doc, Body body,
+                                                        string? compSigPath, string? empStampPath)
+        {
+            var compDrawing  = compSigPath  != null ? BuildInlineDrawing(doc, compSigPath,  "CompSig",  1U) : null;
+            var stampDrawing = empStampPath != null ? BuildInlineDrawing(doc, empStampPath, "EmpStamp", 2U) : null;
+
+            if (compDrawing == null && stampDrawing == null) return;
+
+            // Anchor: EmpNameAr1 (last bookmark in signature area)
             var anchor = body.Descendants<BookmarkStart>()
-                .LastOrDefault(b => b.Name?.Value == bookmarkName);
+                .LastOrDefault(b => b.Name?.Value == "EmpNameAr1");
             if (anchor == null) return;
 
             var anchorPara = anchor.Ancestors<Paragraph>().FirstOrDefault();
             if (anchorPara == null) return;
 
-            var imgPara = new Paragraph(
+            // One paragraph: company sig on right, employee stamp on left (RTL layout)
+            var para = new Paragraph(
                 new ParagraphProperties(
-                    new Justification { Val = justify ?? JustificationValues.Left }),
-                new Run(drawing));
+                    new Justification { Val = JustificationValues.Both }));
 
-            anchorPara.InsertAfterSelf(imgPara);
+            if (compDrawing != null)
+                para.Append(new Run(compDrawing));
+
+            // Spacer between the two images
+            para.Append(new Run(
+                new RunProperties(new NoProof()),
+                new Text("        ") { Space = SpaceProcessingModeValues.Preserve }));
+
+            if (stampDrawing != null)
+                para.Append(new Run(stampDrawing));
+
+            anchorPara.InsertAfterSelf(para);
         }
 
         // POST: Contracts/Create
