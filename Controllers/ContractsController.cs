@@ -502,7 +502,7 @@ namespace CarRentWeb.Controllers
 
             var stampPara = new Paragraph(
                 new ParagraphProperties(
-                    new Justification { Val = JustificationValues.Center }),
+                    new Justification { Val = JustificationValues.Left }),
                 new Run(drawing));
 
             anchorPara.InsertAfterSelf(stampPara);
