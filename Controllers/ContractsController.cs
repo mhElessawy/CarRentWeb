@@ -450,7 +450,7 @@ namespace CarRentWeb.Controllers
 
         private static void InsertImageAfterBookmark(WordprocessingDocument doc, Body body,
                                                       string imagePath, string bookmarkName,
-                                                      JustificationValues justify = JustificationValues.Left)
+                                                      JustificationValues? justify = null)
         {
             if (!System.IO.File.Exists(imagePath)) return;
 
@@ -508,7 +508,7 @@ namespace CarRentWeb.Controllers
 
             var imgPara = new Paragraph(
                 new ParagraphProperties(
-                    new Justification { Val = justify }),
+                    new Justification { Val = justify ?? JustificationValues.Left }),
                 new Run(drawing));
 
             anchorPara.InsertAfterSelf(imgPara);
