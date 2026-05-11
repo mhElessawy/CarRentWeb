@@ -1,263 +1,329 @@
-﻿@model IEnumerable<CarRentWeb.Models.MyModel.ContractDetailsSumation>
+﻿@model CarRentWeb.Models.MyModel.BalanceReportViewModel
 
 @{
     ViewData["Title"] = "تقرير الرصيد الحالي";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    int rowNum = 0;
-    var totalOverdue = Model?.Sum(i => i.OverdueRental) ?? 0;
-    var totalDebt = Model?.Sum(i => i.RemainingDebt) ?? 0;
-    var grandTotal = totalOverdue + totalDebt;
 }
 
 <style>
-    .balance-page {
-        direction: rtl;
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
-        .balance-page h1 {
-            color: #2c3e50;
-            font-weight: 700;
-            border-bottom: 3px solid #3498db;
-            padding-bottom: 6px;
+    .report-header {
+        text-align: right;
+        margin-bottom: 10px;
+    }
+
+        .report-header h1 {
+            color: #1a1a2e;
+            font-weight: 800;
+            font-size: 1.8rem;
             margin-bottom: 4px;
+            border-bottom: 3px solid #3498db;
+            display: inline-block;
+            padding-bottom: 4px;
         }
 
-    .balance-date {
-        color: #666;
-        font-size: 0.9em;
-        margin-bottom: 18px;
+    .report-date {
+        color: #555;
+        font-size: 0.85rem;
         text-align: right;
+        margin-bottom: 15px;
     }
 
     /* Summary Cards */
-    .balance-cards {
+    .summary-cards {
         display: flex;
-        gap: 18px;
+        gap: 16px;
         margin-bottom: 20px;
-        direction: rtl;
+        flex-wrap: wrap;
     }
 
-    .balance-card {
+    .summary-card {
         flex: 1;
+        min-width: 200px;
         background: #fff;
-        border: 1px solid #dce3ea;
+        border: 1px solid #e0e0e0;
         border-radius: 10px;
-        padding: 20px;
+        padding: 18px 24px;
         text-align: center;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     }
 
-        .balance-card .bc-label {
-            font-size: 0.85em;
-            color: #999;
-            margin-bottom: 10px;
+        .summary-card .card-label {
+            font-size: 0.85rem;
+            color: #777;
+            margin-bottom: 8px;
         }
 
-        .balance-card .bc-value {
-            font-size: 1.6em;
+        .summary-card .card-value {
+            font-size: 1.6rem;
             font-weight: 700;
         }
 
-    .bc-value.red {
+    .card-value.rental {
         color: #e74c3c;
     }
 
-    .bc-value.orange {
+    .card-value.debt {
         color: #e67e22;
     }
 
-    .bc-value.dark {
-        color: #2c3e50;
+    .card-value.total {
+        color: #1a1a2e;
     }
 
-    /* Search */
-    .balance-search {
-        background: #f4f6f8;
+    /* Filter Bar */
+    .filter-bar {
+        background: #fff;
+        border: 1px solid #e0e0e0;
         border-radius: 8px;
-        padding: 12px 16px;
+        padding: 12px 18px;
         margin-bottom: 18px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        direction: rtl;
     }
 
-        .balance-search .form-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
-            direction: rtl;
-        }
-
-        .balance-search label {
+        .filter-bar label {
             font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 0;
+            color: #333;
+            font-size: 0.85rem;
+            white-space: nowrap;
         }
 
-        .balance-search input, .balance-search select {
+        .filter-bar input[type="text"],
+        .filter-bar input[type="number"],
+        .filter-bar select {
+            padding: 6px 10px;
             border: 1px solid #ccc;
-            border-radius: 4px;
-            padding: 5px 10px;
-            font-size: 0.9em;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            width: 130px;
+        }
+
+        .filter-bar select {
+            width: 160px;
+        }
+
+    .btn-search {
+        background-color: #3498db;
+        color: white;
+        border: none;
+        padding: 7px 18px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: background 0.2s;
+    }
+
+        .btn-search:hover {
+            background-color: #2980b9;
+        }
+
+    .btn-reset {
+        background-color: #6c757d;
+        color: white;
+        border: none;
+        padding: 7px 18px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+        transition: background 0.2s;
+    }
+
+        .btn-reset:hover {
+            background-color: #5a6268;
+            color: white;
         }
 
     /* Table */
-    .balance-table {
+    .report-table {
         width: 100%;
         border-collapse: collapse;
-        font-size: 0.85em;
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        font-size: 0.82rem;
     }
 
-        .balance-table thead tr {
-            background-color: #2980b9;
+        .report-table thead tr {
+            background-color: #1a1a2e;
             color: #fff;
             text-align: center;
-            font-weight: bold;
         }
 
-        .balance-table th, .balance-table td {
-            padding: 8px 10px;
-            border-bottom: 1px solid #ddd;
+        .report-table th,
+        .report-table td {
+            padding: 9px 10px;
+            border-bottom: 1px solid #e0e0e0;
             text-align: center;
             white-space: nowrap;
         }
 
-        .balance-table tbody tr:nth-of-type(even) {
-            background-color: #f7f9fc;
+        .report-table tbody tr:nth-of-type(even) {
+            background-color: #f8f9fa;
         }
 
-        .balance-table tbody tr:hover {
+        .report-table tbody tr:hover {
             background-color: #eaf4fb;
         }
 
-        .balance-table .row-total {
-            font-weight: bold;
-            background-color: #eef2f7 !important;
+    .col-rental {
+        color: #e74c3c;
+        font-weight: 600;
+    }
+
+    .col-debt {
+        color: #e67e22;
+        font-weight: 600;
+    }
+
+    .col-total {
+        font-weight: 700;
+        color: #1a1a2e;
+    }
+
+    .totals-row {
+        background-color: #f0f4f8 !important;
+        font-weight: 700;
+        border-top: 2px solid #1a1a2e;
+    }
+
+    .btn-print {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        padding: 9px 22px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-top: 14px;
+        transition: background 0.2s;
+    }
+
+        .btn-print:hover {
+            background-color: #218838;
         }
+
+    @@media print {
+        .filter-bar, .btn-print, .report-header {
+            display: none !important;
+        }
+    }
 </style>
 
-<div class="balance-page">
+<div dir="rtl">
+    <div class="report-header">
+        <h1>تقرير الرصيد الحالي</h1>
+    </div>
+    <div class="report-date">التاريخ: @DateTime.Today.ToString("yyyy/MM/dd")</div>
 
-    <h1>تقرير الرصيد الحالي</h1>
-    <div class="balance-date">التاريخ: <strong>@DateTime.Today.ToString("yyyy/MM/dd")</strong></div>
-
-    <!-- Cards: right→left: overdue | debt | total -->
-    <div class="balance-cards">
-        <div class="balance-card">
-            <div class="bc-label">إجمالي المبالغ المتأخرة</div>
-            <div class="bc-value red">@String.Format("{0:N2}", totalOverdue)</div>
+    <!-- Summary Cards -->
+    <div class="summary-cards">
+        <div class="summary-card">
+            <div class="card-label">إجمالي المبالغ المتأخرة</div>
+            <div class="card-value rental">@Model.TotalOverdueRental.ToString("N2")</div>
         </div>
-        <div class="balance-card">
-            <div class="bc-label">إجمالي الديون المتبقية</div>
-            <div class="bc-value orange">@String.Format("{0:N2}", totalDebt)</div>
+        <div class="summary-card">
+            <div class="card-label">إجمالي الديون المتبقية</div>
+            <div class="card-value debt">@Model.TotalRemainingDebt.ToString("N2")</div>
         </div>
-        <div class="balance-card">
-            <div class="bc-label">الإجمالي الكلي</div>
-            <div class="bc-value dark">@String.Format("{0:N2}", grandTotal)</div>
+        <div class="summary-card">
+            <div class="card-label">الإجمالي الكلي</div>
+            <div class="card-value total">@Model.GrandTotal.ToString("N2")</div>
         </div>
     </div>
 
-    <!-- Search -->
-    <div class="balance-search">
-        <form asp-action="BalanceReport" method="get">
-            <div class="form-group">
-                <label>رقم الموظف:</label>
-                <input type="number" name="empCode" value="@ViewData["EmpCodeFilter"]"
-                       placeholder="رقم الموظف" style="width:110px" />
+    <!-- Filter Bar -->
+    <form asp-action="BalanceReport" method="get">
+        <div class="filter-bar">
+            <label>رقم الموظف:</label>
+            <input type="number" name="EmpCodeString" value="@Context.Request.Query["EmpCodeString"]" placeholder="رقم الموظف" />
 
-                <label>اسم الموظف:</label>
-                <input type="text" name="empName" value="@ViewData["EmpNameFilter"]"
-                       placeholder="اسم الموظف" style="width:180px" />
+            <label>اسم الموظف:</label>
+            <input type="text" name="EmpSearch" value="@Context.Request.Query["EmpSearch"]" placeholder="اسم الموظف" />
 
-                <label>الشركة:</label>
-                <select name="companyId" asp-items="ViewBag.Companies" style="width:200px">
-                    <option value="">-- جميع الشركات --</option>
-                </select>
+            <label>الشركة:</label>
+            <select name="companyId" asp-items="ViewBag.Companies">
+                <option value="">-- جميع الشركات --</option>
+            </select>
 
-                <button type="submit" class="btn btn-primary">بحث</button>
-                <a asp-action="BalanceReport" class="btn btn-secondary">إعادة تعيين</a>
-            </div>
-        </form>
-    </div>
+            <button type="submit" class="btn-search">بحث</button>
+            <a asp-action="BalanceReport" class="btn-reset">إعادة تعيين</a>
+        </div>
+    </form>
 
-    <!-- Table -->
-    <div style="overflow-x:auto">
-        <table class="balance-table">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>كود الموظف</th>
-                    <th>اسم الموظف</th>
-                    <th>رقم الهاتف</th>
-                    <th>الشركة</th>
-                    <th>المبالغ المتأخرة</th>
-                    <th>الديون المتبقية</th>
-                    <th>الإجمالي</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model!)
+    <!-- Data Table -->
+    <table class="report-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>كود الموظف</th>
+                <th>اسم الموظف</th>
+                <th>رقم الهاتف</th>
+                <th>الشركة</th>
+                <th>المبالغ المتأخرة</th>
+                <th>الديون المتبقية</th>
+                <th>الإجمالي</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Items.Any())
+            {
+                int rowNum = 1;
+                @foreach (var item in Model.Items)
                 {
-                    rowNum++;
-                    var rowTotal = item.OverdueRental + item.RemainingDebt;
                     <tr>
-                        <td>@rowNum</td>
+                        <td>@(rowNum++)</td>
                         <td>@item.EmpCode</td>
                         <td>@item.EmployeeName</td>
                         <td>@item.MobileNo</td>
                         <td>@item.CompanyName</td>
-                        <td style="color:#e74c3c;font-weight:600">@String.Format("{0:N2}", item.OverdueRental)</td>
-                        <td style="color:#e67e22;font-weight:600">@String.Format("{0:N2}", item.RemainingDebt)</td>
-                        <td style="font-weight:bold">@String.Format("{0:N2}", rowTotal)</td>
+                        <td class="col-rental">@item.OverdueRental.ToString("N2")</td>
+                        <td class="col-debt">@item.RemainingDebt.ToString("N2")</td>
+                        <td class="col-total">@((item.OverdueRental + item.RemainingDebt).ToString("N2"))</td>
                     </tr>
                 }
-                <tr class="row-total">
-                    <td colspan="5" style="text-align:right;font-weight:bold">الإجمالي:</td>
-                    <td style="color:#e74c3c;font-weight:bold">@String.Format("{0:N2}", totalOverdue)</td>
-                    <td style="color:#e67e22;font-weight:bold">@String.Format("{0:N2}", totalDebt)</td>
-                    <td style="font-weight:bold">@String.Format("{0:N2}", grandTotal)</td>
+                <tr class="totals-row">
+                    <td colspan="5" style="text-align:right; padding-right:12px;">المجموع</td>
+                    <td class="col-rental">@Model.TotalOverdueRental.ToString("N2")</td>
+                    <td class="col-debt">@Model.TotalRemainingDebt.ToString("N2")</td>
+                    <td class="col-total">@Model.GrandTotal.ToString("N2")</td>
                 </tr>
-            </tbody>
-        </table>
-    </div>
+            }
+            else
+            {
+                <tr>
+                    <td colspan="8" style="text-align:center; padding:20px; color:#999;">
+                        لا توجد بيانات
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
 
-    <div class="mt-3">
-        <button onclick="printReport()" class="btn btn-success">
-            <i class="bi bi-printer"></i> طباعة
-        </button>
-    </div>
-
+    <button onclick="printReport()" class="btn-print">طباعة</button>
 </div>
 
 <script>
     function printReport() {
-        var table = document.querySelector('.balance-table').outerHTML;
-        var w = window.open('', '_blank');
-        w.document.write(`
-            <html><head><meta charset="utf-8">
-            <style>
-                body { direction:rtl; font-family:Arial,sans-serif; padding:20px; }
-                h2 { border-bottom:2px solid #3498db; padding-bottom:6px; }
-                .cards { display:flex; gap:16px; margin:14px 0; }
-                .card  { flex:1; border:1px solid #ccc; border-radius:8px; padding:14px; text-align:center; }
-                .card .lbl { color:#999; font-size:.82em; }
-                .card .val { font-size:1.4em; font-weight:bold; }
-                table { width:100%; border-collapse:collapse; font-size:.85em; }
-                th { background:#2980b9; color:#fff; padding:7px; }
-                td { padding:6px 8px; border-bottom:1px solid #ddd; text-align:center; }
-                tr:nth-child(even) { background:#f7f9fc; }
-            </style></head><body>
-            <h2>تقرير الرصيد الحالي</h2>
-            <p>التاريخ: <strong>@DateTime.Today.ToString("yyyy/MM/dd")</strong></p>
-            <div class="cards">
-                <div class="card"><div class="lbl">إجمالي المبالغ المتأخرة</div><div class="val" style="color:#e74c3c">@String.Format("{0:N2}", totalOverdue)</div></div>
-                <div class="card"><div class="lbl">إجمالي الديون المتبقية</div><div class="val" style="color:#e67e22">@String.Format("{0:N2}", totalDebt)</div></div>
-                <div class="card"><div class="lbl">الإجمالي الكلي</div><div class="val">@String.Format("{0:N2}", grandTotal)</div></div>
-            </div>
-            ${table}
-            </body></html>`);
-        w.document.close();
-        w.print();
+        var tbl = document.querySelector('.report-table').outerHTML;
+        var date = '@DateTime.Today.ToString("yyyy/MM/dd")';
+        var original = document.body.innerHTML;
+        document.body.innerHTML =
+            '<div dir="rtl" style="font-family:Arial">' +
+            '<h2 style="text-align:center">تقرير الرصيد الحالي</h2>' +
+            '<p style="text-align:right">التاريخ: ' + date + '</p>' +
+            tbl + '</div>';
+        window.print();
+        document.body.innerHTML = original;
+        location.reload();
     }
 </script>

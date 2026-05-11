@@ -10,7 +10,7 @@ namespace CarRentWeb.Controllers
     public class DeffInformationsController : Controller
     {
         private readonly CarRentWebContext _context;
-            
+
         public DeffInformationsController(CarRentWebContext context)
         {
             _context = context;
@@ -66,7 +66,7 @@ namespace CarRentWeb.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,DebitPayLateDay,DebitPayLatId,VpsRenewalDate,DomainRenewalDate,SslRenewalDate,MessageRenewalDate")] DeffInformation deffInformation)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,DebitPayLateDay,DebitPayLatId,VpsRenewalDate,SiteUrl,SiteUsername,SitePassword,Domain,DomainRenewalDate,DomainUsername,DomainPassword,SslUrl,SslRenewalDate,SslUsername,SslPassword,MessageUrl,MessageRenewalDate,MessageUsername,MessagePassword")] DeffInformation deffInformation)
         {
             if (id != deffInformation.Id)
             {

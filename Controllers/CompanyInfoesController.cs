@@ -156,8 +156,6 @@ namespace CarRentWeb.Controllers
         }
 
         // POST: CompanyInfoes/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, CompanyInfo model)
@@ -171,28 +169,52 @@ namespace CarRentWeb.Controllers
             {
                 try
                 {
-
                     var checkCode = await _context.CompanyInfos.AnyAsync(a => a.CompCode == model.CompCode && a.Id != model.Id);
                     if (checkCode)
                     {
                         ViewData["CityId"] = new SelectList(_context.Deffs.Where(a => a.DeffType == 4), "Id", "DeffName");
                         ViewData["CompActivateId"] = new SelectList(_context.Deffs.Where(a => a.DeffType == 30), "Id", "DeffName");
                         ViewData["LocationId"] = new SelectList(_context.Deffs.Where(a => a.DeffType == 3), "Id", "DeffName");
-
                         ModelState.AddModelError("CompCode", "كود الشركه موجود مسبقا الرجاء إدخال كد آخر ");
                         return View(model);
                     }
 
-                    var latestId = model.Id;
-                    var tasks = new List<System.Threading.Tasks.Task>();
-                    //if (model.ImageFile1 != null)
-                    //{
-                    //    tasks.Add(ProcessImageAsync(model.ImageFile1, latestId, 1));
-                    //    model.CompLogo = (latestId + 1) + "-1-" + model.ImageFile1.FileName;
-                    //}
+                    // Preserve existing file paths if no new files uploaded
+                    var existing = await _context.CompanyInfos.AsNoTracking()
+                        .FirstOrDefaultAsync(c => c.Id == model.Id);
 
+                    // Handle signature image upload
+                    if (model.SignatureFile != null && model.SignatureFile.Length > 0)
+                    {
+                        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp" };
+                        var fileExt = Path.GetExtension(model.SignatureFile.FileName).ToLower();
+                        if (!allowedExtensions.Contains(fileExt))
+                        {
+                            ModelState.AddModelError("SignatureFile", "الرجاء رفع صورة بصيغة jpg, png, gif فقط");
+                            ViewData["CityId"] = new SelectList(_context.Deffs.Where(a => a.DeffType == 4), "Id", "DeffName");
+                            ViewData["CompActivateId"] = new SelectList(_context.Deffs.Where(a => a.DeffType == 30), "Id", "DeffName");
+                            ViewData["LocationId"] = new SelectList(_context.Deffs.Where(a => a.DeffType == 3), "Id", "DeffName");
+                            return View(model);
+                        }
 
+                        string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/UploadCompSignature");
+                        if (!Directory.Exists(uploadsFolder))
+                            Directory.CreateDirectory(uploadsFolder);
 
+                        var fileName = $"{model.Id}-signature-{Guid.NewGuid()}{fileExt}";
+                        string filePath = Path.Combine(uploadsFolder, fileName);
+                        var imageService = new ImageService();
+                        await imageService.ResizeAndSaveImage(model.SignatureFile, filePath, 400, 200);
+                        model.CompSignature = fileName;
+                    }
+                    else
+                    {
+                        model.CompSignature = existing?.CompSignature;
+                    }
+
+                    // Preserve existing logo if no new logo uploaded
+                    if (model.CompLogo == null)
+                        model.CompLogo = existing?.CompLogo;
 
                     _context.Update(model);
                     await _context.SaveChangesAsync();
@@ -258,22 +280,23 @@ namespace CarRentWeb.Controllers
 
         public async Task<IActionResult> Attatchment(int? id)
         {
+
             TempData.Keep();
-            var company = await _context.CompanyInfos.FirstOrDefaultAsync(c => c.Id == id);
-            if (company == null) return NotFound();
+            var CompAtt = _context.CompanyInfoAtts.Include(c => c.Comp).Where(c => c.CompId == id);
+            if (CompAtt != null)
+            {
+                ViewBag.CompName = CompAtt.First().Comp!.CompNameAr;
+                ViewBag.CompId = CompAtt.First().CompId;
 
-            ViewBag.CompanyData = company;
-            ViewBag.CompId = id;
 
-            var compAtts = _context.CompanyInfoAtts.Where(c => c.CompId == id);
-            return View(await compAtts.ToListAsync());
+            }
+            return View(await CompAtt!.ToListAsync());
         }
 
         [HttpGet]
-        public async Task<IActionResult> CreateAttatch(int? CompId)
+        public IActionResult CreateAttatch(int? CompId)
         {
             TempData.Keep();
-            ViewBag.CompanyData = await _context.CompanyInfos.FirstOrDefaultAsync(c => c.Id == CompId);
             ViewBag.CompId = CompId;
             return View();
         }
@@ -288,19 +311,21 @@ namespace CarRentWeb.Controllers
                 {
                     try
                     {
-                        var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                        // Validate file type (even though client-side validation exists)
+                        var allowedExtensions = new[] { ".pdf" };
                         var fileExtension = Path.GetExtension(model.pdfFile1.FileName).ToLower();
 
                         if (!allowedExtensions.Contains(fileExtension))
                         {
-                            ModelState.AddModelError("pdfFile1", "يُسمح فقط بملفات PDF والصور (jpg, jpeg, png, gif, webp).");
+                            ModelState.AddModelError("pdfFile1", "Only PDF files are allowed.");
                             return View(model);
                         }
 
-                        var maxFileSize = 10 * 1024 * 1024; // 10MB
+                        // Set maximum file size (5MB in this example)
+                        var maxFileSize = 5 * 1024 * 1024; // 5MB
                         if (model.pdfFile1.Length > maxFileSize)
                         {
-                            ModelState.AddModelError("pdfFile1", "حجم الملف لا يمكن أن يتجاوز 10MB.");
+                            ModelState.AddModelError("pdfFile1", "File size cannot exceed 5MB.");
                             return View(model);
                         }
 
@@ -331,7 +356,7 @@ namespace CarRentWeb.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError("pdfFile1", "يرجى اختيار ملف PDF أو صورة للرفع.");
+                    ModelState.AddModelError("pdfFile1", "Please select a PDF file to upload.");
                     return View(model);
                 }
 
@@ -339,7 +364,7 @@ namespace CarRentWeb.Controllers
                 _context.CompanyInfoAtts.Add(model);
                 await _context.SaveChangesAsync();
 
-                return RedirectToAction(nameof(Attatchment), new { id = model.CompId });
+                return RedirectToAction(nameof(Index), new { CompId = model.CompId });
             }
 
             return View(model);
@@ -365,58 +390,28 @@ namespace CarRentWeb.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditAttatchment(CompanyInfoAtt model, IFormFile? pdfFile1)
+        public IActionResult EditAttatchment(CompanyInfoAtt model, IFormFile pdfFile1)
         {
             if (ModelState.IsValid)
             {
                 try
                 {
+                    // Handle file upload if a new file was provided
                     if (pdfFile1 != null && pdfFile1.Length > 0)
                     {
-                        var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-                        var fileExtension = Path.GetExtension(pdfFile1.FileName).ToLower();
-
-                        if (!allowedExtensions.Contains(fileExtension))
-                        {
-                            ModelState.AddModelError("pdfFile1", "يُسمح فقط بملفات PDF والصور (jpg, jpeg, png, gif, webp).");
-                            return View(model);
-                        }
-
-                        if (pdfFile1.Length > 10 * 1024 * 1024)
-                        {
-                            ModelState.AddModelError("pdfFile1", "حجم الملف لا يمكن أن يتجاوز 10MB.");
-                            return View(model);
-                        }
-
-                        // Delete old file from disk
-                        if (!string.IsNullOrEmpty(model.PathFileData))
-                        {
-                            var oldPath = Path.Combine("wwwroot", model.PathFileData.TrimStart('/'));
-                            if (System.IO.File.Exists(oldPath))
-                                System.IO.File.Delete(oldPath);
-                        }
-
-                        // Save new file
-                        var fileName = $"{Guid.NewGuid()}{fileExtension}";
-                        var uploadsFolder = Path.Combine("wwwroot", "Comp");
-                        Directory.CreateDirectory(uploadsFolder);
-
-                        using (var fileStream = new FileStream(Path.Combine(uploadsFolder, fileName), FileMode.Create))
-                        {
-                            await pdfFile1.CopyToAsync(fileStream);
-                        }
-
-                        model.PathFileData = $"/Comp/{fileName}";
+                        // Save the new file and update model.PathFileData
                     }
 
+                    // Update the entity in database
                     _context.Update(model);
-                    await _context.SaveChangesAsync();
+                    _context.SaveChanges();
 
-                    return RedirectToAction(nameof(Attatchment), new { id = model.CompId });
+                    return RedirectToAction(nameof(Index));
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    ModelState.AddModelError("", "حدث خطأ أثناء حفظ البيانات.");
+                    // Log error
+                    ModelState.AddModelError("", "Unable to save changes");
                 }
             }
 

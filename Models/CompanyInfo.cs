@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -66,7 +67,7 @@ public partial class CompanyInfo
     public decimal? AddressRent { get; set; }
     [Display(Name = " بداية الإيجار")]
     public DateOnly? StartRent { get; set; }
-    
+
     [Display(Name = " نهاية الإيجار")]
     public DateOnly? EndRent { get; set; }
 
@@ -233,6 +234,12 @@ public partial class CompanyInfo
 
     // end
 
+
+    [Display(Name = "صورة توقيع الاعتماد")]
+    public string? CompSignature { get; set; }
+
+    [NotMapped]
+    public IFormFile? SignatureFile { get; set; }
 
     [Display(Name = "رقم الهاتف 1")]
     public string? Tel1 { get; set; }

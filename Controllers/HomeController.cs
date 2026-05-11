@@ -1,7 +1,7 @@
 ﻿using CarRentWeb.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-
+using CarRentWeb.Data;
 using CarRentWeb.Models;
 using CarRentWeb.Models.MyModel;
 using System.Diagnostics;
@@ -15,7 +15,7 @@ namespace CarRentWeb.Controllers
         {
             _context = context;
         }
-        public IActionResult Index()
+        public async Task<IActionResult> IndexAsync()
         {
             var today = DateOnly.FromDateTime(DateTime.Now);
             var sevenMonthAgo = today.AddMonths(-3); // Subtract 3 month
@@ -43,28 +43,6 @@ namespace CarRentWeb.Controllers
                 c.DiscountDate != null &&
                 c.DiscountDate >= today && c.DiscountDate <= thirtyDaysLater);
 
-            // Renewal dates from DeffInformation record id=1
-            var todayDt = DateTime.Today;
-            var deffInfo = _context.DeffInformation.FirstOrDefault(d => d.Id == 1);
-            if (deffInfo != null)
-            {
-                ViewBag.VpsRenewalDate = deffInfo.VpsRenewalDate;
-                ViewBag.VpsDaysLeft = deffInfo.VpsRenewalDate.HasValue
-                    ? (int?)(deffInfo.VpsRenewalDate.Value.Date - todayDt).TotalDays : null;
-
-                ViewBag.DomainRenewalDate = deffInfo.DomainRenewalDate;
-                ViewBag.DomainDaysLeft = deffInfo.DomainRenewalDate.HasValue
-                    ? (int?)(deffInfo.DomainRenewalDate.Value.Date - todayDt).TotalDays : null;
-
-                ViewBag.SslRenewalDate = deffInfo.SslRenewalDate;
-                ViewBag.SslDaysLeft = deffInfo.SslRenewalDate.HasValue
-                    ? (int?)(deffInfo.SslRenewalDate.Value.Date - todayDt).TotalDays : null;
-
-                ViewBag.MessageRenewalDate = deffInfo.MessageRenewalDate;
-                ViewBag.MessageDaysLeft = deffInfo.MessageRenewalDate.HasValue
-                    ? (int?)(deffInfo.MessageRenewalDate.Value.Date - todayDt).TotalDays : null;
-            }
-
             TempData["Username"] = HttpContext.Session.GetString("Username");
             ViewData["UserId"] = HttpContext.Session.GetInt32("UserId");
             TempData.Keep(); // Keeps all TempData values
@@ -75,6 +53,8 @@ namespace CarRentWeb.Controllers
 
             HttpContext.Session.SetObjectAsJson("CurrentUser", _context.PasswordData.Find(HttpContext.Session.GetInt32("UserId"))!);
             var user = HttpContext.Session.GetObjectFromJson<PasswordDatum>("CurrentUser");
+
+            ViewBag.DeffInfo = await _context.DeffInformation.FirstOrDefaultAsync();
 
             return View();
         }
