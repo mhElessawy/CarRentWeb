@@ -156,8 +156,6 @@ namespace CarRentWeb.Controllers
         }
 
         // POST: CompanyInfoes/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, CompanyInfo model)
@@ -171,28 +169,52 @@ namespace CarRentWeb.Controllers
             {
                 try
                 {
-
                     var checkCode = await _context.CompanyInfos.AnyAsync(a => a.CompCode == model.CompCode && a.Id != model.Id);
                     if (checkCode)
                     {
                         ViewData["CityId"] = new SelectList(_context.Deffs.Where(a => a.DeffType == 4), "Id", "DeffName");
                         ViewData["CompActivateId"] = new SelectList(_context.Deffs.Where(a => a.DeffType == 30), "Id", "DeffName");
                         ViewData["LocationId"] = new SelectList(_context.Deffs.Where(a => a.DeffType == 3), "Id", "DeffName");
-
                         ModelState.AddModelError("CompCode", "كود الشركه موجود مسبقا الرجاء إدخال كد آخر ");
                         return View(model);
                     }
 
-                    var latestId = model.Id;
-                    var tasks = new List<System.Threading.Tasks.Task>();
-                    //if (model.ImageFile1 != null)
-                    //{
-                    //    tasks.Add(ProcessImageAsync(model.ImageFile1, latestId, 1));
-                    //    model.CompLogo = (latestId + 1) + "-1-" + model.ImageFile1.FileName;
-                    //}
+                    // Preserve existing file paths if no new files uploaded
+                    var existing = await _context.CompanyInfos.AsNoTracking()
+                        .FirstOrDefaultAsync(c => c.Id == model.Id);
 
+                    // Handle signature image upload
+                    if (model.SignatureFile != null && model.SignatureFile.Length > 0)
+                    {
+                        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp" };
+                        var fileExt = Path.GetExtension(model.SignatureFile.FileName).ToLower();
+                        if (!allowedExtensions.Contains(fileExt))
+                        {
+                            ModelState.AddModelError("SignatureFile", "الرجاء رفع صورة بصيغة jpg, png, gif فقط");
+                            ViewData["CityId"] = new SelectList(_context.Deffs.Where(a => a.DeffType == 4), "Id", "DeffName");
+                            ViewData["CompActivateId"] = new SelectList(_context.Deffs.Where(a => a.DeffType == 30), "Id", "DeffName");
+                            ViewData["LocationId"] = new SelectList(_context.Deffs.Where(a => a.DeffType == 3), "Id", "DeffName");
+                            return View(model);
+                        }
 
+                        string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/UploadCompSignature");
+                        if (!Directory.Exists(uploadsFolder))
+                            Directory.CreateDirectory(uploadsFolder);
 
+                        var fileName = $"{model.Id}-signature-{Guid.NewGuid()}{fileExt}";
+                        string filePath = Path.Combine(uploadsFolder, fileName);
+                        var imageService = new ImageService();
+                        await imageService.ResizeAndSaveImage(model.SignatureFile, filePath, 400, 200);
+                        model.CompSignature = fileName;
+                    }
+                    else
+                    {
+                        model.CompSignature = existing?.CompSignature;
+                    }
+
+                    // Preserve existing logo if no new logo uploaded
+                    if (model.CompLogo == null)
+                        model.CompLogo = existing?.CompLogo;
 
                     _context.Update(model);
                     await _context.SaveChangesAsync();

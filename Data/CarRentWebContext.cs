@@ -190,6 +190,7 @@ public partial class CarRentWebContext : DbContext
             entity.Property(e => e.UnifiedNo).HasMaxLength(100);
             entity.Property(e => e.AuthorizedPersonName).HasMaxLength(500);
             entity.Property(e => e.AuthorizedPersonCivilId).HasMaxLength(13);
+            entity.Property(e => e.CompSignature).HasMaxLength(255);
 
             entity.HasOne(d => d.CompActivate).WithMany(p => p.CompanyInfoCompActivates)
                 .HasForeignKey(d => d.CompActivateId)

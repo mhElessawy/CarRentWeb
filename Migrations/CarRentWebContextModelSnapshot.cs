@@ -426,6 +426,10 @@ namespace CarRentWeb.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<string>("CompSignature")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
                     b.Property<decimal?>("Capital")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
