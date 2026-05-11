@@ -162,7 +162,7 @@ namespace CarRentWeb.Controllers
 
 
         #region "Daily Contract"
-        #endregion 
+
         public async Task<IActionResult> IndexDaily(int? CarCodeString, int? EmpCodeString, string? EmpNameSearch, int? companyId, int? pageNumber, string? ContractNoString)
         {
             TempData["Username"] = HttpContext.Session.GetString("Username");
@@ -411,12 +411,19 @@ namespace CarRentWeb.Controllers
                     if (t.Text.Contains("On  corresponding to  the"))
                         t.Text = t.Text.Replace("On  corresponding to  the", $"On {cDate} the");
 
-                // Stamp image in the Second Party signature area
-                if (!string.IsNullOrEmpty(emp?.StampImagePath))
+                // Both signatures on the same line (CompOwnerAr1 and EmpNameAr1 share one paragraph)
                 {
-                    var stampAbs = Path.Combine(_hostEnv.WebRootPath,
-                        emp.StampImagePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
-                    InsertStamp(doc, body, stampAbs);
+                    string? sigAbs = null, stampAbs = null;
+
+                    if (!string.IsNullOrEmpty(company?.CompSignature))
+                        sigAbs = Path.Combine(_hostEnv.WebRootPath, "UploadCompSignature",
+                            company.CompSignature.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+
+                    if (!string.IsNullOrEmpty(emp?.StampImagePath))
+                        stampAbs = Path.Combine(_hostEnv.WebRootPath,
+                            emp.StampImagePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+
+                    InsertSignaturesOnSameLine(doc, body, sigAbs, stampAbs);
                 }
 
                 doc.MainDocumentPart.Document.Save();
@@ -441,13 +448,9 @@ namespace CarRentWeb.Controllers
             start.InsertAfterSelf(run);
         }
 
-        // Inserts the employee stamp image under the "Second Party" label in the signature table.
-        private static void InsertStamp(WordprocessingDocument doc, Body body,
-                                        string stampPath)
+        private static Drawing BuildImageDrawing(WordprocessingDocument doc, string imagePath, string name, uint id)
         {
-            if (!System.IO.File.Exists(stampPath)) return;
-
-            var ext = Path.GetExtension(stampPath).ToLower();
+            var ext = Path.GetExtension(imagePath).ToLower();
             var partType = ext switch
             {
                 ".png" => ImagePartType.Png,
@@ -455,62 +458,63 @@ namespace CarRentWeb.Controllers
                 ".bmp" => ImagePartType.Bmp,
                 _ => ImagePartType.Jpeg
             };
-
             var imgPart = doc.MainDocumentPart!.AddImagePart(partType);
-            using (var fs = System.IO.File.OpenRead(stampPath))
-                imgPart.FeedData(fs);
-
+            using (var fs = System.IO.File.OpenRead(imagePath)) imgPart.FeedData(fs);
             string relId = doc.MainDocumentPart.GetIdOfPart(imgPart);
 
-            // 80 pt × 40 pt  (1 pt = 12700 EMU)
             const long cx = 80L * 12700;
             const long cy = 40L * 12700;
-
-            var drawing = new Drawing(
+            return new Drawing(
                 new Wp.Inline(
                     new Wp.Extent { Cx = cx, Cy = cy },
                     new Wp.EffectExtent { LeftEdge = 0L, TopEdge = 0L, RightEdge = 0L, BottomEdge = 0L },
-                    new Wp.DocProperties { Id = 1U, Name = "Stamp" },
-                    new Wp.NonVisualGraphicFrameDrawingProperties(
-                        new A.GraphicFrameLocks { NoChangeAspect = true }),
-                    new A.Graphic(
-                        new A.GraphicData(
-                            new Pic.Picture(
-                                new Pic.NonVisualPictureProperties(
-                                    new Pic.NonVisualDrawingProperties { Id = 0U, Name = "Stamp" },
-                                    new Pic.NonVisualPictureDrawingProperties()),
-                                new Pic.BlipFill(
-                                    new A.Blip { Embed = relId },
-                                    new A.Stretch(new A.FillRectangle())),
-                                new Pic.ShapeProperties(
-                                    new A.Transform2D(
-                                        new A.Offset { X = 0L, Y = 0L },
-                                        new A.Extents { Cx = cx, Cy = cy }),
-                                    new A.PresetGeometry(new A.AdjustValueList())
-                                    { Preset = A.ShapeTypeValues.Rectangle })))
-                        { Uri = "http://schemas.openxmlformats.org/drawingml/2006/picture" }))
-                {
-                    DistanceFromTop = 0U,
-                    DistanceFromBottom = 0U,
-                    DistanceFromLeft = 0U,
-                    DistanceFromRight = 0U
-                });
+                    new Wp.DocProperties { Id = id, Name = name },
+                    new Wp.NonVisualGraphicFrameDrawingProperties(new A.GraphicFrameLocks { NoChangeAspect = true }),
+                    new A.Graphic(new A.GraphicData(
+                        new Pic.Picture(
+                            new Pic.NonVisualPictureProperties(
+                                new Pic.NonVisualDrawingProperties { Id = 0U, Name = name },
+                                new Pic.NonVisualPictureDrawingProperties()),
+                            new Pic.BlipFill(new A.Blip { Embed = relId }, new A.Stretch(new A.FillRectangle())),
+                            new Pic.ShapeProperties(
+                                new A.Transform2D(new A.Offset { X = 0L, Y = 0L }, new A.Extents { Cx = cx, Cy = cy }),
+                                new A.PresetGeometry(new A.AdjustValueList()) { Preset = A.ShapeTypeValues.Rectangle })))
+                    { Uri = "http://schemas.openxmlformats.org/drawingml/2006/picture" }))
+                { DistanceFromTop = 0U, DistanceFromBottom = 0U, DistanceFromLeft = 0U, DistanceFromRight = 0U });
+        }
 
-            // Find the EmpNameAr1 bookmark and insert stamp in its parent paragraph's cell.
-            var empBookmark = body.Descendants<BookmarkStart>()
-                .LastOrDefault(b => b.Name?.Value == "EmpNameAr1");
-            if (empBookmark == null) return;
+        // Both bookmarks share the same paragraph — insert one row with both images after it.
+        // compSigPath  → right side (الطرف الأول / CompOwnerAr1)
+        // empStampPath → left  side (الطرف الثاني / EmpNameAr1)
+        private static void InsertSignaturesOnSameLine(WordprocessingDocument doc, Body body,
+                                                        string? compSigPath, string? empStampPath)
+        {
+            if ((compSigPath == null || !System.IO.File.Exists(compSigPath)) &&
+                (empStampPath == null || !System.IO.File.Exists(empStampPath))) return;
 
-            // Walk up to the containing paragraph
-            var anchorPara = empBookmark.Ancestors<Paragraph>().FirstOrDefault();
+            // Anchor paragraph contains both bookmarks
+            var anchor = body.Descendants<BookmarkStart>()
+                .LastOrDefault(b => b.Name?.Value == "CompOwnerAr1");
+            if (anchor == null) return;
+
+            var anchorPara = anchor.Ancestors<Paragraph>().FirstOrDefault();
             if (anchorPara == null) return;
 
-            var stampPara = new Paragraph(
-                new ParagraphProperties(
-                    new Justification { Val = JustificationValues.Center }),
-                new Run(drawing));
+            // RTL paragraph: first run → right, last run → left
+            var para = new Paragraph(new ParagraphProperties(
+                new BiDi(),
+                new Justification { Val = JustificationValues.Both }));
 
-            anchorPara.InsertAfterSelf(stampPara);
+            if (compSigPath != null && System.IO.File.Exists(compSigPath))
+                para.Append(new Run(BuildImageDrawing(doc, compSigPath, "CompSig", 1U)));
+
+            // Spacer pushes images to opposite ends
+            para.Append(new Run(new Text("\t") { Space = SpaceProcessingModeValues.Preserve }));
+
+            if (empStampPath != null && System.IO.File.Exists(empStampPath))
+                para.Append(new Run(BuildImageDrawing(doc, empStampPath, "EmpStamp", 2U)));
+
+            anchorPara.InsertAfterSelf(para);
         }
 
         // POST: Contracts/Create
@@ -518,7 +522,7 @@ namespace CarRentWeb.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
 
 
-
+        #endregion 
         #region "ContractMonthly"
         public async Task<IActionResult> IndexMonthly(int? CarCodeString, int? EmpCodeString, string? EmpNameSearch, int? companyId, int? pageNumber, string? ContractNoString)
         {
@@ -1486,6 +1490,36 @@ namespace CarRentWeb.Controllers
             ViewData["EmployeeId"] = new SelectList(_context.EmployeeInfos, "Id", "Id", contract.EmployeeId);
             ViewData["UserId"] = new SelectList(_context.PasswordData, "Id", "Id", contract.UserId);
             return View(contract);
+        }
+
+        // GET: Contracts/EditDailyContract/5
+        public async Task<IActionResult> EditDailyContract(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var contract = await _context.Contracts
+                .Include(c => c.Employee)
+                .Include(c => c.Car)
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (contract == null) return NotFound();
+
+            return View(contract);
+        }
+
+        // POST: Contracts/EditDailyContract/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditDailyContract(int id, int RentalType, DateOnly? DiscountDate)
+        {
+            var contract = await _context.Contracts.FindAsync(id);
+            if (contract == null) return NotFound();
+
+            contract.RentalType = RentalType;
+            contract.DiscountDate = DiscountDate;
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(IndexDaily));
         }
 
         // GET: Contracts/Delete/5
