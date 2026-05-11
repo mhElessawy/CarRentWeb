@@ -241,6 +241,8 @@ public partial class CompanyInfo
 
     public DateOnly? CompReleaseDate { get; set; }
 
+    public string? CompSignature { get; set; }
+
     public int? DeleteFlag { get; set; }
 
     public virtual ICollection<CarInfo> CarInfos { get; set; } = new List<CarInfo>();

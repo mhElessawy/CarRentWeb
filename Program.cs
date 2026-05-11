@@ -36,6 +36,13 @@ using (var scope = app.Services.CreateScope())
         )
         ALTER TABLE [EmployeeInfo] ADD [StampImagePath] nvarchar(max) NULL;
     ");
+    db.Database.ExecuteSqlRaw(@"
+        IF NOT EXISTS (
+            SELECT 1 FROM sys.columns
+            WHERE object_id = OBJECT_ID(N'CompanyInfo') AND name = N'CompSignature'
+        )
+        ALTER TABLE [CompanyInfo] ADD [CompSignature] nvarchar(max) NULL;
+    ");
 }
 
 // Configure the HTTP request pipeline.

@@ -410,12 +410,20 @@ namespace CarRentWeb.Controllers
                     if (t.Text.Contains("On  corresponding to  the"))
                         t.Text = t.Text.Replace("On  corresponding to  the", $"On {cDate} the");
 
-                // Stamp image in the Second Party signature area
+                // Employee stamp — Second Party (after EmpNameAr1)
                 if (!string.IsNullOrEmpty(emp?.StampImagePath))
                 {
                     var stampAbs = Path.Combine(_hostEnv.WebRootPath,
                         emp.StampImagePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
-                    InsertStamp(doc, body, stampAbs);
+                    InsertImageAfterBookmark(doc, body, stampAbs, "EmpNameAr1");
+                }
+
+                // Company signature — First Party (after CompOwnerAr1)
+                if (!string.IsNullOrEmpty(company?.CompSignature))
+                {
+                    var sigAbs = Path.Combine(_hostEnv.WebRootPath,
+                        company.CompSignature.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                    InsertImageAfterBookmark(doc, body, sigAbs, "CompOwnerAr1");
                 }
 
                 doc.MainDocumentPart.Document.Save();
@@ -440,13 +448,12 @@ namespace CarRentWeb.Controllers
             start.InsertAfterSelf(run);
         }
 
-        // Inserts the employee stamp image under the "Second Party" label in the signature table.
-        private static void InsertStamp(WordprocessingDocument doc, Body body,
-                                        string stampPath)
+        private static void InsertImageAfterBookmark(WordprocessingDocument doc, Body body,
+                                                      string imagePath, string bookmarkName)
         {
-            if (!System.IO.File.Exists(stampPath)) return;
+            if (!System.IO.File.Exists(imagePath)) return;
 
-            var ext = Path.GetExtension(stampPath).ToLower();
+            var ext = Path.GetExtension(imagePath).ToLower();
             var partType = ext switch
             {
                 ".png" => ImagePartType.Png,
@@ -456,7 +463,7 @@ namespace CarRentWeb.Controllers
             };
 
             var imgPart = doc.MainDocumentPart!.AddImagePart(partType);
-            using (var fs = System.IO.File.OpenRead(stampPath))
+            using (var fs = System.IO.File.OpenRead(imagePath))
                 imgPart.FeedData(fs);
 
             string relId = doc.MainDocumentPart.GetIdOfPart(imgPart);
@@ -469,14 +476,14 @@ namespace CarRentWeb.Controllers
                 new Wp.Inline(
                     new Wp.Extent            { Cx = cx, Cy = cy },
                     new Wp.EffectExtent      { LeftEdge = 0L, TopEdge = 0L, RightEdge = 0L, BottomEdge = 0L },
-                    new Wp.DocProperties     { Id = 1U, Name = "Stamp" },
+                    new Wp.DocProperties     { Id = 1U, Name = bookmarkName },
                     new Wp.NonVisualGraphicFrameDrawingProperties(
                         new A.GraphicFrameLocks { NoChangeAspect = true }),
                     new A.Graphic(
                         new A.GraphicData(
                             new Pic.Picture(
                                 new Pic.NonVisualPictureProperties(
-                                    new Pic.NonVisualDrawingProperties { Id = 0U, Name = "Stamp" },
+                                    new Pic.NonVisualDrawingProperties { Id = 0U, Name = bookmarkName },
                                     new Pic.NonVisualPictureDrawingProperties()),
                                 new Pic.BlipFill(
                                     new A.Blip { Embed = relId },
@@ -491,21 +498,19 @@ namespace CarRentWeb.Controllers
                 { DistanceFromTop = 0U, DistanceFromBottom = 0U,
                   DistanceFromLeft = 0U, DistanceFromRight = 0U });
 
-            // Find the EmpNameAr1 bookmark and insert stamp in its parent paragraph's cell.
-            var empBookmark = body.Descendants<BookmarkStart>()
-                .LastOrDefault(b => b.Name?.Value == "EmpNameAr1");
-            if (empBookmark == null) return;
+            var anchor = body.Descendants<BookmarkStart>()
+                .LastOrDefault(b => b.Name?.Value == bookmarkName);
+            if (anchor == null) return;
 
-            // Walk up to the containing paragraph
-            var anchorPara = empBookmark.Ancestors<Paragraph>().FirstOrDefault();
+            var anchorPara = anchor.Ancestors<Paragraph>().FirstOrDefault();
             if (anchorPara == null) return;
 
-            var stampPara = new Paragraph(
+            var imgPara = new Paragraph(
                 new ParagraphProperties(
                     new Justification { Val = JustificationValues.Left }),
                 new Run(drawing));
 
-            anchorPara.InsertAfterSelf(stampPara);
+            anchorPara.InsertAfterSelf(imgPara);
         }
 
         // POST: Contracts/Create
