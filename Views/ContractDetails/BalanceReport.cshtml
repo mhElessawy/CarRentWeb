@@ -1,0 +1,232 @@
+@model IEnumerable<CarRentWeb.Models.MyModel.BalanceReportViewModel>
+
+@{
+    ViewData["Title"] = "تقرير الأرصدة المتأخرة";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var totalRental = Model?.Sum(item => item.OverdueRental) ?? 0;
+    var totalDebit  = Model?.Sum(item => item.OverdueDebit)  ?? 0;
+    var grandTotal  = totalRental + totalDebit;
+}
+
+<style>
+    .bordered-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 15px 0;
+        font-size: 0.8em;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+        .bordered-table thead tr {
+            background-color: #2c3e50;
+            color: #ffffff;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .bordered-table th,
+        .bordered-table td {
+            padding: 5px 5px;
+            border-bottom: 1px solid #dddddd;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .bordered-table tbody tr:nth-of-type(even) {
+            background-color: #f8f9fa;
+        }
+
+        .bordered-table tbody tr:last-of-type {
+            border-bottom: 2px solid #2c3e50;
+        }
+
+        .bordered-table tbody tr:hover {
+            background-color: #e8f4f8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+    h1 {
+        color: #2c3e50;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e74c3c;
+    }
+
+    .search-container {
+        margin: 20px 0;
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .form-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+    }
+
+        .form-group label {
+            margin-bottom: 0;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+    .form-control {
+        padding: 6px 12px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+        .form-control:focus {
+            border-color: #e74c3c;
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(231, 76, 60, 0.25);
+        }
+
+    .btn-primary {
+        background-color: #e74c3c;
+        border-color: #e74c3c;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        border: none;
+    }
+
+        .btn-primary:hover {
+            background-color: #c0392b;
+            transform: translateY(-1px);
+        }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 4px;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.2s ease;
+    }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            transform: translateY(-1px);
+            color: white;
+        }
+
+    .btn-success {
+        background-color: #28a745;
+        border-color: #28a745;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        cursor: pointer;
+        border: none;
+    }
+
+        .btn-success:hover {
+            background-color: #218838;
+            transform: translateY(-1px);
+            color: white;
+        }
+
+    .overdue-rental { color: #e74c3c; font-weight: 600; }
+    .overdue-debit  { color: #8e44ad; font-weight: 600; }
+    .grand-total    { color: #c0392b; font-weight: 700; }
+
+    @@media (max-width: 768px) {
+        .bordered-table { font-size: 0.75rem; }
+        .form-group { flex-direction: column; align-items: flex-start; }
+    }
+</style>
+
+<div dir="rtl">
+    <h1>تقرير الأرصدة المتأخرة</h1>
+</div>
+
+<div class="search-container" dir="rtl">
+    <form asp-action="BalanceReport" method="get">
+        <div class="form-group">
+            <label>الشركة:</label>
+            <select name="companyId" asp-items="ViewBag.Companies" class="form-control" style="width:300px" multiple>
+            </select>
+            <input type="submit" value="بحث" class="btn btn-primary" />
+            <a asp-action="BalanceReport" class="btn btn-secondary">إعادة تعيين</a>
+        </div>
+    </form>
+</div>
+
+<table class="bordered-table" dir="rtl">
+    <thead>
+        <tr>
+            <th>كود الموظف</th>
+            <th>اسم الموظف</th>
+            <th>رقم الهاتف</th>
+            <th>إيجار متأخر</th>
+            <th>ديون متأخرة</th>
+            <th>الإجمالي</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Any())
+        {
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.EmpCode</td>
+                    <td>@item.EmployeeName</td>
+                    <td>@item.MobileNo</td>
+                    <td class="overdue-rental">@item.OverdueRental.ToString("N3")</td>
+                    <td class="overdue-debit">@item.OverdueDebit.ToString("N3")</td>
+                    <td class="grand-total">@item.Total.ToString("N3")</td>
+                </tr>
+            }
+            <tr style="font-weight:bold; background-color:#f5f5f5;">
+                <td colspan="3" style="text-align:right; padding-left:10px;">المجموع:</td>
+                <td class="overdue-rental">@totalRental.ToString("N3")</td>
+                <td class="overdue-debit">@totalDebit.ToString("N3")</td>
+                <td class="grand-total">@grandTotal.ToString("N3")</td>
+            </tr>
+        }
+        else
+        {
+            <tr>
+                <td colspan="6" style="text-align:center; padding:20px; color:#6c757d;">
+                    لا توجد أرصدة متأخرة
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<br />
+<button onclick="printReport()" class="btn btn-success">طباعة</button>
+
+<script>
+    function printReport() {
+        var printContents = document.querySelector('.bordered-table').outerHTML;
+        var originalContents = document.body.innerHTML;
+        document.body.innerHTML =
+            '<h2 style="text-align:center; font-family:Arial;">تقرير الأرصدة المتأخرة</h2>' +
+            printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+        location.reload();
+    }
+</script>
