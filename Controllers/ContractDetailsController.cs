@@ -892,5 +892,108 @@ namespace CarRentWeb.Controllers
 
             return View(viewModel);
         }
+        public async Task<IActionResult> CollectionReport(int? EmpCodeString, string? EmpSearch, int? companyId, DateTime? FromDateSearch, DateTime? ToDateSearch)
+        {
+            TempData.Keep();
+            TempData["UserCompanyData"] = HttpContext.Session.GetString("UserCompanyData");
+
+            var userCompanyData = TempData["UserCompanyData"]?.ToString();
+            var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
+
+            var companiesList = companyIds.Any()
+                ? await _context.CompanyInfos
+                    .FromSqlRaw($"SELECT * FROM CompanyInfo WHERE DeleteFlag = 0 AND Id IN ({companyIdsString})")
+                    .OrderBy(c => c.CompNameAr)
+                    .ToListAsync()
+                : new List<CompanyInfo>();
+
+            ViewBag.Companies = new SelectList(companiesList, "Id", "CompNameAr", companyId);
+
+            // Default date range: last 7 days if nothing selected
+            var fromDate = FromDateSearch.HasValue
+                ? DateOnly.FromDateTime(FromDateSearch.Value)
+                : DateOnly.FromDateTime(DateTime.Today.AddDays(-7));
+            var toDate = ToDateSearch.HasValue
+                ? DateOnly.FromDateTime(ToDateSearch.Value)
+                : DateOnly.FromDateTime(DateTime.Today);
+
+            ViewData["FromDateFilter"] = FromDateSearch?.ToString("yyyy-MM-dd") ?? "";
+            ViewData["ToDateFilter"]   = ToDateSearch?.ToString("yyyy-MM-dd") ?? "";
+            ViewData["EmpCodeFilter"]  = EmpCodeString;
+            ViewData["EmpFilter"]      = EmpSearch;
+            ViewData["CompanyFilter"]  = companyId;
+
+            // ── Bills query ──────────────────────────────────────────────
+            var billQuery = _context.Bills
+                .FromSqlRaw($"Select * from Bill where EmployeeId In (Select Id From EmployeeInfo where DeleteFlag = 0 and CompanyId IN ({companyIdsString}))")
+                .Include(b => b.Employee).ThenInclude(e => e!.Company)
+                .Include(b => b.Contract).ThenInclude(c => c!.Car)
+                .Where(b => b.DeleteFlag == 0
+                         && b.BillDate >= fromDate
+                         && b.BillDate <= toDate
+                         && b.Employee!.DeleteFlag == 0);
+
+            if (companyId.HasValue)
+                billQuery = (IOrderedQueryable<Bill>)billQuery.Where(b => b.Employee!.CompanyId == companyId.Value);
+            if (EmpCodeString.HasValue)
+                billQuery = (IOrderedQueryable<Bill>)billQuery.Where(b => b.Employee!.EmpCode == EmpCodeString.Value);
+            if (!string.IsNullOrEmpty(EmpSearch))
+                billQuery = (IOrderedQueryable<Bill>)billQuery.Where(b => b.Employee!.FullNameAr!.Contains(EmpSearch));
+
+            var bills = await billQuery
+                .OrderByDescending(b => b.BillDate)
+                .Select(b => new BillCollectionItem
+                {
+                    BillNo       = b.BillNo ?? 0,
+                    BillDate     = b.BillDate,
+                    EmpCode      = (int)(b.Employee!.EmpCode ?? 0),
+                    EmployeeName = b.Employee.FullNameAr ?? "",
+                    CompanyName  = b.Employee.Company!.CompNameAr ?? "",
+                    ContractNo   = b.Contract!.ContractNo ?? "",
+                    CarNo        = b.Contract.Car!.CarNo ?? "",
+                    Amount       = b.BillPayed ?? 0
+                })
+                .ToListAsync();
+
+            // ── DebitPayInfos query ──────────────────────────────────────
+            var debitPayQuery = _context.DebitPayInfos
+                .FromSqlRaw($"select * from DebitPayInfo where DebitInfoId in (Select Id from DebitInfo where EmpId in (Select Id from EmployeeInfo where DeleteFlag = 0 and CompanyId IN ({companyIdsString})))")
+                .Include(d => d.DebitInfo).ThenInclude(di => di!.Emp).ThenInclude(e => e!.Company)
+                .Include(d => d.DebitInfo).ThenInclude(di => di!.DebitType)
+                .Where(d => d.DeleteFlag == 0
+                         && d.DebitInfo!.Emp!.DeleteFlag == 0
+                         && d.DebitPayDate >= fromDate
+                         && d.DebitPayDate <= toDate);
+
+            if (companyId.HasValue)
+                debitPayQuery = (IOrderedQueryable<DebitPayInfo>)debitPayQuery.Where(d => d.DebitInfo!.Emp!.CompanyId == companyId.Value);
+            if (EmpCodeString.HasValue)
+                debitPayQuery = (IOrderedQueryable<DebitPayInfo>)debitPayQuery.Where(d => d.DebitInfo!.Emp!.EmpCode == EmpCodeString.Value);
+            if (!string.IsNullOrEmpty(EmpSearch))
+                debitPayQuery = (IOrderedQueryable<DebitPayInfo>)debitPayQuery.Where(d => d.DebitInfo!.Emp!.FullNameAr!.Contains(EmpSearch));
+
+            var debitPayments = await debitPayQuery
+                .OrderByDescending(d => d.DebitPayDate)
+                .Select(d => new DebitPayCollectionItem
+                {
+                    DebitPayNo   = d.DebitPayNo ?? 0,
+                    PayDate      = d.DebitPayDate,
+                    EmpCode      = (int)(d.DebitInfo!.Emp!.EmpCode ?? 0),
+                    EmployeeName = d.DebitInfo.Emp.FullNameAr ?? "",
+                    CompanyName  = d.DebitInfo.Emp.Company!.CompNameAr ?? "",
+                    DebitType    = d.DebitInfo.DebitType!.DeffName ?? "",
+                    Amount       = d.DebitPayQty ?? 0
+                })
+                .ToListAsync();
+
+            var viewModel = new CollectionReportViewModel
+            {
+                Bills        = bills,
+                DebitPayments = debitPayments
+            };
+
+            return View(viewModel);
+        }
     }
 }
