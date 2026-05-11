@@ -421,7 +421,7 @@ namespace CarRentWeb.Controllers
                 // Company signature — First Party (after CompOwnerAr1)
                 if (!string.IsNullOrEmpty(company?.CompSignature))
                 {
-                    var sigAbs = Path.Combine(_hostEnv.WebRootPath,
+                    var sigAbs = Path.Combine(_hostEnv.WebRootPath, "UploadCompSignature",
                         company.CompSignature.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
                     InsertImageAfterBookmark(doc, body, sigAbs, "CompOwnerAr1", JustificationValues.Right);
                 }
