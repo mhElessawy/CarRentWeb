@@ -423,7 +423,7 @@ namespace CarRentWeb.Controllers
                 {
                     var sigAbs = Path.Combine(_hostEnv.WebRootPath,
                         company.CompSignature.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
-                    InsertImageAfterBookmark(doc, body, sigAbs, "CompOwnerAr1");
+                    InsertImageAfterBookmark(doc, body, sigAbs, "CompOwnerAr1", JustificationValues.Right);
                 }
 
                 doc.MainDocumentPart.Document.Save();
@@ -449,7 +449,8 @@ namespace CarRentWeb.Controllers
         }
 
         private static void InsertImageAfterBookmark(WordprocessingDocument doc, Body body,
-                                                      string imagePath, string bookmarkName)
+                                                      string imagePath, string bookmarkName,
+                                                      JustificationValues justify = JustificationValues.Left)
         {
             if (!System.IO.File.Exists(imagePath)) return;
 
@@ -507,7 +508,7 @@ namespace CarRentWeb.Controllers
 
             var imgPara = new Paragraph(
                 new ParagraphProperties(
-                    new Justification { Val = JustificationValues.Left }),
+                    new Justification { Val = justify }),
                 new Run(drawing));
 
             anchorPara.InsertAfterSelf(imgPara);
