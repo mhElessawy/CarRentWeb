@@ -807,14 +807,15 @@ namespace CarRentWeb.Controllers
 
             // Overdue rentals: ContractDetails where Status=0 and DailyCreditDate < today
             var rentalQuery = _context.ContractDetails
-                .FromSqlRaw($"select * from ContractDetails where ContractId In (Select Id from Contract where DeleteFlag = 0 and status = 0 and EmployeeId In (Select Id From EmployeeInfo where CompanyId IN ({companyIdsString})))")
+                .FromSqlRaw($"select * from ContractDetails where ContractId In (Select Id from Contract where DeleteFlag = 0 and status = 0 and EmployeeId In (Select Id From EmployeeInfo where DeleteFlag = 0 and CompanyId IN ({companyIdsString})))")
                 .Include(c => c.Contract)
                     .ThenInclude(c => c!.Employee)
                         .ThenInclude(e => e!.Company)
                 .Where(a => a.DeleteFlag == 0
                          && a.Status == 0
                          && a.DailyCreditDate < today
-                         && (a.DailyCredit != 0 || a.CarCredit != 0));
+                         && (a.DailyCredit != 0 || a.CarCredit != 0)
+                         && a.Contract!.Employee!.DeleteFlag == 0);
 
             if (companyId.HasValue)
                 rentalQuery = rentalQuery.Where(e => e.Contract!.Employee!.CompanyId == companyId.Value);
@@ -839,10 +840,10 @@ namespace CarRentWeb.Controllers
 
             // Overdue debts: DebitInfo where DebitRemaining > 0
             var debitQuery = _context.DebitInfos
-                .FromSqlRaw($"select * from DebitInfo where EmpId In (Select Id From EmployeeInfo where CompanyId IN ({companyIdsString}))")
+                .FromSqlRaw($"select * from DebitInfo where EmpId In (Select Id From EmployeeInfo where DeleteFlag = 0 and CompanyId IN ({companyIdsString}))")
                 .Include(d => d.Emp)
                     .ThenInclude(e => e!.Company)
-                .Where(d => d.DeleteFlag == 0 && d.DebitRemaining > 0);
+                .Where(d => d.DeleteFlag == 0 && d.DebitRemaining > 0 && d.Emp!.DeleteFlag == 0);
 
             if (companyId.HasValue)
                 debitQuery = debitQuery.Where(d => d.Emp!.CompanyId == companyId.Value);
