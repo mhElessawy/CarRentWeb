@@ -785,7 +785,7 @@ namespace CarRentWeb.Controllers
             return View(query);
         }
 
-        public async Task<IActionResult> BalanceReport(int[] companyId)
+        public async Task<IActionResult> BalanceReport(int? EmpCodeString, string? EmpSearch, int? companyId)
         {
             TempData.Keep();
             TempData["UserCompanyData"] = HttpContext.Session.GetString("UserCompanyData");
@@ -794,24 +794,16 @@ namespace CarRentWeb.Controllers
             var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
             var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
 
-            if (companyIds.Any())
-            {
-                ViewBag.Companies = new SelectList(
-                    await _context.CompanyInfos
-                        .FromSqlRaw($"SELECT * FROM CompanyInfo WHERE DeleteFlag = 0 AND Id IN ({companyIdsString})")
-                        .OrderBy(c => c.CompNameAr)
-                        .ToListAsync(),
-                    "Id",
-                    "CompNameAr",
-                    companyId);
-            }
-            else
-            {
-                ViewBag.Companies = new SelectList(Enumerable.Empty<SelectListItem>());
-            }
+            var companiesList = companyIds.Any()
+                ? await _context.CompanyInfos
+                    .FromSqlRaw($"SELECT * FROM CompanyInfo WHERE DeleteFlag = 0 AND Id IN ({companyIdsString})")
+                    .OrderBy(c => c.CompNameAr)
+                    .ToListAsync()
+                : new List<CompanyInfo>();
+
+            ViewBag.Companies = new SelectList(companiesList, "Id", "CompNameAr", companyId);
 
             var today = DateOnly.FromDateTime(DateTime.Today);
-            var selectedCompanyIds = companyId != null && companyId.Length > 0 ? companyId.ToList() : null;
 
             // Overdue rentals: ContractDetails where Status=0 and DailyCreditDate < today
             var rentalQuery = _context.ContractDetails
@@ -824,8 +816,12 @@ namespace CarRentWeb.Controllers
                          && a.DailyCreditDate < today
                          && (a.DailyCredit != 0 || a.CarCredit != 0));
 
-            if (selectedCompanyIds != null)
-                rentalQuery = rentalQuery.Where(e => selectedCompanyIds.Contains((int)e.Contract!.Employee!.CompanyId!));
+            if (companyId.HasValue)
+                rentalQuery = rentalQuery.Where(e => e.Contract!.Employee!.CompanyId == companyId.Value);
+            if (EmpCodeString.HasValue)
+                rentalQuery = rentalQuery.Where(e => e.Contract!.Employee!.EmpCode == EmpCodeString.Value);
+            if (!string.IsNullOrEmpty(EmpSearch))
+                rentalQuery = rentalQuery.Where(e => e.Contract!.Employee!.FullNameAr!.Contains(EmpSearch));
 
             var rentalData = await rentalQuery
                 .Where(c => c.Contract != null && c.Contract.Employee != null && c.Contract.Employee.EmpCode != null)
@@ -848,8 +844,12 @@ namespace CarRentWeb.Controllers
                     .ThenInclude(e => e!.Company)
                 .Where(d => d.DeleteFlag == 0 && d.DebitRemaining > 0);
 
-            if (selectedCompanyIds != null)
-                debitQuery = debitQuery.Where(d => selectedCompanyIds.Contains((int)d.Emp!.CompanyId!));
+            if (companyId.HasValue)
+                debitQuery = debitQuery.Where(d => d.Emp!.CompanyId == companyId.Value);
+            if (EmpCodeString.HasValue)
+                debitQuery = debitQuery.Where(d => d.Emp!.EmpCode == EmpCodeString.Value);
+            if (!string.IsNullOrEmpty(EmpSearch))
+                debitQuery = debitQuery.Where(d => d.Emp!.FullNameAr!.Contains(EmpSearch));
 
             var debitData = await debitQuery
                 .Where(d => d.Emp != null && d.Emp.EmpCode != null)

@@ -1,228 +1,295 @@
 @model CarRentWeb.Models.MyModel.BalanceReportViewModel
 
 @{
-    ViewData["Title"] = "تقرير الأرصدة المتأخرة";
+    ViewData["Title"] = "تقرير الرصيد الحالي";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <style>
-    .bordered-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin: 15px 0;
-        font-size: 0.8em;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-        border-radius: 8px;
-        overflow: hidden;
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+    .report-header {
+        text-align: right;
+        margin-bottom: 10px;
     }
 
-        .bordered-table thead tr {
-            background-color: #2c3e50;
-            color: #ffffff;
-            text-align: center;
-            font-weight: bold;
-        }
-
-        .bordered-table th,
-        .bordered-table td {
-            padding: 5px 5px;
-            border-bottom: 1px solid #dddddd;
-            text-align: center;
-            white-space: nowrap;
-        }
-
-        .bordered-table tbody tr:nth-of-type(even) {
-            background-color: #f8f9fa;
-        }
-
-        .bordered-table tbody tr:last-of-type {
-            border-bottom: 2px solid #2c3e50;
-        }
-
-        .bordered-table tbody tr:hover {
-            background-color: #e8f4f8;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-
-    h1 {
-        color: #2c3e50;
-        font-weight: 700;
-        margin-bottom: 1.5rem;
-        padding-bottom: 0.5rem;
-        border-bottom: 2px solid #e74c3c;
+    .report-header h1 {
+        color: #1a1a2e;
+        font-weight: 800;
+        font-size: 1.8rem;
+        margin-bottom: 4px;
+        border-bottom: 3px solid #3498db;
+        display: inline-block;
+        padding-bottom: 4px;
     }
 
-    .search-container {
-        margin: 20px 0;
-        padding: 15px;
-        background-color: #f8f9fa;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    .report-date {
+        color: #555;
+        font-size: 0.85rem;
+        text-align: right;
+        margin-bottom: 15px;
     }
 
-    .form-group {
+    /* Summary Cards */
+    .summary-cards {
         display: flex;
+        gap: 16px;
+        margin-bottom: 20px;
         flex-wrap: wrap;
-        gap: 10px;
+    }
+
+    .summary-card {
+        flex: 1;
+        min-width: 200px;
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 18px 24px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .summary-card .card-label {
+        font-size: 0.85rem;
+        color: #777;
+        margin-bottom: 8px;
+    }
+
+    .summary-card .card-value {
+        font-size: 1.6rem;
+        font-weight: 700;
+    }
+
+    .card-value.rental  { color: #e74c3c; }
+    .card-value.debt    { color: #e67e22; }
+    .card-value.total   { color: #1a1a2e; }
+
+    /* Filter Bar */
+    .filter-bar {
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 12px 18px;
+        margin-bottom: 18px;
+        display: flex;
         align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        direction: rtl;
     }
 
-        .form-group label {
-            margin-bottom: 0;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-    .form-control {
-        padding: 6px 12px;
-        border: 1px solid #ced4da;
-        border-radius: 4px;
-        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    .filter-bar label {
+        font-weight: 600;
+        color: #333;
+        font-size: 0.85rem;
+        white-space: nowrap;
     }
 
-        .form-control:focus {
-            border-color: #e74c3c;
-            outline: 0;
-            box-shadow: 0 0 0 0.2rem rgba(231, 76, 60, 0.25);
-        }
+    .filter-bar input[type="text"],
+    .filter-bar input[type="number"],
+    .filter-bar select {
+        padding: 6px 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 0.85rem;
+        width: 130px;
+    }
 
-    .btn-primary {
-        background-color: #e74c3c;
-        border-color: #e74c3c;
+    .filter-bar select { width: 160px; }
+
+    .btn-search {
+        background-color: #3498db;
         color: white;
-        padding: 6px 12px;
-        border-radius: 4px;
-        transition: all 0.2s ease;
-        cursor: pointer;
         border: none;
+        padding: 7px 18px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: background 0.2s;
     }
 
-        .btn-primary:hover {
-            background-color: #c0392b;
-            transform: translateY(-1px);
-        }
+    .btn-search:hover { background-color: #2980b9; }
 
-    .btn-secondary {
+    .btn-reset {
         background-color: #6c757d;
         color: white;
-        padding: 6px 12px;
-        border-radius: 4px;
+        border: none;
+        padding: 7px 18px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 600;
         text-decoration: none;
         display: inline-block;
-        transition: all 0.2s ease;
+        transition: background 0.2s;
     }
 
-        .btn-secondary:hover {
-            background-color: #5a6268;
-            transform: translateY(-1px);
-            color: white;
-        }
+    .btn-reset:hover { background-color: #5a6268; color: white; }
 
-    .btn-success {
+    /* Table */
+    .report-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.82rem;
+    }
+
+    .report-table thead tr {
+        background-color: #1a1a2e;
+        color: #fff;
+        text-align: center;
+    }
+
+    .report-table th,
+    .report-table td {
+        padding: 9px 10px;
+        border-bottom: 1px solid #e0e0e0;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    .report-table tbody tr:nth-of-type(even) { background-color: #f8f9fa; }
+
+    .report-table tbody tr:hover {
+        background-color: #eaf4fb;
+    }
+
+    .col-rental { color: #e74c3c; font-weight: 600; }
+    .col-debt   { color: #e67e22; font-weight: 600; }
+    .col-total  { font-weight: 700; color: #1a1a2e; }
+
+    .totals-row {
+        background-color: #f0f4f8 !important;
+        font-weight: 700;
+        border-top: 2px solid #1a1a2e;
+    }
+
+    .btn-print {
         background-color: #28a745;
         color: white;
-        padding: 8px 16px;
-        border-radius: 4px;
-        font-weight: 500;
-        transition: all 0.2s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        cursor: pointer;
         border: none;
+        padding: 9px 22px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-top: 14px;
+        transition: background 0.2s;
     }
 
-        .btn-success:hover {
-            background-color: #218838;
-            transform: translateY(-1px);
-            color: white;
-        }
+    .btn-print:hover { background-color: #218838; }
 
-    .overdue-rental { color: #e74c3c; font-weight: 600; }
-    .overdue-debit  { color: #8e44ad; font-weight: 600; }
-    .grand-total    { color: #c0392b; font-weight: 700; }
-
-    @@media (max-width: 768px) {
-        .bordered-table { font-size: 0.75rem; }
-        .form-group { flex-direction: column; align-items: flex-start; }
+    @@media print {
+        .filter-bar, .btn-print, .report-header { display: none !important; }
     }
 </style>
 
 <div dir="rtl">
-    <h1>تقرير الأرصدة المتأخرة</h1>
-</div>
+    <div class="report-header">
+        <h1>تقرير الرصيد الحالي</h1>
+    </div>
+    <div class="report-date">التاريخ: @DateTime.Today.ToString("yyyy/MM/dd")</div>
 
-<div class="search-container" dir="rtl">
+    <!-- Summary Cards -->
+    <div class="summary-cards">
+        <div class="summary-card">
+            <div class="card-label">إجمالي المبالغ المتأخرة</div>
+            <div class="card-value rental">@Model.TotalOverdueRental.ToString("N2")</div>
+        </div>
+        <div class="summary-card">
+            <div class="card-label">إجمالي الديون المتبقية</div>
+            <div class="card-value debt">@Model.TotalRemainingDebt.ToString("N2")</div>
+        </div>
+        <div class="summary-card">
+            <div class="card-label">الإجمالي الكلي</div>
+            <div class="card-value total">@Model.GrandTotal.ToString("N2")</div>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
     <form asp-action="BalanceReport" method="get">
-        <div class="form-group">
+        <div class="filter-bar">
+            <label>رقم الموظف:</label>
+            <input type="number" name="EmpCodeString" value="@Context.Request.Query["EmpCodeString"]" placeholder="رقم الموظف" />
+
+            <label>اسم الموظف:</label>
+            <input type="text" name="EmpSearch" value="@Context.Request.Query["EmpSearch"]" placeholder="اسم الموظف" />
+
             <label>الشركة:</label>
-            <select name="companyId" asp-items="ViewBag.Companies" class="form-control" style="width:300px" multiple>
+            <select name="companyId" asp-items="ViewBag.Companies">
+                <option value="">-- جميع الشركات --</option>
             </select>
-            <input type="submit" value="بحث" class="btn btn-primary" />
-            <a asp-action="BalanceReport" class="btn btn-secondary">إعادة تعيين</a>
+
+            <button type="submit" class="btn-search">بحث</button>
+            <a asp-action="BalanceReport" class="btn-reset">إعادة تعيين</a>
         </div>
     </form>
-</div>
 
-<table class="bordered-table" dir="rtl">
-    <thead>
-        <tr>
-            <th>كود الموظف</th>
-            <th>اسم الموظف</th>
-            <th>رقم الهاتف</th>
-            <th>الشركة</th>
-            <th>إيجار متأخر</th>
-            <th>ديون متأخرة</th>
-            <th>الإجمالي</th>
-        </tr>
-    </thead>
-    <tbody>
-        @if (Model.Items.Any())
-        {
-            @foreach (var item in Model.Items)
+    <!-- Data Table -->
+    <table class="report-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>كود الموظف</th>
+                <th>اسم الموظف</th>
+                <th>رقم الهاتف</th>
+                <th>الشركة</th>
+                <th>المبالغ المتأخرة</th>
+                <th>الديون المتبقية</th>
+                <th>الإجمالي</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Items.Any())
             {
-                <tr>
-                    <td>@item.EmpCode</td>
-                    <td>@item.EmployeeName</td>
-                    <td>@item.MobileNo</td>
-                    <td>@item.CompanyName</td>
-                    <td class="overdue-rental">@item.OverdueRental.ToString("N3")</td>
-                    <td class="overdue-debit">@item.RemainingDebt.ToString("N3")</td>
-                    <td class="grand-total">@((item.OverdueRental + item.RemainingDebt).ToString("N3"))</td>
+                int rowNum = 1;
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td>@rowNum++</td>
+                        <td>@item.EmpCode</td>
+                        <td>@item.EmployeeName</td>
+                        <td>@item.MobileNo</td>
+                        <td>@item.CompanyName</td>
+                        <td class="col-rental">@item.OverdueRental.ToString("N2")</td>
+                        <td class="col-debt">@item.RemainingDebt.ToString("N2")</td>
+                        <td class="col-total">@((item.OverdueRental + item.RemainingDebt).ToString("N2"))</td>
+                    </tr>
+                }
+                <tr class="totals-row">
+                    <td colspan="5" style="text-align:right; padding-right:12px;">المجموع</td>
+                    <td class="col-rental">@Model.TotalOverdueRental.ToString("N2")</td>
+                    <td class="col-debt">@Model.TotalRemainingDebt.ToString("N2")</td>
+                    <td class="col-total">@Model.GrandTotal.ToString("N2")</td>
                 </tr>
             }
-            <tr style="font-weight:bold; background-color:#f5f5f5;">
-                <td colspan="4" style="text-align:right; padding-left:10px;">المجموع:</td>
-                <td class="overdue-rental">@Model.TotalOverdueRental.ToString("N3")</td>
-                <td class="overdue-debit">@Model.TotalRemainingDebt.ToString("N3")</td>
-                <td class="grand-total">@Model.GrandTotal.ToString("N3")</td>
-            </tr>
-        }
-        else
-        {
-            <tr>
-                <td colspan="7" style="text-align:center; padding:20px; color:#6c757d;">
-                    لا توجد أرصدة متأخرة
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+            else
+            {
+                <tr>
+                    <td colspan="8" style="text-align:center; padding:20px; color:#999;">
+                        لا توجد بيانات
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
 
-<br />
-<button onclick="printReport()" class="btn btn-success">طباعة</button>
+    <button onclick="printReport()" class="btn-print">طباعة</button>
+</div>
 
 <script>
     function printReport() {
-        var printContents = document.querySelector('.bordered-table').outerHTML;
-        var originalContents = document.body.innerHTML;
+        var tbl = document.querySelector('.report-table').outerHTML;
+        var date = '@DateTime.Today.ToString("yyyy/MM/dd")';
+        var original = document.body.innerHTML;
         document.body.innerHTML =
-            '<h2 style="text-align:center; font-family:Arial;">تقرير الأرصدة المتأخرة</h2>' +
-            printContents;
+            '<div dir="rtl" style="font-family:Arial">' +
+            '<h2 style="text-align:center">تقرير الرصيد الحالي</h2>' +
+            '<p style="text-align:right">التاريخ: ' + date + '</p>' +
+            tbl + '</div>';
         window.print();
-        document.body.innerHTML = originalContents;
+        document.body.innerHTML = original;
         location.reload();
     }
 </script>
