@@ -410,18 +410,17 @@ namespace CarRentWeb.Controllers
                     if (t.Text.Contains("On  corresponding to  the"))
                         t.Text = t.Text.Replace("On  corresponding to  the", $"On {cDate} the");
 
-                // Both signatures on one line:
-                // company sig (right / الطرف الأول) + employee stamp (left / الطرف الثاني)
+                // Both signatures on the same line (CompOwnerAr1 and EmpNameAr1 share one paragraph)
                 {
-                    string? stampAbs = null, sigAbs = null;
-
-                    if (!string.IsNullOrEmpty(emp?.StampImagePath))
-                        stampAbs = Path.Combine(_hostEnv.WebRootPath,
-                            emp.StampImagePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                    string? sigAbs = null, stampAbs = null;
 
                     if (!string.IsNullOrEmpty(company?.CompSignature))
                         sigAbs = Path.Combine(_hostEnv.WebRootPath, "UploadCompSignature",
                             company.CompSignature.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+
+                    if (!string.IsNullOrEmpty(emp?.StampImagePath))
+                        stampAbs = Path.Combine(_hostEnv.WebRootPath,
+                            emp.StampImagePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
 
                     InsertSignaturesOnSameLine(doc, body, sigAbs, stampAbs);
                 }
@@ -448,86 +447,66 @@ namespace CarRentWeb.Controllers
             start.InsertAfterSelf(run);
         }
 
-        private static Drawing? BuildInlineDrawing(WordprocessingDocument doc, string imagePath, string name, uint drawingId)
+        private static Drawing BuildImageDrawing(WordprocessingDocument doc, string imagePath, string name, uint id)
         {
-            if (!System.IO.File.Exists(imagePath)) return null;
-
             var ext = Path.GetExtension(imagePath).ToLower();
-            var partType = ext switch
-            {
-                ".png" => ImagePartType.Png,
-                ".gif" => ImagePartType.Gif,
-                ".bmp" => ImagePartType.Bmp,
-                _      => ImagePartType.Jpeg
-            };
-
+            var partType = ext switch { ".png" => ImagePartType.Png, ".gif" => ImagePartType.Gif,
+                                        ".bmp" => ImagePartType.Bmp, _ => ImagePartType.Jpeg };
             var imgPart = doc.MainDocumentPart!.AddImagePart(partType);
-            using (var fs = System.IO.File.OpenRead(imagePath))
-                imgPart.FeedData(fs);
-
+            using (var fs = System.IO.File.OpenRead(imagePath)) imgPart.FeedData(fs);
             string relId = doc.MainDocumentPart.GetIdOfPart(imgPart);
 
             const long cx = 80L * 12700;
             const long cy = 40L * 12700;
-
             return new Drawing(
                 new Wp.Inline(
                     new Wp.Extent            { Cx = cx, Cy = cy },
                     new Wp.EffectExtent      { LeftEdge = 0L, TopEdge = 0L, RightEdge = 0L, BottomEdge = 0L },
-                    new Wp.DocProperties     { Id = drawingId, Name = name },
-                    new Wp.NonVisualGraphicFrameDrawingProperties(
-                        new A.GraphicFrameLocks { NoChangeAspect = true }),
-                    new A.Graphic(
-                        new A.GraphicData(
-                            new Pic.Picture(
-                                new Pic.NonVisualPictureProperties(
-                                    new Pic.NonVisualDrawingProperties { Id = 0U, Name = name },
-                                    new Pic.NonVisualPictureDrawingProperties()),
-                                new Pic.BlipFill(
-                                    new A.Blip { Embed = relId },
-                                    new A.Stretch(new A.FillRectangle())),
-                                new Pic.ShapeProperties(
-                                    new A.Transform2D(
-                                        new A.Offset  { X = 0L, Y = 0L },
-                                        new A.Extents { Cx = cx, Cy = cy }),
-                                    new A.PresetGeometry(new A.AdjustValueList())
-                                        { Preset = A.ShapeTypeValues.Rectangle })))
-                        { Uri = "http://schemas.openxmlformats.org/drawingml/2006/picture" }))
-                { DistanceFromTop = 0U, DistanceFromBottom = 0U,
-                  DistanceFromLeft = 0U, DistanceFromRight = 0U });
+                    new Wp.DocProperties     { Id = id, Name = name },
+                    new Wp.NonVisualGraphicFrameDrawingProperties(new A.GraphicFrameLocks { NoChangeAspect = true }),
+                    new A.Graphic(new A.GraphicData(
+                        new Pic.Picture(
+                            new Pic.NonVisualPictureProperties(
+                                new Pic.NonVisualDrawingProperties { Id = 0U, Name = name },
+                                new Pic.NonVisualPictureDrawingProperties()),
+                            new Pic.BlipFill(new A.Blip { Embed = relId }, new A.Stretch(new A.FillRectangle())),
+                            new Pic.ShapeProperties(
+                                new A.Transform2D(new A.Offset { X = 0L, Y = 0L }, new A.Extents { Cx = cx, Cy = cy }),
+                                new A.PresetGeometry(new A.AdjustValueList()) { Preset = A.ShapeTypeValues.Rectangle })))
+                    { Uri = "http://schemas.openxmlformats.org/drawingml/2006/picture" }))
+                { DistanceFromTop = 0U, DistanceFromBottom = 0U, DistanceFromLeft = 0U, DistanceFromRight = 0U });
         }
 
+        // Both bookmarks share the same paragraph — insert one row with both images after it.
+        // compSigPath  → right side (الطرف الأول / CompOwnerAr1)
+        // empStampPath → left  side (الطرف الثاني / EmpNameAr1)
         private static void InsertSignaturesOnSameLine(WordprocessingDocument doc, Body body,
                                                         string? compSigPath, string? empStampPath)
         {
-            var compDrawing  = compSigPath  != null ? BuildInlineDrawing(doc, compSigPath,  "CompSig",  1U) : null;
-            var stampDrawing = empStampPath != null ? BuildInlineDrawing(doc, empStampPath, "EmpStamp", 2U) : null;
+            if ((compSigPath == null  || !System.IO.File.Exists(compSigPath)) &&
+                (empStampPath == null || !System.IO.File.Exists(empStampPath))) return;
 
-            if (compDrawing == null && stampDrawing == null) return;
-
-            // Anchor: EmpNameAr1 (last bookmark in signature area)
+            // Anchor paragraph contains both bookmarks
             var anchor = body.Descendants<BookmarkStart>()
-                .LastOrDefault(b => b.Name?.Value == "EmpNameAr1");
+                .LastOrDefault(b => b.Name?.Value == "CompOwnerAr1");
             if (anchor == null) return;
 
             var anchorPara = anchor.Ancestors<Paragraph>().FirstOrDefault();
             if (anchorPara == null) return;
 
-            // One paragraph: company sig on right, employee stamp on left (RTL layout)
-            var para = new Paragraph(
-                new ParagraphProperties(
-                    new Justification { Val = JustificationValues.Both }));
+            // RTL paragraph: first run → right, last run → left
+            var para = new Paragraph(new ParagraphProperties(
+                new BiDi(),
+                new Justification { Val = JustificationValues.Both }));
 
-            if (compDrawing != null)
-                para.Append(new Run(compDrawing));
+            if (compSigPath != null && System.IO.File.Exists(compSigPath))
+                para.Append(new Run(BuildImageDrawing(doc, compSigPath, "CompSig", 1U)));
 
-            // Spacer between the two images
-            para.Append(new Run(
-                new RunProperties(new NoProof()),
-                new Text("        ") { Space = SpaceProcessingModeValues.Preserve }));
+            // Spacer pushes images to opposite ends
+            para.Append(new Run(new Text("\t") { Space = SpaceProcessingModeValues.Preserve }));
 
-            if (stampDrawing != null)
-                para.Append(new Run(stampDrawing));
+            if (empStampPath != null && System.IO.File.Exists(empStampPath))
+                para.Append(new Run(BuildImageDrawing(doc, empStampPath, "EmpStamp", 2U)));
 
             anchorPara.InsertAfterSelf(para);
         }
