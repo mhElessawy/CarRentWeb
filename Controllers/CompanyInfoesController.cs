@@ -12,10 +12,12 @@ namespace CarRentWeb.Controllers
     public class CompanyInfoesController : Controller
     {
         private readonly CarRentWebContext _context;
+        private readonly IWebHostEnvironment _hostEnv;
 
-        public CompanyInfoesController(CarRentWebContext context)
+        public CompanyInfoesController(CarRentWebContext context, IWebHostEnvironment hostEnv)
         {
             _context = context;
+            _hostEnv = hostEnv;
         }
 
         // GET: CompanyInfoes
@@ -160,7 +162,7 @@ namespace CarRentWeb.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, CompanyInfo model)
+        public async Task<IActionResult> Edit(int id, CompanyInfo model, IFormFile? compSignatureFile)
         {
             if (id != model.Id)
             {
@@ -185,14 +187,34 @@ namespace CarRentWeb.Controllers
 
                     var latestId = model.Id;
                     var tasks = new List<System.Threading.Tasks.Task>();
-                    //if (model.ImageFile1 != null)
-                    //{
-                    //    tasks.Add(ProcessImageAsync(model.ImageFile1, latestId, 1));
-                    //    model.CompLogo = (latestId + 1) + "-1-" + model.ImageFile1.FileName;
-                    //}
 
+                    if (compSignatureFile != null && compSignatureFile.Length > 0)
+                    {
+                        var existing = await _context.CompanyInfos.AsNoTracking()
+                                           .FirstOrDefaultAsync(c => c.Id == id);
+                        if (!string.IsNullOrEmpty(existing?.CompSignature))
+                        {
+                            var oldPath = Path.Combine(_hostEnv.WebRootPath,
+                                existing.CompSignature.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                            if (System.IO.File.Exists(oldPath))
+                                System.IO.File.Delete(oldPath);
+                        }
 
+                        var ext      = Path.GetExtension(compSignatureFile.FileName).ToLower();
+                        var fileName = $"compsig_{model.Id}_{Guid.NewGuid()}{ext}";
+                        var folder   = Path.Combine(_hostEnv.WebRootPath, "CompSignatures");
+                        Directory.CreateDirectory(folder);
+                        using (var fs = new FileStream(Path.Combine(folder, fileName), FileMode.Create))
+                            await compSignatureFile.CopyToAsync(fs);
 
+                        model.CompSignature = $"/CompSignatures/{fileName}";
+                    }
+                    else
+                    {
+                        var existing = await _context.CompanyInfos.AsNoTracking()
+                                           .FirstOrDefaultAsync(c => c.Id == id);
+                        model.CompSignature = existing?.CompSignature;
+                    }
 
                     _context.Update(model);
                     await _context.SaveChangesAsync();
