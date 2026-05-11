@@ -1,11 +1,8 @@
-@model IEnumerable<CarRentWeb.Models.MyModel.BalanceReportViewModel>
+@model CarRentWeb.Models.MyModel.BalanceReportViewModel
 
 @{
     ViewData["Title"] = "تقرير الأرصدة المتأخرة";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var totalRental = Model?.Sum(item => item.OverdueRental) ?? 0;
-    var totalDebit  = Model?.Sum(item => item.OverdueDebit)  ?? 0;
-    var grandTotal  = totalRental + totalDebit;
 }
 
 <style>
@@ -109,7 +106,6 @@
 
     .btn-secondary {
         background-color: #6c757d;
-        border-color: #6c757d;
         color: white;
         padding: 6px 12px;
         border-radius: 4px;
@@ -126,11 +122,9 @@
 
     .btn-success {
         background-color: #28a745;
-        border-color: #28a745;
         color: white;
         padding: 8px 16px;
         border-radius: 4px;
-        text-decoration: none;
         font-weight: 500;
         transition: all 0.2s ease;
         display: inline-flex;
@@ -178,36 +172,38 @@
             <th>كود الموظف</th>
             <th>اسم الموظف</th>
             <th>رقم الهاتف</th>
+            <th>الشركة</th>
             <th>إيجار متأخر</th>
             <th>ديون متأخرة</th>
             <th>الإجمالي</th>
         </tr>
     </thead>
     <tbody>
-        @if (Model != null && Model.Any())
+        @if (Model.Items.Any())
         {
-            @foreach (var item in Model)
+            @foreach (var item in Model.Items)
             {
                 <tr>
                     <td>@item.EmpCode</td>
                     <td>@item.EmployeeName</td>
                     <td>@item.MobileNo</td>
+                    <td>@item.CompanyName</td>
                     <td class="overdue-rental">@item.OverdueRental.ToString("N3")</td>
-                    <td class="overdue-debit">@item.OverdueDebit.ToString("N3")</td>
-                    <td class="grand-total">@item.Total.ToString("N3")</td>
+                    <td class="overdue-debit">@item.RemainingDebt.ToString("N3")</td>
+                    <td class="grand-total">@((item.OverdueRental + item.RemainingDebt).ToString("N3"))</td>
                 </tr>
             }
             <tr style="font-weight:bold; background-color:#f5f5f5;">
-                <td colspan="3" style="text-align:right; padding-left:10px;">المجموع:</td>
-                <td class="overdue-rental">@totalRental.ToString("N3")</td>
-                <td class="overdue-debit">@totalDebit.ToString("N3")</td>
-                <td class="grand-total">@grandTotal.ToString("N3")</td>
+                <td colspan="4" style="text-align:right; padding-left:10px;">المجموع:</td>
+                <td class="overdue-rental">@Model.TotalOverdueRental.ToString("N3")</td>
+                <td class="overdue-debit">@Model.TotalRemainingDebt.ToString("N3")</td>
+                <td class="grand-total">@Model.GrandTotal.ToString("N3")</td>
             </tr>
         }
         else
         {
             <tr>
-                <td colspan="6" style="text-align:center; padding:20px; color:#6c757d;">
+                <td colspan="7" style="text-align:center; padding:20px; color:#6c757d;">
                     لا توجد أرصدة متأخرة
                 </td>
             </tr>

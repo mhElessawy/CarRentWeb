@@ -811,22 +811,21 @@ namespace CarRentWeb.Controllers
             }
 
             var today = DateOnly.FromDateTime(DateTime.Today);
+            var selectedCompanyIds = companyId != null && companyId.Length > 0 ? companyId.ToList() : null;
 
             // Overdue rentals: ContractDetails where Status=0 and DailyCreditDate < today
             var rentalQuery = _context.ContractDetails
                 .FromSqlRaw($"select * from ContractDetails where ContractId In (Select Id from Contract where DeleteFlag = 0 and status = 0 and EmployeeId In (Select Id From EmployeeInfo where CompanyId IN ({companyIdsString})))")
                 .Include(c => c.Contract)
                     .ThenInclude(c => c!.Employee)
+                        .ThenInclude(e => e!.Company)
                 .Where(a => a.DeleteFlag == 0
                          && a.Status == 0
                          && a.DailyCreditDate < today
                          && (a.DailyCredit != 0 || a.CarCredit != 0));
 
-            if (companyId != null && companyId.Length > 0)
-            {
-                var selectedIds = companyId.ToList();
-                rentalQuery = rentalQuery.Where(e => selectedIds.Contains((int)e.Contract!.Employee!.CompanyId!));
-            }
+            if (selectedCompanyIds != null)
+                rentalQuery = rentalQuery.Where(e => selectedCompanyIds.Contains((int)e.Contract!.Employee!.CompanyId!));
 
             var rentalData = await rentalQuery
                 .Where(c => c.Contract != null && c.Contract.Employee != null && c.Contract.Employee.EmpCode != null)
@@ -835,8 +834,9 @@ namespace CarRentWeb.Controllers
                 {
                     EmpId = g.Key,
                     EmpCode = (int)g.First().Contract!.Employee!.EmpCode!,
-                    EmployeeName = g.First().Contract!.Employee!.FullNameAr ?? "Unknown",
+                    EmployeeName = g.First().Contract!.Employee!.FullNameAr ?? "",
                     MobileNo = g.First().Contract!.Employee!.MobiileNo ?? "",
+                    CompanyName = g.First().Contract!.Employee!.Company!.CompNameAr ?? "",
                     OverdueRental = g.Sum(c => (c.DailyCredit ?? 0) + (c.CarCredit ?? 0))
                 })
                 .ToListAsync();
@@ -845,13 +845,11 @@ namespace CarRentWeb.Controllers
             var debitQuery = _context.DebitInfos
                 .FromSqlRaw($"select * from DebitInfo where EmpId In (Select Id From EmployeeInfo where CompanyId IN ({companyIdsString}))")
                 .Include(d => d.Emp)
+                    .ThenInclude(e => e!.Company)
                 .Where(d => d.DeleteFlag == 0 && d.DebitRemaining > 0);
 
-            if (companyId != null && companyId.Length > 0)
-            {
-                var selectedIds = companyId.ToList();
-                debitQuery = debitQuery.Where(d => selectedIds.Contains((int)d.Emp!.CompanyId!));
-            }
+            if (selectedCompanyIds != null)
+                debitQuery = debitQuery.Where(d => selectedCompanyIds.Contains((int)d.Emp!.CompanyId!));
 
             var debitData = await debitQuery
                 .Where(d => d.Emp != null && d.Emp.EmpCode != null)
@@ -860,35 +858,38 @@ namespace CarRentWeb.Controllers
                 {
                     EmpId = g.Key,
                     EmpCode = (int)g.First().Emp!.EmpCode!,
-                    EmployeeName = g.First().Emp!.FullNameAr ?? "Unknown",
+                    EmployeeName = g.First().Emp!.FullNameAr ?? "",
                     MobileNo = g.First().Emp!.MobiileNo ?? "",
-                    OverdueDebit = g.Sum(d => d.DebitRemaining ?? 0)
+                    CompanyName = g.First().Emp!.Company!.CompNameAr ?? "",
+                    RemainingDebt = g.Sum(d => d.DebitRemaining ?? 0)
                 })
                 .ToListAsync();
 
-            // Merge: union of employees appearing in either list
+            // Merge both lists by employee Id
             var allEmpIds = rentalData.Select(r => r.EmpId)
                 .Union(debitData.Select(d => d.EmpId))
                 .Distinct();
 
-            var result = allEmpIds.Select(empId =>
+            var items = allEmpIds.Select(empId =>
             {
                 var r = rentalData.FirstOrDefault(x => x.EmpId == empId);
                 var d = debitData.FirstOrDefault(x => x.EmpId == empId);
-                return new BalanceReportViewModel
+                return new BalanceReportItemViewModel
                 {
-                    EmpId = empId,
                     EmpCode = r?.EmpCode ?? d?.EmpCode ?? 0,
-                    EmployeeName = r?.EmployeeName ?? d?.EmployeeName ?? "Unknown",
+                    EmployeeName = r?.EmployeeName ?? d?.EmployeeName ?? "",
                     MobileNo = r?.MobileNo ?? d?.MobileNo ?? "",
+                    CompanyName = r?.CompanyName ?? d?.CompanyName ?? "",
                     OverdueRental = r?.OverdueRental ?? 0,
-                    OverdueDebit = d?.OverdueDebit ?? 0
+                    RemainingDebt = d?.RemainingDebt ?? 0
                 };
             })
             .OrderBy(x => x.EmpCode)
             .ToList();
 
-            return View(result);
+            var viewModel = new BalanceReportViewModel { Items = items };
+
+            return View(viewModel);
         }
     }
 }
