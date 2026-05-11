@@ -66,6 +66,12 @@ using (var scope = app.Services.CreateScope())
         IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('DeffInformation') AND name = 'MessagePassword')
             ALTER TABLE DeffInformation ADD MessagePassword nvarchar(max) NULL;
     ");
+
+    // Add CompSignature column to CompanyInfo if not exists
+    db.Database.ExecuteSqlRaw(@"
+        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('CompanyInfo') AND name = 'CompSignature')
+            ALTER TABLE CompanyInfo ADD CompSignature nvarchar(255) NULL;
+    ");
 }
 
 // Configure the HTTP request pipeline.
