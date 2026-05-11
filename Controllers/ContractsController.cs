@@ -1486,6 +1486,36 @@ namespace CarRentWeb.Controllers
             return View(contract);
         }
 
+        // GET: Contracts/EditDailyContract/5
+        public async Task<IActionResult> EditDailyContract(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var contract = await _context.Contracts
+                .Include(c => c.Employee)
+                .Include(c => c.Car)
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (contract == null) return NotFound();
+
+            return View(contract);
+        }
+
+        // POST: Contracts/EditDailyContract/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditDailyContract(int id, int RentalType, DateOnly? DiscountDate)
+        {
+            var contract = await _context.Contracts.FindAsync(id);
+            if (contract == null) return NotFound();
+
+            contract.RentalType   = RentalType;
+            contract.DiscountDate = DiscountDate;
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(IndexDaily));
+        }
+
         // GET: Contracts/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
