@@ -1,16 +1,19 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using CarRentWeb.Data;
+using CarRentWeb.Models;
+using CarRentWeb.Models.MyModel;
+using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Wordprocessing;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using CarRentWeb.Data;
-
-using CarRentWeb.Models;
-using CarRentWeb.Models.MyModel;
-
-
 using System.Globalization;
+using A = DocumentFormat.OpenXml.Drawing;
+using Pic = DocumentFormat.OpenXml.Drawing.Pictures;
+using Wp = DocumentFormat.OpenXml.Drawing.Wordprocessing;
 
 
 namespace CarRentWeb.Controllers
@@ -18,10 +21,12 @@ namespace CarRentWeb.Controllers
     public class ContractsController : Controller
     {
         private readonly CarRentWebContext _context;
+        private readonly IWebHostEnvironment _hostEnv;
 
-        public ContractsController(CarRentWebContext context)
+        public ContractsController(CarRentWebContext context, IWebHostEnvironment hostEnv)
         {
             _context = context;
+            _hostEnv = hostEnv;
         }
 
         // GET: Contracts
@@ -157,7 +162,7 @@ namespace CarRentWeb.Controllers
 
 
         #region "Daily Contract"
-
+        #endregion 
         public async Task<IActionResult> IndexDaily(int? CarCodeString, int? EmpCodeString, string? EmpNameSearch, int? companyId, int? pageNumber, string? ContractNoString)
         {
             TempData["Username"] = HttpContext.Session.GetString("Username");
@@ -319,9 +324,223 @@ namespace CarRentWeb.Controllers
             return View(contract);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> EditDailyContract(int? id)
+        {
+            if (id == null) return NotFound();
 
+            var contract = await _context.Contracts
+                .Include(c => c.Car)
+                .Include(c => c.Employee)
+                .FirstOrDefaultAsync(m => m.Id == id);
 
-        #endregion
+            if (contract == null) return NotFound();
+
+            return View(contract);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditDailyContract(int id, int RentalType, DateOnly? DiscountDate)
+        {
+            var contract = await _context.Contracts.FindAsync(id);
+            if (contract == null) return NotFound();
+
+            contract.RentalType = RentalType;
+            contract.DiscountDate = DiscountDate;
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(IndexDaily));
+        }
+
+        public async Task<IActionResult> DownloadEnglishContract(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var contract = await _context.Contracts
+                .Include(c => c.Employee).ThenInclude(e => e!.Company)
+                .Include(c => c.Employee).ThenInclude(e => e!.Nationality)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (contract == null) return NotFound();
+
+            var emp = contract.Employee;
+            var company = emp?.Company;
+
+            string cDate = contract.ContractDate?.ToString("dd/MM/yyyy") ?? "";
+            string startDate = contract.StartDate?.ToString("dd/MM/yyyy") ?? "";
+            string noOfDays = contract.NoOfDays?.ToString() ?? "";
+            string compEn = company?.CompNameEn ?? company?.CompNameAr ?? "";
+            string compAr = company?.CompNameAr ?? company?.CompNameEn ?? "";
+            string fileNo = company?.CompFileNo ?? "";
+            string licNo = company?.CompLicenseNo ?? "";
+            string owner = company?.OwnerName1 ?? "";
+            string empEn = emp?.FullNameEn ?? emp?.FullNameAr ?? "";
+            string empAr = emp?.FullNameAr ?? emp?.FullNameEn ?? "";
+            string nat = emp?.Nationality?.DeffName ?? "";
+            string civilId = emp?.CivilId ?? "";
+            string address = emp?.EmpAddress ?? "";
+            string wage = contract.DailyCredit?.ToString("F0") ?? "";
+
+            var templatePath = Path.Combine(_hostEnv.WebRootPath, "Templates", "ContractNewEn.docx");
+            var templateBytes = await System.IO.File.ReadAllBytesAsync(templatePath);
+
+            using var ms = new MemoryStream();
+            ms.Write(templateBytes, 0, templateBytes.Length);
+
+            using (var doc = WordprocessingDocument.Open(ms, true))
+            {
+                var body = doc.MainDocumentPart!.Document.Body!;
+
+                // English bookmarks
+                FillBookmark(body, "CompNameEng", compEn);
+                FillBookmark(body, "CompNameEng1", compEn);
+                FillBookmark(body, "CompFileNoEn", fileNo);
+                FillBookmark(body, "CompOwnerEng", owner);
+                FillBookmark(body, "CompOwnerEng1", owner);
+                FillBookmark(body, "CompOwnerCivilIDEng", licNo);
+                FillBookmark(body, "CompActivateEng", "Car Rental");
+                FillBookmark(body, "EmpNameEng", empEn);
+                FillBookmark(body, "EmpNameEng1", empEn);
+                FillBookmark(body, "EmpNationalityEng", nat);
+                FillBookmark(body, "EmpCivilIDEng", civilId);
+                FillBookmark(body, "EmpResidenceEng", address);
+                FillBookmark(body, "EmpJobTitleEng", "Car Driver");
+                FillBookmark(body, "EmpJobTitleEng1", "Car Driver");
+                FillBookmark(body, "EmpSalaryEng", wage);
+                FillBookmark(body, "ContractDateEng1", startDate);
+                FillBookmark(body, "ContractStartDateEng", startDate);
+                FillBookmark(body, "ContractPeriodEng", noOfDays);
+
+                // Arabic bookmarks
+                FillBookmark(body, "CompNameAr", compAr);
+                FillBookmark(body, "CompNameAr1", compAr);
+                FillBookmark(body, "CompFileNoAr", fileNo);
+                FillBookmark(body, "CompOwnerAr", owner);
+                FillBookmark(body, "CompOwnerAr1", owner);
+                FillBookmark(body, "CompOwnerCivilIDAr", licNo);
+                FillBookmark(body, "CompActivateAr", "تأجير سيارات");
+                FillBookmark(body, "EmpNameAr", empAr);
+                FillBookmark(body, "EmpNameAr1", empAr);
+                FillBookmark(body, "EmpNationalityAr", nat);
+                FillBookmark(body, "EmpCivilIDAr", civilId);
+                FillBookmark(body, "EmpResidenceAr", address);
+                FillBookmark(body, "EmpJobTitleAr", "سائق");
+                FillBookmark(body, "EmpJobTitleAr1", "سائق");
+                FillBookmark(body, "EmpSalaryAr", wage);
+                FillBookmark(body, "EmpSalarTafketAr", wage);
+                FillBookmark(body, "ContractDayAr", cDate);
+                FillBookmark(body, "ContractDateAr", cDate);
+                FillBookmark(body, "ContractDateAr1", cDate);
+                FillBookmark(body, "ContractStartDateAr", startDate);
+                FillBookmark(body, "ContractPeriodAr", noOfDays);
+
+                // Preamble date has no English bookmark – replace directly in the run
+                foreach (var t in body.Descendants<Text>())
+                    if (t.Text.Contains("On  corresponding to  the"))
+                        t.Text = t.Text.Replace("On  corresponding to  the", $"On {cDate} the");
+
+                // Stamp image in the Second Party signature area
+                if (!string.IsNullOrEmpty(emp?.StampImagePath))
+                {
+                    var stampAbs = Path.Combine(_hostEnv.WebRootPath,
+                        emp.StampImagePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                    InsertStamp(doc, body, stampAbs);
+                }
+
+                doc.MainDocumentPart.Document.Save();
+            }
+
+            var fileName = $"Contract_{contract.ContractNo}_{empEn.Replace(" ", "_")}.docx";
+            return File(ms.ToArray(),
+                        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                        fileName);
+        }
+
+        private static void FillBookmark(Body body, string name, string value)
+        {
+            if (string.IsNullOrEmpty(value)) return;
+            var start = body.Descendants<BookmarkStart>()
+                            .FirstOrDefault(b => b.Name?.Value == name);
+            if (start == null) return;
+            var sibRun = start.Parent?.Descendants<Run>().FirstOrDefault();
+            var rPr = sibRun?.RunProperties?.CloneNode(true) as RunProperties;
+            var run = new Run(new Text(value) { Space = SpaceProcessingModeValues.Preserve });
+            if (rPr != null) run.InsertAt(rPr, 0);
+            start.InsertAfterSelf(run);
+        }
+
+        // Inserts the employee stamp image under the "Second Party" label in the signature table.
+        private static void InsertStamp(WordprocessingDocument doc, Body body,
+                                        string stampPath)
+        {
+            if (!System.IO.File.Exists(stampPath)) return;
+
+            var ext = Path.GetExtension(stampPath).ToLower();
+            var partType = ext switch
+            {
+                ".png" => ImagePartType.Png,
+                ".gif" => ImagePartType.Gif,
+                ".bmp" => ImagePartType.Bmp,
+                _ => ImagePartType.Jpeg
+            };
+
+            var imgPart = doc.MainDocumentPart!.AddImagePart(partType);
+            using (var fs = System.IO.File.OpenRead(stampPath))
+                imgPart.FeedData(fs);
+
+            string relId = doc.MainDocumentPart.GetIdOfPart(imgPart);
+
+            // 80 pt × 40 pt  (1 pt = 12700 EMU)
+            const long cx = 80L * 12700;
+            const long cy = 40L * 12700;
+
+            var drawing = new Drawing(
+                new Wp.Inline(
+                    new Wp.Extent { Cx = cx, Cy = cy },
+                    new Wp.EffectExtent { LeftEdge = 0L, TopEdge = 0L, RightEdge = 0L, BottomEdge = 0L },
+                    new Wp.DocProperties { Id = 1U, Name = "Stamp" },
+                    new Wp.NonVisualGraphicFrameDrawingProperties(
+                        new A.GraphicFrameLocks { NoChangeAspect = true }),
+                    new A.Graphic(
+                        new A.GraphicData(
+                            new Pic.Picture(
+                                new Pic.NonVisualPictureProperties(
+                                    new Pic.NonVisualDrawingProperties { Id = 0U, Name = "Stamp" },
+                                    new Pic.NonVisualPictureDrawingProperties()),
+                                new Pic.BlipFill(
+                                    new A.Blip { Embed = relId },
+                                    new A.Stretch(new A.FillRectangle())),
+                                new Pic.ShapeProperties(
+                                    new A.Transform2D(
+                                        new A.Offset { X = 0L, Y = 0L },
+                                        new A.Extents { Cx = cx, Cy = cy }),
+                                    new A.PresetGeometry(new A.AdjustValueList())
+                                    { Preset = A.ShapeTypeValues.Rectangle })))
+                        { Uri = "http://schemas.openxmlformats.org/drawingml/2006/picture" }))
+                {
+                    DistanceFromTop = 0U,
+                    DistanceFromBottom = 0U,
+                    DistanceFromLeft = 0U,
+                    DistanceFromRight = 0U
+                });
+
+            // Find the EmpNameAr1 bookmark and insert stamp in its parent paragraph's cell.
+            var empBookmark = body.Descendants<BookmarkStart>()
+                .LastOrDefault(b => b.Name?.Value == "EmpNameAr1");
+            if (empBookmark == null) return;
+
+            // Walk up to the containing paragraph
+            var anchorPara = empBookmark.Ancestors<Paragraph>().FirstOrDefault();
+            if (anchorPara == null) return;
+
+            var stampPara = new Paragraph(
+                new ParagraphProperties(
+                    new Justification { Val = JustificationValues.Center }),
+                new Run(drawing));
+
+            anchorPara.InsertAfterSelf(stampPara);
+        }
 
         // POST: Contracts/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
