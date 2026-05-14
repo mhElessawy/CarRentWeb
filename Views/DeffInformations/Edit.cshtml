@@ -47,7 +47,7 @@
                 <div class="col-md-3">
                     <label asp-for="SitePassword" class="form-label">كلمة المرور</label>
                     <div class="input-group">
-                        <input asp-for="SitePassword" type="password" class="form-control" id="SitePassword" />
+                        <input asp-for="SitePassword" type="password" class="form-control" id="SitePassword" value="@Model.SitePassword" />
                         <button type="button" class="btn btn-outline-secondary toggle-password" data-target="SitePassword" tabindex="-1">
                             <i class="fas fa-eye"></i>
                         </button>
@@ -73,7 +73,7 @@
                 <div class="col-md-3">
                     <label asp-for="DomainPassword" class="form-label">كلمة المرور</label>
                     <div class="input-group">
-                        <input asp-for="DomainPassword" type="password" class="form-control" id="DomainPassword" />
+                        <input asp-for="DomainPassword" type="password" class="form-control" id="DomainPassword" value="@Model.DomainPassword" />
                         <button type="button" class="btn btn-outline-secondary toggle-password" data-target="DomainPassword" tabindex="-1">
                             <i class="fas fa-eye"></i>
                         </button>
@@ -99,7 +99,7 @@
                 <div class="col-md-3">
                     <label asp-for="SslPassword" class="form-label">كلمة المرور</label>
                     <div class="input-group">
-                        <input asp-for="SslPassword" type="password" class="form-control" id="SslPassword" />
+                        <input asp-for="SslPassword" type="password" class="form-control" id="SslPassword" value="@Model.SslPassword" />
                         <button type="button" class="btn btn-outline-secondary toggle-password" data-target="SslPassword" tabindex="-1">
                             <i class="fas fa-eye"></i>
                         </button>
@@ -125,7 +125,7 @@
                 <div class="col-md-3">
                     <label asp-for="MessagePassword" class="form-label">كلمة المرور</label>
                     <div class="input-group">
-                        <input asp-for="MessagePassword" type="password" class="form-control" id="MessagePassword" />
+                        <input asp-for="MessagePassword" type="password" class="form-control" id="MessagePassword" value="@Model.MessagePassword" />
                         <button type="button" class="btn btn-outline-secondary toggle-password" data-target="MessagePassword" tabindex="-1">
                             <i class="fas fa-eye"></i>
                         </button>
