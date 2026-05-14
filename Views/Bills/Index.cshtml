@@ -1,4 +1,4 @@
-﻿@using CarRentWeb.Data
+﻿﻿@using CarRentWeb.Data
 @using CarRentWeb.Models.MyModel
 @model PaginatedList<CarRentWeb.Models.Bill>
 @inject IHttpContextAccessor HttpContextAccessor
@@ -61,6 +61,12 @@
             top: 50%;
             transform: translateY(-50%);
         }
+
+    @@media print {
+        .no-print {
+            display: none !important;
+        }
+    }
 </style>
 
 <h1 dir="rtl">تقرير التحصيل</h1>
@@ -293,7 +299,7 @@
                         نوع العقد
                     </a>
                 </th>
-                <th class="@((currentField == "BillHent") ? currentSort : "")">
+                <th class="@((currentField == "BillHent") ? currentSort : "") no-print">
                     <a asp-action="Index"
                        asp-route-sortField="BillHent"
                        asp-route-sortOrder="@((currentField == "BillHent" && currentSort == "asc") ? "desc" : "asc")"
@@ -307,7 +313,7 @@
                         ملاحظات
                     </a>
                 </th>
-                <th>الإجراءات</th>
+                <th class="no-print">الإجراءات</th>
             </tr>
         </thead>
         <tbody>
@@ -336,14 +342,14 @@
                             <label>شهري</label>
                         }
                     </td>
-                    <td>@Html.DisplayFor(modelItem => item.BillHent)</td>
-                    <td class="action-links">
+                    <td class="no-print">@Html.DisplayFor(modelItem => item.BillHent)</td>
+                    <td class="action-links no-print">
                         <a asp-action="PayPrint" asp-controller="ContractDetails" asp-route-id="@item.Id" class="btn-info"><i class="fas fa-print"></i> طباعة</a>
                         @if (user!.PayDelete == true)
                         {
                             <a asp-action="DeleteMonthly" asp-controller="Bills" asp-route-id="@item.Id" class="btn-info"><i class="fas fa-print"></i> حذف</a>
                         }
-                      
+
 
                     </td>
 
@@ -416,15 +422,18 @@
 
 <script>
     function printBills() {
-        var printContents = document.querySelector('.bordered-table').outerHTML;
+        var tableClone = document.querySelector('.bordered-table').cloneNode(true);
+        tableClone.querySelectorAll('.no-print').forEach(function (el) { el.remove(); });
+
         var originalContents = document.body.innerHTML;
 
         document.body.innerHTML =
             '<h1 style="text-align:center">فواتير الأقساط</h1>' +
-            printContents +
+            tableClone.outerHTML +
             '<div style="margin-top:20px;font-weight:bold">إجمالي الإيراد: @String.Format("{0:C}", ViewBag.TotalBillPayed)</div>';
 
         window.print();
         document.body.innerHTML = originalContents;
+        location.reload();
     }
 </script>

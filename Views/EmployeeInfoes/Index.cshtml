@@ -1,4 +1,4 @@
-﻿@using CarRentWeb.Data
+﻿﻿@using CarRentWeb.Data
 @using CarRentWeb.Models.MyModel
 @model PaginatedList<CarRentWeb.Models.EmployeeInfo>
 @inject IHttpContextAccessor HttpContextAccessor
@@ -407,6 +407,7 @@
                     <th>الرقم المدني</th>
                     <th>رقم الهاتف</th>
                     <th>اسم الشركة</th>
+                    <th>يوم الدفع</th>
                     <th>الإجراءات</th>
                 </tr>
             </thead>
@@ -419,6 +420,18 @@
                         <td>@Html.DisplayFor(modelItem => item.CivilId)</td>
                         <td>@Html.DisplayFor(modelItem => item.MobiileNo)</td>
                         <td>@Html.DisplayFor(modelItem => item.Company!.CompNameAr)</td>
+                        <td>
+                            @(item.PaymentDay switch {
+                                1 => "الأحد",
+                                2 => "الاثنين",
+                                3 => "الثلاثاء",
+                                4 => "الأربعاء",
+                                5 => "الخميس",
+                                6 => "الجمعة",
+                                7 => "السبت",
+                                _ => ""
+                            })
+                        </td>
                         <td class="action-links">
                             @if (user.EmpSave == true)
                             {

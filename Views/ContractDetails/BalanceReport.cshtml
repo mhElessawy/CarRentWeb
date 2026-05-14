@@ -312,16 +312,84 @@
     <button onclick="printReport()" class="btn-print">طباعة</button>
 </div>
 
+<!-- قسم الطباعة المخفي -->
+<div id="print-section" style="display:none">
+    <div dir="rtl" style="font-family:'Arial',sans-serif; padding:24px; color:#000;">
+
+        <!-- رأس التقرير -->
+        <div style="text-align:center; border-bottom:3px solid #1a1a2e; padding-bottom:10px; margin-bottom:14px;">
+            <h2 style="margin:0; font-size:1.3rem; color:#1a1a2e; letter-spacing:1px;">تقرير الرصيد الحالي</h2>
+            <p style="margin:4px 0 0; font-size:0.82rem; color:#555;">تاريخ الطباعة: @DateTime.Today.ToString("dd/MM/yyyy")</p>
+        </div>
+
+        <!-- بطاقات الملخص -->
+        <div style="display:flex; gap:12px; margin-bottom:16px; direction:rtl;">
+            <div style="flex:1; border:1px solid #e0e0e0; border-radius:6px; padding:10px 14px; text-align:center;">
+                <div style="font-size:0.75rem; color:#777; margin-bottom:4px;">إجمالي المبالغ المتأخرة</div>
+                <div style="font-size:1.1rem; font-weight:700; color:#e74c3c;">@Model.TotalOverdueRental.ToString("N3")</div>
+            </div>
+            <div style="flex:1; border:1px solid #e0e0e0; border-radius:6px; padding:10px 14px; text-align:center;">
+                <div style="font-size:0.75rem; color:#777; margin-bottom:4px;">إجمالي الديون المتبقية</div>
+                <div style="font-size:1.1rem; font-weight:700; color:#e67e22;">@Model.TotalRemainingDebt.ToString("N3")</div>
+            </div>
+            <div style="flex:1; border:1px solid #e0e0e0; border-radius:6px; padding:10px 14px; text-align:center;">
+                <div style="font-size:0.75rem; color:#777; margin-bottom:4px;">الإجمالي الكلي</div>
+                <div style="font-size:1.1rem; font-weight:700; color:#1a1a2e;">@Model.GrandTotal.ToString("N3")</div>
+            </div>
+        </div>
+
+        <!-- الجدول -->
+        <table style="width:100%; border-collapse:collapse; font-size:0.8rem; direction:rtl;">
+            <thead>
+                <tr style="background:#1a1a2e; color:#fff;">
+                    <th style="border:1px solid #444; padding:7px 10px; text-align:center;">#</th>
+                    <th style="border:1px solid #444; padding:7px 10px; text-align:center;">كود الموظف</th>
+                    <th style="border:1px solid #444; padding:7px 10px; text-align:right;">اسم الموظف</th>
+                    <th style="border:1px solid #444; padding:7px 10px; text-align:center;">رقم الهاتف</th>
+                    <th style="border:1px solid #444; padding:7px 10px; text-align:center;">الشركة</th>
+                    <th style="border:1px solid #444; padding:7px 10px; text-align:center;">المبالغ المتأخرة</th>
+                    <th style="border:1px solid #444; padding:7px 10px; text-align:center;">الديون المتبقية</th>
+                    <th style="border:1px solid #444; padding:7px 10px; text-align:center;">الإجمالي</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{int rn = 1;}
+                @foreach (var item in Model.Items)
+                {
+                    var bg = (rn % 2 == 0) ? "#f8f9fa" : "#fff";
+                    <tr style="background:@bg;">
+                        <td style="border:1px solid #ddd; padding:5px 10px; text-align:center;">@(rn++)</td>
+                        <td style="border:1px solid #ddd; padding:5px 10px; text-align:center;">@item.EmpCode</td>
+                        <td style="border:1px solid #ddd; padding:5px 10px; text-align:right;">@item.EmployeeName</td>
+                        <td style="border:1px solid #ddd; padding:5px 10px; text-align:center;">@item.MobileNo</td>
+                        <td style="border:1px solid #ddd; padding:5px 10px; text-align:center;">@item.CompanyName</td>
+                        <td style="border:1px solid #ddd; padding:5px 10px; text-align:center; color:#e74c3c; font-weight:600;">@item.OverdueRental.ToString("N3")</td>
+                        <td style="border:1px solid #ddd; padding:5px 10px; text-align:center; color:#e67e22; font-weight:600;">@item.RemainingDebt.ToString("N3")</td>
+                        <td style="border:1px solid #ddd; padding:5px 10px; text-align:center; font-weight:700;">@((item.OverdueRental + item.RemainingDebt).ToString("N3"))</td>
+                    </tr>
+                }
+                <!-- صف الإجمالي -->
+                <tr style="background:#f0f4f8; font-weight:700; border-top:2px solid #1a1a2e;">
+                    <td colspan="5" style="border:1px solid #bbb; padding:6px 10px; text-align:right;">الإجمالي</td>
+                    <td style="border:1px solid #bbb; padding:6px 10px; text-align:center; color:#e74c3c;">@Model.TotalOverdueRental.ToString("N3")</td>
+                    <td style="border:1px solid #bbb; padding:6px 10px; text-align:center; color:#e67e22;">@Model.TotalRemainingDebt.ToString("N3")</td>
+                    <td style="border:1px solid #bbb; padding:6px 10px; text-align:center;">@Model.GrandTotal.ToString("N3")</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- تذييل -->
+        <div style="margin-top:16px; text-align:center; font-size:0.75rem; color:#999; border-top:1px solid #ddd; padding-top:8px;">
+            عدد السجلات: @Model.Items.Count()
+        </div>
+    </div>
+</div>
+
 <script>
     function printReport() {
-        var tbl = document.querySelector('.report-table').outerHTML;
-        var date = '@DateTime.Today.ToString("yyyy/MM/dd")';
+        var content = document.getElementById('print-section').innerHTML;
         var original = document.body.innerHTML;
-        document.body.innerHTML =
-            '<div dir="rtl" style="font-family:Arial">' +
-            '<h2 style="text-align:center">تقرير الرصيد الحالي</h2>' +
-            '<p style="text-align:right">التاريخ: ' + date + '</p>' +
-            tbl + '</div>';
+        document.body.innerHTML = content;
         window.print();
         document.body.innerHTML = original;
         location.reload();

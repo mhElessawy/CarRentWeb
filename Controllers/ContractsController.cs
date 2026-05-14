@@ -253,7 +253,7 @@ namespace CarRentWeb.Controllers
             ViewBag.DiscountAlerts = discountAlerts;
 
             // Pagination
-            int pageSize = 10; // Set your page size
+            int pageSize = 100; // Set your page size
             return View(await PaginatedList<Contract>.CreateAsync(query.AsNoTracking(), pageNumber ?? 1, pageSize));
         }
 

@@ -195,6 +195,20 @@
                     <input type="checkbox" asp-for="EmpDepMang" class="form-check-input" />
                     <span asp-validation-for="EmpDepMang" class="text-danger small"></span>
                 </div>
+
+                <div class="col-md-3">
+                    <label asp-for="PaymentDay" class="form-label">يوم الدفع</label>
+                    <select asp-for="PaymentDay" class="form-select">
+                        <option value="">-- اختر يوم الدفع --</option>
+                        <option value="1">الأحد</option>
+                        <option value="2">الاثنين</option>
+                        <option value="3">الثلاثاء</option>
+                        <option value="4">الأربعاء</option>
+                        <option value="5">الخميس</option>
+                        <option value="6">الجمعة</option>
+                        <option value="7">السبت</option>
+                    </select>
+                </div>
               
 
                 <!-- Form Actions -->
@@ -212,5 +226,3 @@
         </div>
     </div>
 </div>
-
-

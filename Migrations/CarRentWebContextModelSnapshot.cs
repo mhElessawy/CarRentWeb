@@ -1211,6 +1211,9 @@ namespace CarRentWeb.Migrations
                 b.Property<bool>("EmpDepMang")
                     .HasColumnType("bit");
 
+                b.Property<int?>("PaymentDay")
+                    .HasColumnType("int");
+
                 b.Property<string>("EmpPic")
                     .HasColumnType("nvarchar(max)");
 
