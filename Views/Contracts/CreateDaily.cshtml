@@ -97,14 +97,14 @@
                     <h5 class="border-bottom pb-2">بيانات التخفيض</h5>
                 </div>
                 <div id="discountFields" style="display:none;" class="row g-3">
-                    <div class="col-md-2">
-                        <label class="form-label">عدد السنين</label>
-                        <input type="number" id="ContractYears" min="1" max="10" class="form-control" placeholder="عدد السنين" />
-                    </div>
                     <div class="col-md-3">
-                        <label asp-for="DiscountDate" class="form-label">تاريخ التخفيض <small class="text-muted">(تلقائي)</small></label>
-                        <input asp-for="DiscountDate" type="date" id="DiscountDate" class="form-control" readonly />
+                        <label asp-for="DiscountDate" class="form-label">تاريخ التخفيض</label>
+                        <input asp-for="DiscountDate" type="date" id="DiscountDate" class="form-control" />
                         <span asp-validation-for="DiscountDate" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">عدد السنين <small class="text-muted">(تلقائي)</small></label>
+                        <input type="text" id="ContractYears" class="form-control" readonly />
                     </div>
                     <div class="col-md-3">
                         <label asp-for="DiscountAmount" class="form-label">مبلغ التخفيض</label>
@@ -224,17 +224,27 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const startDateInput   = document.getElementById('StartDate');
-        const endDateInput     = document.getElementById('EndDate');
-        const noOfDaysInput    = document.getElementById('NoOfDays');
+        const startDateInput     = document.getElementById('StartDate');
+        const endDateInput       = document.getElementById('EndDate');
+        const noOfDaysInput      = document.getElementById('NoOfDays');
         const contractYearsInput = document.getElementById('ContractYears');
         const discountDateInput  = document.getElementById('DiscountDate');
 
         function addYears(dateStr, years) {
-            if (!dateStr) return '';
             var d = new Date(dateStr);
             d.setFullYear(d.getFullYear() + years);
             return d.toISOString().split('T')[0];
+        }
+
+        function yearsBetween(fromStr, toStr) {
+            if (!fromStr || !toStr) return '';
+            var from = new Date(fromStr);
+            var to   = new Date(toStr);
+            var years = to.getFullYear() - from.getFullYear();
+            // تعديل لو الشهر/اليوم لسه ما وصلوش
+            var m = to.getMonth() - from.getMonth();
+            if (m < 0 || (m === 0 && to.getDate() < from.getDate())) years--;
+            return years > 0 ? years : '';
         }
 
         function recalculate() {
@@ -250,19 +260,27 @@
             noOfDaysInput.value = Math.ceil(Math.abs(diffTime) / (1000 * 60 * 60 * 24));
             calculateTotalCost();
 
-            // تاريخ التخفيض = بداية + عدد السنين (لو مدخل)
-            var years = parseInt(contractYearsInput ? contractYearsInput.value : 0);
-            if (discountDateInput && years > 0) {
-                discountDateInput.value = addYears(start, years);
+            updateYears();
+        }
+
+        function updateYears() {
+            var start    = startDateInput.value;
+            var discount = discountDateInput ? discountDateInput.value : '';
+            var end      = endDateInput.value;
+
+            // عدد السنين: من البداية إلى التخفيض لو موجود، وإلا إلى النهاية
+            if (discount) {
+                contractYearsInput.value = yearsBetween(start, discount);
+            } else {
+                contractYearsInput.value = yearsBetween(start, end);
             }
         }
 
         startDateInput.addEventListener('change', recalculate);
-        if (contractYearsInput) {
-            contractYearsInput.addEventListener('input', recalculate);
+        if (discountDateInput) {
+            discountDateInput.addEventListener('change', updateYears);
         }
 
-        // احسب من البداية لو في قيمة
         recalculate();
     });
 </script>
