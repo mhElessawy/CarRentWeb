@@ -390,6 +390,17 @@
     </table>
 
     <button onclick="printReport()" class="btn-print">طباعة</button>
+
+    <a asp-action="CollectionReportExcel"
+       asp-controller="ContractDetails"
+       asp-route-EmpCodeString="@ViewData["EmpCodeFilter"]"
+       asp-route-EmpSearch="@ViewData["EmpFilter"]"
+       asp-route-companyId="@ViewData["CompanyFilter"]"
+       asp-route-FromDateSearch="@ViewData["FromDateFilter"]"
+       asp-route-ToDateSearch="@ViewData["ToDateFilter"]"
+       class="btn-print" style="background:#1d6f42; text-decoration:none; display:inline-block; margin-top:10px;">
+        <i class="fas fa-file-excel"></i> تصدير إيكسل
+    </a>
 </div>
 
 <!-- قسم الطباعة المخفي -->
@@ -403,29 +414,29 @@
         <table style="width:100%; border-collapse:collapse; font-size:0.82rem; text-align:center; direction:rtl;">
             <thead>
                 <tr style="background:#1565c0; color:#fff;">
-                    <th style="border:1px solid #000; padding:5px 8px;">الإجمالي</th>
-                    <th style="border:1px solid #000; padding:5px 8px;">تحصيل الديون</th>
-                    <th style="border:1px solid #000; padding:5px 8px;">الإيداع اليومي</th>
-                    <th style="border:1px solid #000; padding:5px 8px;">اسم الموظف</th>
                     <th style="border:1px solid #000; padding:5px 8px;">رقم الموظف</th>
+                    <th style="border:1px solid #000; padding:5px 8px;">اسم الموظف</th>
+                    <th style="border:1px solid #000; padding:5px 8px;">الإيداع اليومي</th>
+                    <th style="border:1px solid #000; padding:5px 8px;">تحصيل الديون</th>
+                    <th style="border:1px solid #000; padding:5px 8px;">الإجمالي</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var row in summaryRows)
                 {
                     <tr>
-                        <td style="border:1px solid #ccc; padding:3px 8px;">@row.Total.ToString("N3")</td>
-                        <td style="border:1px solid #ccc; padding:3px 8px;">@row.DebitsTotal.ToString("N3")</td>
-                        <td style="border:1px solid #ccc; padding:3px 8px;">@row.BillsTotal.ToString("N3")</td>
-                        <td style="border:1px solid #ccc; padding:3px 8px; text-align:right;">@row.EmployeeName</td>
                         <td style="border:1px solid #ccc; padding:3px 8px;">@row.EmpCode</td>
+                        <td style="border:1px solid #ccc; padding:3px 8px; text-align:right;">@row.EmployeeName</td>
+                        <td style="border:1px solid #ccc; padding:3px 8px;">@row.BillsTotal.ToString("N3")</td>
+                        <td style="border:1px solid #ccc; padding:3px 8px;">@row.DebitsTotal.ToString("N3")</td>
+                        <td style="border:1px solid #ccc; padding:3px 8px;">@row.Total.ToString("N3")</td>
                     </tr>
                 }
                 <tr style="font-weight:bold; background:#f0f0f0;">
-                    <td style="border:1px solid #000; padding:4px 8px;">@Model.GrandTotal.ToString("N3")</td>
-                    <td style="border:1px solid #000; padding:4px 8px;">@Model.TotalDebitPayments.ToString("N3")</td>
-                    <td style="border:1px solid #000; padding:4px 8px;">@Model.TotalBills.ToString("N3")</td>
                     <td colspan="2" style="border:1px solid #000; padding:4px 8px; text-align:center;">الإجمالي</td>
+                    <td style="border:1px solid #000; padding:4px 8px;">@Model.TotalBills.ToString("N3")</td>
+                    <td style="border:1px solid #000; padding:4px 8px;">@Model.TotalDebitPayments.ToString("N3")</td>
+                    <td style="border:1px solid #000; padding:4px 8px;">@Model.GrandTotal.ToString("N3")</td>
                 </tr>
             </tbody>
         </table>

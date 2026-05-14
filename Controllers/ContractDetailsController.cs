@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 
-
+using ClosedXML.Excel;
 using CarRentWeb.Models;
 using CarRentWeb.Models.MyModel;
 
@@ -994,6 +994,107 @@ namespace CarRentWeb.Controllers
             };
 
             return View(viewModel);
+        }
+
+        public async Task<IActionResult> CollectionReportExcel(int? EmpCodeString, string? EmpSearch, int? companyId, DateTime? FromDateSearch, DateTime? ToDateSearch)
+        {
+            TempData.Keep();
+            TempData["UserCompanyData"] = HttpContext.Session.GetString("UserCompanyData");
+            var userCompanyData = TempData["UserCompanyData"]?.ToString();
+            var companyIds = userCompanyData!.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
+
+            var fromDate = FromDateSearch.HasValue ? DateOnly.FromDateTime(FromDateSearch.Value) : DateOnly.FromDateTime(DateTime.Today.AddDays(-7));
+            var toDate   = ToDateSearch.HasValue   ? DateOnly.FromDateTime(ToDateSearch.Value)   : DateOnly.FromDateTime(DateTime.Today);
+
+            var billQuery = _context.Bills
+                .FromSqlRaw($"Select * from Bill where EmployeeId In (Select Id From EmployeeInfo where DeleteFlag = 0 and CompanyId IN ({companyIdsString}))")
+                .Include(b => b.Employee).ThenInclude(e => e!.Company)
+                .Include(b => b.Contract).ThenInclude(c => c!.Car)
+                .Where(b => b.DeleteFlag == 0 && b.BillDate >= fromDate && b.BillDate <= toDate && b.Employee!.DeleteFlag == 0);
+
+            if (companyId.HasValue)    billQuery = (IOrderedQueryable<Bill>)billQuery.Where(b => b.Employee!.CompanyId == companyId.Value);
+            if (EmpCodeString.HasValue) billQuery = (IOrderedQueryable<Bill>)billQuery.Where(b => b.Employee!.EmpCode == EmpCodeString.Value);
+            if (!string.IsNullOrEmpty(EmpSearch)) billQuery = (IOrderedQueryable<Bill>)billQuery.Where(b => b.Employee!.FullNameAr!.Contains(EmpSearch));
+
+            var bills = await billQuery.Select(b => new BillCollectionItem
+            {
+                EmpCode = (int)(b.Employee!.EmpCode ?? 0),
+                EmployeeName = b.Employee.FullNameAr ?? "",
+                Amount = b.BillPayed ?? 0
+            }).ToListAsync();
+
+            var debitQuery = _context.DebitPayInfos
+                .FromSqlRaw($"select * from DebitPayInfo where DebitInfoId in (Select Id from DebitInfo where EmpId in (Select Id from EmployeeInfo where DeleteFlag = 0 and CompanyId IN ({companyIdsString})))")
+                .Include(d => d.DebitInfo).ThenInclude(di => di!.Emp)
+                .Where(d => d.DeleteFlag == 0 && d.DebitInfo!.Emp!.DeleteFlag == 0 && d.DebitPayDate >= fromDate && d.DebitPayDate <= toDate);
+
+            if (companyId.HasValue)    debitQuery = (IOrderedQueryable<DebitPayInfo>)debitQuery.Where(d => d.DebitInfo!.Emp!.CompanyId == companyId.Value);
+            if (EmpCodeString.HasValue) debitQuery = (IOrderedQueryable<DebitPayInfo>)debitQuery.Where(d => d.DebitInfo!.Emp!.EmpCode == EmpCodeString.Value);
+            if (!string.IsNullOrEmpty(EmpSearch)) debitQuery = (IOrderedQueryable<DebitPayInfo>)debitQuery.Where(d => d.DebitInfo!.Emp!.FullNameAr!.Contains(EmpSearch));
+
+            var debits = await debitQuery.Select(d => new DebitPayCollectionItem
+            {
+                EmpCode = (int)(d.DebitInfo!.Emp!.EmpCode ?? 0),
+                EmployeeName = d.DebitInfo.Emp.FullNameAr ?? "",
+                Amount = d.DebitPayQty ?? 0
+            }).ToListAsync();
+
+            var billsByEmp  = bills.GroupBy(b => new { b.EmpCode, b.EmployeeName }).Select(g => new { g.Key.EmpCode, g.Key.EmployeeName, BillsTotal = g.Sum(x => x.Amount) }).ToList();
+            var debitsByEmp = debits.GroupBy(d => new { d.EmpCode, d.EmployeeName }).Select(g => new { g.Key.EmpCode, g.Key.EmployeeName, DebitsTotal = g.Sum(x => x.Amount) }).ToList();
+            var allCodes    = billsByEmp.Select(b => b.EmpCode).Union(debitsByEmp.Select(d => d.EmpCode)).Distinct().OrderBy(c => c).ToList();
+
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add("تقرير الإيجار اليومي");
+            ws.RightToLeft = true;
+
+            ws.Cell(1, 1).Value = "رقم الموظف";
+            ws.Cell(1, 2).Value = "اسم الموظف";
+            ws.Cell(1, 3).Value = "الإيداع اليومي";
+            ws.Cell(1, 4).Value = "تحصيل الديون";
+            ws.Cell(1, 5).Value = "الإجمالي";
+
+            var headerRow = ws.Row(1);
+            headerRow.Style.Font.Bold = true;
+            headerRow.Style.Fill.BackgroundColor = XLColor.FromHtml("#1565c0");
+            headerRow.Style.Font.FontColor = XLColor.White;
+            headerRow.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+            int row = 2;
+            decimal totalBills = 0, totalDebits = 0;
+            foreach (var code in allCodes)
+            {
+                var b  = billsByEmp.FirstOrDefault(x => x.EmpCode == code);
+                var d  = debitsByEmp.FirstOrDefault(x => x.EmpCode == code);
+                var bt = b?.BillsTotal ?? 0m;
+                var dt = d?.DebitsTotal ?? 0m;
+                ws.Cell(row, 1).Value = code;
+                ws.Cell(row, 2).Value = b?.EmployeeName ?? d?.EmployeeName ?? "";
+                ws.Cell(row, 3).Value = bt;
+                ws.Cell(row, 4).Value = dt;
+                ws.Cell(row, 5).Value = bt + dt;
+                totalBills  += bt;
+                totalDebits += dt;
+                row++;
+            }
+
+            ws.Cell(row, 1).Value = "الإجمالي";
+            ws.Cell(row, 1).Style.Font.Bold = true;
+            ws.Cell(row, 3).Value = totalBills;
+            ws.Cell(row, 4).Value = totalDebits;
+            ws.Cell(row, 5).Value = totalBills + totalDebits;
+            ws.Row(row).Style.Font.Bold = true;
+            ws.Row(row).Style.Fill.BackgroundColor = XLColor.LightGray;
+
+            ws.Columns(3, 5).Style.NumberFormat.Format = "#,##0.000";
+            ws.Columns().AdjustToContents();
+
+            var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            stream.Position = 0;
+
+            return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                $"تقرير_التحصيل_{DateTime.Now:yyyyMMdd}.xlsx");
         }
     }
 }
