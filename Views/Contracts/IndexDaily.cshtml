@@ -1,13 +1,12 @@
 ﻿﻿@using CarRentWeb.Data
-@model PaginatedList<CarRentWeb.Models.Contract>
+@model CarRentWeb.Models.MyModel.IndexDailyViewModel
 @using CarRentWeb.Models.MyModel
 @inject IHttpContextAccessor HttpContextAccessor
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "العقود اليومية";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var user = HttpContextAccessor.HttpContext!.Session.GetObjectFromJson<PasswordDatum>("CurrentUser");
-
 }
 
 <style>
@@ -340,6 +339,30 @@
             color: #2c3e50;
         }
 
+    /* Section headers */
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 16px;
+        border-radius: 6px 6px 0 0;
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: #fff;
+        margin-top: 28px;
+    }
+
+    .section-due    { background: #e67e22; }
+    .section-paid   { background: #27ae60; }
+    .section-others { background: #2c3e50; }
+
+    .section-badge {
+        background: rgba(255,255,255,0.25);
+        border-radius: 12px;
+        padding: 2px 10px;
+        font-size: 0.82rem;
+    }
+
     /* Table container always scrollable */
     .table-container {
         overflow-x: auto;
@@ -431,15 +454,12 @@
 
 <h1 dir="rtl">العقود اليومية </h1>
 
-@{
-    var discountAlerts = ViewBag.DiscountAlerts as List<CarRentWeb.Models.Contract>;
-}
-@if (discountAlerts != null && discountAlerts.Count > 0)
+@if (Model.DiscountAlerts.Count > 0)
 {
     <div class="discount-alert-box" dir="rtl">
         <div class="discount-alert-header">
             <i class="fas fa-bell"></i>
-            تنبيه: عقود تقترب من تاريخ التخفيض (@discountAlerts.Count عقد)
+            تنبيه: عقود تقترب من تاريخ التخفيض (@Model.DiscountAlerts.Count عقد)
         </div>
         <div style="overflow-x:auto; -webkit-overflow-scrolling:touch;">
             <table class="discount-alert-table">
@@ -455,7 +475,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var alert in discountAlerts)
+                    @foreach (var alert in Model.DiscountAlerts)
                     {
                         var daysLeft = alert.DiscountDate!.Value.DayNumber - DateOnly.FromDateTime(DateTime.Today).DayNumber;
                         var rowClass = daysLeft == 0 ? "alert-today" : (daysLeft <= 3 ? "alert-urgent" : "alert-soon");
@@ -463,34 +483,10 @@
                             <td>@alert.ContractNo</td>
                             <td>@alert.Employee?.FullNameAr</td>
                             <td>@alert.Car?.CarCode</td>
-                            <td>
-                                @switch (alert.RentalType)
-                                {
-                                    case 1:
-                                        @:تخفيض ثم تملك
-                                        break;
-                                    case 2:
-                                        @:مخفض ملكية سائق
-                                        break;
-                                    case 3:
-                                        @:مخفض ملكية شركة
-                                        break;
-                                }
-                            </td>
+                            <td>@RentalTypeText(alert.RentalType)</td>
                             <td>@alert.DiscountDate</td>
-                            <td>
-                                @if (daysLeft == 0)
-                                {
-                                    <strong>اليوم</strong>
-                                }
-                                else
-                                {
-                                    @:@daysLeft يوم
-                                }
-                            </td>
-                            <td>
-                                <a asp-action="DetailsDaily" asp-route-id="@alert.Id" class="btn-details" style="font-size:0.72rem">تفاصيل</a>
-                            </td>
+                            <td>@(daysLeft == 0 ? "اليوم" : $"{daysLeft} يوم")</td>
+                            <td><a asp-action="DetailsDaily" asp-route-id="@alert.Id" class="btn-details" style="font-size:0.72rem">تفاصيل</a></td>
                         </tr>
                     }
                 </tbody>
@@ -532,163 +528,124 @@
     </form>
 </div>
 
-<div class="table-container">
-    <table class="bordered-table" dir="rtl">
-        <thead>
-            <tr>
-                <th>
-                    رقم العقد
-                </th>
-                <th>
-                    تاريخ العقد
-                </th>
-                <th>
-                    كود السيارة
-                </th>
-                <th>
-                    رقم الموظف
-                </th>
-                <th>
-                    اسم الموظف
-                </th>
-                <th>
-                    بداية العقد
-                </th>
-                <th>
-                    نهاية العقد
-                </th>
-                <th>
-                    عدد الأيام
-                </th>
-                <th>
-                    المبلغ  اليومي
-                </th>
-                <th>
-                    نوع التأجير
-                </th>
-                <th>
-                    تاريخ التخفيض
-                </th>
-                <th>
-                    عدد السنين
-                </th>
-
+@* ── القسم 1: العقود المفروض تندفع اليوم ── *@
+<div dir="rtl">
+    <div class="section-header section-due">
+        <i class="fas fa-clock"></i> العقود المفروض تندفع اليوم
+        <span class="section-badge">@Model.DueToday.Count</span>
+    </div>
+    <div class="table-container">
+        <table class="bordered-table" dir="rtl" style="border-radius:0 0 8px 8px;">
+            <thead><tr>
+                <th>رقم العقد</th><th>تاريخ العقد</th><th>كود السيارة</th>
+                <th>رقم الموظف</th><th>اسم الموظف</th>
+                <th>بداية العقد</th><th>نهاية العقد</th><th>عدد الأيام</th>
+                <th>المبلغ اليومي</th><th>نوع التأجير</th><th>تاريخ التخفيض</th><th>عدد السنين</th>
                 <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model)
-            {
-                <tr>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.ContractNo)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.ContractDate)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Car!.CarCode)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Employee!.EmpCode)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Employee!.FullNameAr)
-                    </td>
+            </tr></thead>
+            <tbody>
+                @if (!Model.DueToday.Any())
+                {
+                    <tr><td colspan="13" style="text-align:center;padding:14px;color:#999;">لا توجد عقود</td></tr>
+                }
+                @foreach (var item in Model.DueToday)
+                {
+                    @Html.Raw(ContractRow(item, user!))
+                }
+            </tbody>
+        </table>
+    </div>
 
-                    <td>
-                        @Html.DisplayFor(modelItem => item.StartDate)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.EndDate)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.NoOfDays)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.DailyCredit)
-                    </td>
-                    <td>
-                        @switch (item.RentalType)
-                        {
-                            case 0:
-                                @:عادي
-                                break;
-                            case 1:
+    @* ── القسم 2: العقود اللي اندفعت اليوم ── *@
+    <div class="section-header section-paid">
+        <i class="fas fa-check-circle"></i> العقود اللي اندفعت اليوم
+        <span class="section-badge">@Model.PaidToday.Count</span>
+    </div>
+    <div class="table-container">
+        <table class="bordered-table" dir="rtl" style="border-radius:0 0 8px 8px;">
+            <thead><tr>
+                <th>رقم العقد</th><th>تاريخ العقد</th><th>كود السيارة</th>
+                <th>رقم الموظف</th><th>اسم الموظف</th>
+                <th>بداية العقد</th><th>نهاية العقد</th><th>عدد الأيام</th>
+                <th>المبلغ اليومي</th><th>نوع التأجير</th><th>تاريخ التخفيض</th><th>عدد السنين</th>
+                <th></th>
+            </tr></thead>
+            <tbody>
+                @if (!Model.PaidToday.Any())
+                {
+                    <tr><td colspan="13" style="text-align:center;padding:14px;color:#999;">لا توجد عقود</td></tr>
+                }
+                @foreach (var item in Model.PaidToday)
+                {
+                    @Html.Raw(ContractRow(item, user!))
+                }
+            </tbody>
+        </table>
+    </div>
 
-                                @:تخفيض ثم تملك
-                                break;
-                            case 2:
-
-                                @:مخفض ملكية سائق
-                                break;
-                            case 3:
-
-                                @:مخفض ملكية شركة
-                                break;
-                            default:
-
-                                @:عادي
-                                break;
-                        }
-                    </td>
-                    <td>
-                        @(item.DiscountDate.HasValue? item.DiscountDate.Value.ToString() : "-")
-                    </td>
-                    <td>
-                        @{
-                            int contractDays = (item.StartDate.HasValue && item.EndDate.HasValue)
-                            ? item.EndDate.Value.DayNumber - item.StartDate.Value.DayNumber
-                            : (item.NoOfDays ?? 0);
-                            double contractYears = Math.Round(contractDays / 365.0, 1);
-                        }
-                        @contractYears
-                    </td>
-
-                    <td class="action-links">
-                        <a asp-action="CreateDaily" asp-controller="Bills" asp-route-id="@item.Id" class="btn-danger"><i class="fas fa-paypal"></i> دفع </a>
-                        <a asp-action="DetailsDaily" asp-route-id="@item.Id" class="btn-details"><i class="fas fa-info-circle"></i> تفاصيل</a>
-                        @if (user!.ContractDailySave == true)
-                        {
-                            <a asp-action="EditDailyContract" asp-route-id="@item.Id" class="btn-edit"><i class="fas fa-edit"></i> تعديل</a>
-                        }
-                        @if (user!.ContractDailyEnd == true)
-                        {
-                            <a asp-action="EndContractDaily" asp-route-id="@item.Id" class="btn-delete"><i class="fas fa-trash-alt"></i> إنتهاء عقد</a>
-                        }
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    @* ── القسم 3: باقي العقود ── *@
+    <div class="section-header section-others">
+        <i class="fas fa-list"></i> باقي العقود
+        <span class="section-badge">@Model.Others.Count</span>
+    </div>
+    <div class="table-container">
+        <table class="bordered-table" dir="rtl" style="border-radius:0 0 8px 8px;">
+            <thead><tr>
+                <th>رقم العقد</th><th>تاريخ العقد</th><th>كود السيارة</th>
+                <th>رقم الموظف</th><th>اسم الموظف</th>
+                <th>بداية العقد</th><th>نهاية العقد</th><th>عدد الأيام</th>
+                <th>المبلغ اليومي</th><th>نوع التأجير</th><th>تاريخ التخفيض</th><th>عدد السنين</th>
+                <th></th>
+            </tr></thead>
+            <tbody>
+                @if (!Model.Others.Any())
+                {
+                    <tr><td colspan="13" style="text-align:center;padding:14px;color:#999;">لا توجد عقود</td></tr>
+                }
+                @foreach (var item in Model.Others)
+                {
+                    @Html.Raw(ContractRow(item, user!))
+                }
+            </tbody>
+        </table>
+    </div>
 </div>
-<div class="pagination-container" dir="rtl">
-    @{
-        var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
-        var nextDisabled = !Model.HasNextPage ? "disabled" : "";
+
+@functions {
+    string RentalTypeText(int? rt) => rt switch {
+        1 => "تخفيض ثم تملك",
+        2 => "مخفض ملكية سائق",
+        3 => "مخفض ملكية شركة",
+        _ => "عادي"
+    };
+
+    string ContractRow(CarRentWeb.Models.Contract item, CarRentWeb.Models.PasswordDatum u)
+    {
+        int cd = (item.StartDate.HasValue && item.EndDate.HasValue)
+            ? item.EndDate.Value.DayNumber - item.StartDate.Value.DayNumber
+            : (item.NoOfDays ?? 0);
+        double cy = Math.Round(cd / 365.0, 1);
+        string discount = item.DiscountDate.HasValue ? item.DiscountDate.Value.ToString() : "-";
+
+        string payBtn   = $"<a href='/Bills/CreateDaily/{item.Id}' class='btn-danger'><i class='fas fa-paypal'></i> دفع</a>";
+        string detBtn   = $"<a href='/Contracts/DetailsDaily/{item.Id}' class='btn-details'><i class='fas fa-info-circle'></i> تفاصيل</a>";
+        string editBtn  = u.ContractDailySave == true  ? $"<a href='/Contracts/EditDailyContract/{item.Id}' class='btn-edit'><i class='fas fa-edit'></i> تعديل</a>" : "";
+        string endBtn   = u.ContractDailyEnd  == true  ? $"<a href='/Contracts/EndContractDaily/{item.Id}' class='btn-delete'><i class='fas fa-trash-alt'></i> إنتهاء عقد</a>" : "";
+
+        return $@"<tr>
+            <td>{item.ContractNo}</td>
+            <td>{item.ContractDate}</td>
+            <td>{item.Car?.CarCode}</td>
+            <td>{item.Employee?.EmpCode}</td>
+            <td>{item.Employee?.FullNameAr}</td>
+            <td>{item.StartDate}</td>
+            <td>{item.EndDate}</td>
+            <td>{item.NoOfDays}</td>
+            <td>{item.DailyCredit}</td>
+            <td>{RentalTypeText(item.RentalType)}</td>
+            <td>{discount}</td>
+            <td>{cy}</td>
+            <td class='action-links'>{payBtn}{detBtn}{editBtn}{endBtn}</td>
+        </tr>";
     }
-
-    <a asp-action="IndexDaily"
-       asp-route-pageNumber="@(Model.PageIndex - 1)"
-       asp-route-ContractNoString="@ViewData["ContractNoFilter"]"
-       asp-route-CarCodeString="@ViewData["CarCodeFilter"]"
-       asp-route-EmpCodeString="@ViewData["EmpCodeFilter"]"
-       asp-route-EmpNameSearch="@ViewData["EmpNameFilter"]"
-       asp-route-companyId="@ViewData["CompanyFilter"]"
-       class="btn btn-default @prevDisabled">
-        السابق
-    </a>
-
-    <span>الصفحة @Model.PageIndex من @Model.TotalPages</span>
-
-    <a asp-action="IndexDaily"
-       asp-route-pageNumber="@(Model.PageIndex + 1)"
-       asp-route-ContractNoString="@ViewData["ContractNoFilter"]"
-       asp-route-CarCodeString="@ViewData["CarCodeFilter"]"
-       asp-route-EmpCodeString="@ViewData["EmpCodeFilter"]"
-       asp-route-EmpNameSearch="@ViewData["EmpNameFilter"]"
-       asp-route-companyId="@ViewData["CompanyFilter"]"
-       class="btn btn-default @nextDisabled">
-        التالي
-    </a>
-</div>
+}

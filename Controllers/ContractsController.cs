@@ -163,98 +163,72 @@ namespace CarRentWeb.Controllers
 
         #region "Daily Contract"
 
-        public async Task<IActionResult> IndexDaily(int? CarCodeString, int? EmpCodeString, string? EmpNameSearch, int? companyId, int? pageNumber, string? ContractNoString)
+        public async Task<IActionResult> IndexDaily(int? CarCodeString, int? EmpCodeString, string? EmpNameSearch, int? companyId, string? ContractNoString)
         {
             TempData["Username"] = HttpContext.Session.GetString("Username");
             ViewData["UserId"] = HttpContext.Session.GetInt32("UserId");
-            TempData.Keep(); // Keeps all TempData values
+            TempData.Keep();
 
-            //var timePeriods = new List<SelectListItem>
-            //{
-            //    new SelectListItem { Value = "0", Text = "يومي" },
-            //    new SelectListItem { Value = "1", Text = "شهري" }
-            //};
-            //ViewBag.TimePeriods = new SelectList(timePeriods, "Value", "Text");
-
-            // Get companies for dropdown
             ViewBag.Companies = new SelectList(
                 await _context.CompanyInfos
                     .Where(c => c.DeleteFlag == 0)
                     .OrderBy(c => c.CompNameAr)
                     .ToListAsync(),
-                "Id",
-                "CompNameAr",
-                companyId);
+                "Id", "CompNameAr", companyId);
 
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            // PaymentDay mapping: 1=الأحد ... 7=السبت  →  (int)DayOfWeek + 1
+            int todayPaymentDay = (int)DateTime.Today.DayOfWeek + 1;
 
-
-            // Base query with includes
             var query = _context.Contracts
                 .Include(c => c.Car)
                 .Include(c => c.Employee)
-                .Include(c => c.User)
+                .Include(c => c.Bills)
                 .Where(m => m.DeleteFlag == 0 && m.Status == 0 && m.ContractType == 0)
                 .OrderBy(e => e.ContractNo);
 
-
             if (!string.IsNullOrEmpty(ContractNoString))
-            {
                 query = (IOrderedQueryable<Contract>)query.Where(e => e.ContractNo!.Contains(ContractNoString));
-            }
-
-
-            // Apply filters
             if (CarCodeString.HasValue)
-            {
                 query = (IOrderedQueryable<Contract>)query.Where(e => e.Car!.CarCode == CarCodeString);
-            }
-            //if (ContractType.HasValue)
-            //{
-            //    query = (IOrderedQueryable<Contract>)query.Where(e => e.ContractType == ContractType);
-            //}
-
-
             if (EmpCodeString.HasValue)
-            {
                 query = (IOrderedQueryable<Contract>)query.Where(e => e.Employee!.EmpCode == EmpCodeString);
-            }
-
             if (!string.IsNullOrEmpty(EmpNameSearch))
-            {
                 query = (IOrderedQueryable<Contract>)query.Where(e => e.Employee!.FullNameAr!.Contains(EmpNameSearch));
-            }
-
             if (companyId.HasValue)
-            {
                 query = (IOrderedQueryable<Contract>)query.Where(e => e.Employee!.CompanyId == companyId.Value);
-            }
 
-            // Store current search values for the view
             ViewData["ContractNoFilter"] = ContractNoString;
-            ViewData["CarCodeFilter"] = CarCodeString;
-            ViewData["EmpCodeFilter"] = EmpCodeString;
-            ViewData["EmpNameFilter"] = EmpNameSearch;
-            ViewData["CompanyFilter"] = companyId;
+            ViewData["CarCodeFilter"]    = CarCodeString;
+            ViewData["EmpCodeFilter"]    = EmpCodeString;
+            ViewData["EmpNameFilter"]    = EmpNameSearch;
+            ViewData["CompanyFilter"]    = companyId;
 
-            // Discount approaching notification (within 7 days)
-            var today = DateOnly.FromDateTime(DateTime.Today);
-            var alertThreshold = today.AddDays(7);
+            var allContracts = await query.AsNoTracking().ToListAsync();
+
+            var paidTodayIds = allContracts
+                .Where(c => c.Bills.Any(b => b.DeleteFlag == 0 && b.BillDate == today))
+                .Select(c => c.Id)
+                .ToHashSet();
+
             var discountAlerts = await _context.Contracts
-                .Include(c => c.Car)
-                .Include(c => c.Employee)
+                .Include(c => c.Car).Include(c => c.Employee)
                 .Where(m => m.DeleteFlag == 0 && m.Status == 0 && m.ContractType == 0
                          && m.RentalType != 0 && m.RentalType != null
                          && m.DiscountDate != null
-                         && m.DiscountDate >= today
-                         && m.DiscountDate <= alertThreshold)
+                         && m.DiscountDate >= today && m.DiscountDate <= today.AddDays(7))
                 .OrderBy(m => m.DiscountDate)
-                .AsNoTracking()
-                .ToListAsync();
-            ViewBag.DiscountAlerts = discountAlerts;
+                .AsNoTracking().ToListAsync();
 
-            // Pagination
-            int pageSize = 10; // Set your page size
-            return View(await PaginatedList<Contract>.CreateAsync(query.AsNoTracking(), pageNumber ?? 1, pageSize));
+            var vm = new CarRentWeb.Models.MyModel.IndexDailyViewModel
+            {
+                PaidToday     = allContracts.Where(c => paidTodayIds.Contains(c.Id)).ToList(),
+                DueToday      = allContracts.Where(c => !paidTodayIds.Contains(c.Id) && c.Employee?.PaymentDay == todayPaymentDay).ToList(),
+                Others        = allContracts.Where(c => !paidTodayIds.Contains(c.Id) && c.Employee?.PaymentDay != todayPaymentDay).ToList(),
+                DiscountAlerts = discountAlerts,
+            };
+
+            return View(vm);
         }
 
         public IActionResult CreateDaily()
