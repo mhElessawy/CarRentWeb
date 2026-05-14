@@ -97,6 +97,8 @@ public partial class EmployeeInfo
 
     public bool EmpDepMang { get; set; } = false;
 
+    public int? PaymentDay { get; set; }
+
     public virtual ICollection<Bill> Bills { get; set; } = new List<Bill>();
 
     public virtual CompanyInfo? Company { get; set; }
