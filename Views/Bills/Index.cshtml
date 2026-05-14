@@ -422,15 +422,18 @@
 
 <script>
     function printBills() {
-        var printContents = document.querySelector('.bordered-table').outerHTML;
+        var tableClone = document.querySelector('.bordered-table').cloneNode(true);
+        tableClone.querySelectorAll('.no-print').forEach(function (el) { el.remove(); });
+
         var originalContents = document.body.innerHTML;
 
         document.body.innerHTML =
             '<h1 style="text-align:center">فواتير الأقساط</h1>' +
-            printContents +
+            tableClone.outerHTML +
             '<div style="margin-top:20px;font-weight:bold">إجمالي الإيراد: @String.Format("{0:C}", ViewBag.TotalBillPayed)</div>';
 
         window.print();
         document.body.innerHTML = originalContents;
+        location.reload();
     }
 </script>
