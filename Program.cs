@@ -72,6 +72,38 @@ using (var scope = app.Services.CreateScope())
         IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('CompanyInfo') AND name = 'CompSignature')
             ALTER TABLE CompanyInfo ADD CompSignature nvarchar(255) NULL;
     ");
+
+    // Create DriverOnboardingStep table if not exists
+    db.Database.ExecuteSqlRaw(@"
+        IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID(N'DriverOnboardingStep') AND type = 'U')
+        BEGIN
+            CREATE TABLE DriverOnboardingStep (
+                Id          INT IDENTITY(1,1) PRIMARY KEY,
+                StepName    NVARCHAR(200) NOT NULL,
+                Description NVARCHAR(500) NULL,
+                StepOrder   INT NOT NULL DEFAULT 0,
+                IsActive    BIT NOT NULL DEFAULT 1
+            );
+        END
+    ");
+
+    // Create EmployeeOnboardingProgress table if not exists
+    db.Database.ExecuteSqlRaw(@"
+        IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID(N'EmployeeOnboardingProgress') AND type = 'U')
+        BEGIN
+            CREATE TABLE EmployeeOnboardingProgress (
+                Id            INT IDENTITY(1,1) PRIMARY KEY,
+                EmployeeId    INT NOT NULL,
+                StepId        INT NOT NULL,
+                IsCompleted   BIT NOT NULL DEFAULT 0,
+                CompletedDate DATE NULL,
+                Notes         NVARCHAR(500) NULL,
+                CONSTRAINT FK_OnboardingProgress_Employee FOREIGN KEY (EmployeeId) REFERENCES EmployeeInfo(Id),
+                CONSTRAINT FK_OnboardingProgress_Step     FOREIGN KEY (StepId)     REFERENCES DriverOnboardingStep(Id),
+                CONSTRAINT UQ_OnboardingProgress          UNIQUE (EmployeeId, StepId)
+            );
+        END
+    ");
 }
 
 // Configure the HTTP request pipeline.

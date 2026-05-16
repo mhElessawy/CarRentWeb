@@ -706,4 +706,6 @@ public partial class CarRentWebContext : DbContext
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
     public DbSet<DeffInformation> DeffInformation { get; set; } = default!;
 
+    public virtual DbSet<DriverOnboardingStep> DriverOnboardingSteps { get; set; }
+    public virtual DbSet<EmployeeOnboardingProgress> EmployeeOnboardingProgresses { get; set; }
 }
