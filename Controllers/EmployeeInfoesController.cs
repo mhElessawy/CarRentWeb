@@ -21,7 +21,7 @@ namespace CarRentWeb.Controllers
         }
 
         // GET: EmployeeInfoes
-        public async Task<IActionResult> Index(int? searchString, string nameSearch, int? companyId, int? pageNumber)
+        public async Task<IActionResult> Index(int? searchString, string nameSearch, int? companyId, bool? withoutContract, int? pageNumber)
         {
             try
             {
@@ -73,10 +73,17 @@ namespace CarRentWeb.Controllers
                     query = (IOrderedQueryable<EmployeeInfo>)query.Where(e => e.CompanyId == companyId.Value);
                 }
 
+                if (withoutContract == true)
+                {
+                    query = (IOrderedQueryable<EmployeeInfo>)query.Where(e =>
+                        !_context.Contracts.Any(c => c.EmployeeId == e.Id && c.DeleteFlag == 0 && c.Status == 0));
+                }
+
                 // Store current search values for the view
                 ViewData["CurrentFilter"] = searchString;
                 ViewData["NameFilter"] = nameSearch;
                 ViewData["CompanyFilter"] = companyId;
+                ViewData["WithoutContractFilter"] = withoutContract;
 
                 // Pagination
                 int pageSize = 50; // Set your page size

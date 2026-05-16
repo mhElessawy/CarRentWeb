@@ -355,7 +355,7 @@
 <div class="search-container" dir="rtl">
     <form asp-action="Index" method="get">
         <div class="form-group">
-            <label for="CarCodeString">بحث بكود السيارة:</label>                   
+            <label for="CarCodeString">بحث بكود السيارة:</label>
             <input type="number" name="CarCodeString" value="@ViewData["CarCodeFilter"]" placeholder=" كود السيارة " style="width:120px" />
 
             <label for="CarNoSearch">بحث برقم السيارة:</label>
@@ -371,9 +371,15 @@
                 <option value="">-- جميع الشركات --</option>
             </select>
 
+            <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;">
+                <input type="checkbox" name="withoutContract" value="true"
+                       @(ViewData["WithoutContractFilter"] as bool? == true ? "checked" : "") />
+                بلا عقود فقط
+            </label>
+
             <input type="submit" value="بحث" class="btn btn-primary" />
             <a asp-action="Index" class="btn btn-secondary">إعادة تعيين</a>
-        </div>            
+        </div>
     </form>
 </div>
 
@@ -438,6 +444,7 @@
        asp-route-CarNoString="@ViewData["CarNoFilter"]"
        asp-route-CarTypeId="@ViewData["CarTypeFilter"]"
        asp-route-companyId="@ViewData["CompanyFilter"]"
+       asp-route-withoutContract="@ViewData["WithoutContractFilter"]"
        class="btn btn-default @prevDisabled">
         السابق
     </a>
@@ -448,8 +455,9 @@
        asp-route-pageNumber="@(Model.PageIndex + 1)"
        asp-route-CarCodeString="@ViewData["CarCodeFilter"]"
        asp-route-CarNoString="@ViewData["CarNoFilter"]"
-       asp-route-CarKindId="@ViewData["CarKindFilter"]"
+       asp-route-CarTypeId="@ViewData["CarTypeFilter"]"
        asp-route-companyId="@ViewData["CompanyFilter"]"
+       asp-route-withoutContract="@ViewData["WithoutContractFilter"]"
        class="btn btn-default @nextDisabled">
         التالي
     </a>

@@ -17,7 +17,7 @@ namespace CarRentWeb.Controllers
             _context = context;
         }
         // GET: CarInfoes
-        public async Task<IActionResult> Index(int? CarCodeString, string? CarNoSearch, int? CarTypeId, int? companyId, int? pageNumber)
+        public async Task<IActionResult> Index(int? CarCodeString, string? CarNoSearch, int? CarTypeId, int? companyId, bool? withoutContract, int? pageNumber)
         {
             TempData["Username"] = HttpContext.Session.GetString("Username");
             ViewData["UserId"] = HttpContext.Session.GetInt32("UserId");
@@ -76,6 +76,13 @@ namespace CarRentWeb.Controllers
             {
                 query = (IOrderedQueryable<CarInfo>)query.Where(e => e.CompanyId == companyId.Value);
             }
+
+            if (withoutContract == true)
+            {
+                query = (IOrderedQueryable<CarInfo>)query.Where(e =>
+                    !_context.Contracts.Any(c => c.CarId == e.Id && c.DeleteFlag == 0 && c.Status == 0));
+            }
+
             // Create the view model query
             var viewModelQuery = query
                 .Select(car => new CarInfoWithCreditsViewModel
@@ -94,6 +101,7 @@ namespace CarRentWeb.Controllers
             ViewData["CarNoFilter"] = CarNoSearch;
             ViewData["CarTypeFilter"] = CarTypeId;
             ViewData["CompanyFilter"] = companyId;
+            ViewData["WithoutContractFilter"] = withoutContract;
 
             // Pagination with the view model
             int pageSize = 50;

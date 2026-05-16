@@ -390,6 +390,14 @@
                     </select>
                 </div>
 
+                <div class="form-field" style="display:flex;align-items:flex-end;padding-bottom:4px;">
+                    <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-weight:600;color:#2c3e50;">
+                        <input type="checkbox" name="withoutContract" value="true"
+                               @(ViewData["WithoutContractFilter"] as bool? == true ? "checked" : "") />
+                        بلا عقود فقط
+                    </label>
+                </div>
+
                 <div class="form-actions">
                     <input type="submit" value="بحث" class="btn btn-primary" />
                     <a asp-action="Index" class="btn btn-secondary">إعادة تعيين</a>
@@ -469,6 +477,7 @@
            asp-route-searchString="@ViewData["CurrentFilter"]"
            asp-route-nameSearch="@ViewData["NameFilter"]"
            asp-route-companyId="@ViewData["CompanyFilter"]"
+           asp-route-withoutContract="@ViewData["WithoutContractFilter"]"
            class="btn btn-default @prevDisabled">
             السابق
         </a>
@@ -480,6 +489,7 @@
            asp-route-searchString="@ViewData["CurrentFilter"]"
            asp-route-nameSearch="@ViewData["NameFilter"]"
            asp-route-companyId="@ViewData["CompanyFilter"]"
+           asp-route-withoutContract="@ViewData["WithoutContractFilter"]"
            class="btn btn-default @nextDisabled">
             التالي
         </a>
