@@ -79,6 +79,22 @@
                     <th>رقم الهوية المدنية</th>
                     <th>تاريخ انتهاء الهوية</th>
                 }
+                else if (dataType == "CarsWithoutContract")
+                {
+                    <th>كود السيارة</th>
+                    <th>رقم السيارة</th>
+                    <th>الشركة المصنعة</th>
+                    <th>الموديل</th>
+                    <th>اسم الشركة</th>
+                }
+                else if (dataType == "EmpsWithoutContract")
+                {
+                    <th>كود الموظف</th>
+                    <th>اسم الموظف</th>
+                    <th>الرقم المدني</th>
+                    <th>رقم الهاتف</th>
+                    <th>اسم الشركة</th>
+                }
             </tr>
         </thead>
         <tbody>
@@ -185,6 +201,32 @@
                         <td>@item.MobiileNo</td>
                         <td>@item.CivilId</td>
                         <td>@item.CivilIdendDate</td>
+                    </tr>
+                }
+            }
+            else if (dataType == "CarsWithoutContract")
+            {
+                foreach (var item in (Model as List<CarInfo>) ?? Enumerable.Empty<CarInfo>())
+                {
+                    <tr>
+                        <td>@item.CarCode</td>
+                        <td>@item.CarNo</td>
+                        <td>@item.CarType?.DeffName</td>
+                        <td>@item.CarModel</td>
+                        <td>@item.Company?.CompNameAr</td>
+                    </tr>
+                }
+            }
+            else if (dataType == "EmpsWithoutContract")
+            {
+                foreach (var item in (Model as List<EmployeeInfo>) ?? Enumerable.Empty<EmployeeInfo>())
+                {
+                    <tr>
+                        <td>@item.EmpCode</td>
+                        <td>@item.FullNameAr</td>
+                        <td>@item.CivilId</td>
+                        <td>@item.MobiileNo</td>
+                        <td>@item.Company?.CompNameAr</td>
                     </tr>
                 }
             }
