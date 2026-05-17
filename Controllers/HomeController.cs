@@ -83,7 +83,7 @@ namespace CarRentWeb.Controllers
                     .Where(a => a.ResEndDate <= threeMonthsAgo)
                     .ToList();
 
-                ViewBag.Header = "������ ��������";
+                ViewBag.Header = "إنتهاء الإقامات";
                 ViewBag.DataType = "EmpRes";
                 return View(data);
             }
@@ -93,7 +93,7 @@ namespace CarRentWeb.Controllers
                     .Where(a => a.CarEndLicense <= threeMonthsAgo)
                     .ToList();
 
-                ViewBag.Header = "������ ���� ����";
+                ViewBag.Header = "إنتهاء دفتر السيارة";
                 ViewBag.DataType = "CarLicense";
                 return View(data);
             }
@@ -103,7 +103,7 @@ namespace CarRentWeb.Controllers
                     .Where(a => a.EndPerm <= threeMonthsAgo)
                     .ToList();
 
-                ViewBag.Header = "������ ��� �����";
+                ViewBag.Header = "إنتهاء إذن العمل";
                 ViewBag.DataType = "EmpPerm";
                 return View(data);
             }
@@ -113,7 +113,7 @@ namespace CarRentWeb.Controllers
                     .Where(a => a.EndLicense <= threeMonthsAgo)
                     .ToList();
 
-                ViewBag.Header = "������ ���� �������";
+                ViewBag.Header = "إنتهاء رخصة سواقه";
                 ViewBag.DataType = "EmpLicense";
                 return View(data);
             }
@@ -149,7 +149,6 @@ namespace CarRentWeb.Controllers
                 ViewBag.DataType = "NearDiscountDate";
                 return View(data);
             }
-
             else if (id == 7)
             {
                 var activeCarIds = _context.Contracts

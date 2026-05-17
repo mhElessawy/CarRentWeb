@@ -17,7 +17,7 @@ namespace CarRentWeb.Controllers
         }
 
         // GET: EmployeeOnboarding — list employees with progress
-        public async Task<IActionResult> Index(int? searchCode, string? nameSearch, int? companyId)
+        public async Task<IActionResult> Index(int? searchCode, string? nameSearch, int? companyId, string? statusFilter)
         {
             TempData["Username"] = HttpContext.Session.GetString("Username");
             TempData.Keep();
@@ -64,10 +64,21 @@ namespace CarRentWeb.Controllers
                 .Select(g => new { EmployeeId = g.Key, Count = g.Count() })
                 .ToDictionaryAsync(x => x.EmployeeId, x => x.Count);
 
+            if (!string.IsNullOrEmpty(statusFilter))
+            {
+                employees = statusFilter switch
+                {
+                    "completed" => employees.Where(e => totalSteps > 0 && progressData.ContainsKey(e.Id) && progressData[e.Id] == totalSteps).ToList(),
+                    "notcompleted" => employees.Where(e => !(totalSteps > 0 && progressData.ContainsKey(e.Id) && progressData[e.Id] == totalSteps)).ToList(),
+                    _ => employees
+                };
+            }
+
             ViewBag.TotalSteps = totalSteps;
             ViewBag.ProgressData = progressData;
             ViewBag.SearchCode = searchCode;
             ViewBag.NameSearch = nameSearch;
+            ViewBag.StatusFilter = statusFilter;
 
             return View(employees);
         }
