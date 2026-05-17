@@ -102,20 +102,32 @@
     <!-- Search Bar -->
     <form method="get" class="card p-3 mb-3 shadow-sm" style="border-radius:10px">
         <div class="row g-2 align-items-end">
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label class="form-label small fw-semibold mb-1">كود السائق</label>
                 <input type="number" name="searchCode" class="form-control form-control-sm"
                        placeholder="كود السائق" value="@ViewBag.SearchCode" />
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <label class="form-label small fw-semibold mb-1">اسم السائق</label>
                 <input type="text" name="nameSearch" class="form-control form-control-sm"
                        placeholder="ابحث بالاسم" value="@ViewBag.NameSearch" />
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label class="form-label small fw-semibold mb-1">الشركة</label>
                 <select name="companyId" class="form-select form-select-sm" asp-items="ViewBag.Companies" dir="rtl">
                     <option value="">-- كل الشركات --</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold mb-1">حالة الإجراءات</label>
+                <select name="statusFilter" class="form-select form-select-sm" dir="rtl">
+                    <option value="" selected="@(string.IsNullOrEmpty(ViewBag.StatusFilter as string))">-- الكل --</option>
+                    <option value="completed" selected="@((ViewBag.StatusFilter as string) == "completed")">
+                        ✔ خلص الإجراءات (مكتمل)
+                    </option>
+                    <option value="notcompleted" selected="@((ViewBag.StatusFilter as string) == "notcompleted")">
+                        ✗ لم يكمل الإجراءات
+                    </option>
                 </select>
             </div>
             <div class="col-md-2">
