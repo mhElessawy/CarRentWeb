@@ -79,6 +79,11 @@
                         {
                             <li><a asp-action="Index" asp-controller="EmployeeInfoes"><i class="bi bi-person-lines-fill"></i> بيانات الموظفين</a></li>
                         }
+                        <li><a asp-action="Index" asp-controller="EmployeeOnboarding"><i class="bi bi-person-check-fill"></i> تجهيز السائقين</a></li>
+                        @if (user.UserAdmin == true)
+                        {
+                            <li><a asp-action="Index" asp-controller="DriverOnboardingSteps"><i class="bi bi-list-check"></i> تعريف خطوات التجهيز</a></li>
+                        }
                         @if (user!.DebitView == true)
                         {
                             <li class="has-submenu">
@@ -109,11 +114,11 @@
                         {
                             <li><a asp-action="RecievedMoney" asp-controller="EmployeeInfoes"><i class="bi bi-cash-coin"></i> استلام المبالغ</a></li>
                         }
-                       @*  @if (user.CompDebitView == true)
+                        @*  @if (user.CompDebitView == true)
                         {
                             <li><a asp-action="Index" asp-controller="CompanyDebits"><i class="bi bi-building-exclamation"></i> ديون الشركات</a></li>
                         } *@
-                       @*  <li class="has-submenu">
+                        @*  <li class="has-submenu">
                             <a href="#"><i class="bi bi-currency-dollar"></i> الرواتب <i class="bi bi-chevron-left submenu-arrow"></i></a>
                             <ul class="submenu">
                                 <li><a asp-action="Index" asp-controller="EmployeeSalaries">إضافة راتب</a></li>
@@ -216,11 +221,11 @@
                     <ul class="dropdown-menu-custom">
                         <li><a asp-action="Index" asp-controller="Bills"><i class="bi bi-cash"></i> التحصيل</a></li>
                         <li><a asp-action="IndexReport" asp-controller="DebitPayInfoes"><i class="bi bi-cash-stack"></i> تحصيل الديون</a></li>
-                      
+
                         <li><a asp-action="IndexReport" asp-controller="Purshases"><i class="bi bi-receipt-cutoff"></i> المصاريف</a></li>
                         <li><a asp-action="CollectionReport" asp-controller="ContractDetails"><i class="bi bi-clipboard-check"></i> متابعة التحصيل</a></li>
                         <li><a asp-action="IndexReportTakeMoney" asp-controller="EmployeeTakeMoneys"><i class="bi bi-wallet"></i> العهد</a></li>
-                      @*   <li><a asp-action="IndexPrint" asp-controller="CompanyDebits"><i class="bi bi-building-check"></i> ديون الشركات مجمع</a></li>
+                        @*   <li><a asp-action="IndexPrint" asp-controller="CompanyDebits"><i class="bi bi-building-check"></i> ديون الشركات مجمع</a></li>
                         <li><a asp-action="Index" asp-controller="CompanyDebitDetails"><i class="bi bi-building-down"></i> ديون الشركات تفصيلي</a></li> *@
                         <li><a asp-action="BalanceReport" asp-controller="ContractDetails"><i class="bi bi-wallet-fill"></i> الرصيد الحالي</a></li>
                     </ul>

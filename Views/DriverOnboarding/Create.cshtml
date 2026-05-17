@@ -1,0 +1,844 @@
+﻿@model CarRentWeb.Models.EmployeeInfo
+
+@{
+    ViewData["Title"] = "تجهيز سائق جديد";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    /* ===== Wizard Container ===== */
+    .wizard-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    /* ===== Step Indicator ===== */
+    .steps-track {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+        margin-bottom: 2rem;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 4px;
+    }
+
+    .step-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        min-width: 80px;
+    }
+
+        .step-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 20px;
+            right: calc(-50% + 20px);
+            width: calc(100% - 40px);
+            height: 3px;
+            background: #dee2e6;
+            z-index: 0;
+            right: auto;
+            left: calc(50% + 20px);
+            width: calc(100% - 40px);
+        }
+
+        .step-item.completed:not(:last-child)::after {
+            background: #198754;
+        }
+
+    .step-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #dee2e6;
+        color: #6c757d;
+        font-weight: bold;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        z-index: 1;
+        transition: all 0.3s;
+        border: 3px solid #dee2e6;
+    }
+
+    .step-item.active .step-circle {
+        background: #0d6efd;
+        color: white;
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.2);
+    }
+
+    .step-item.completed .step-circle {
+        background: #198754;
+        color: white;
+        border-color: #198754;
+    }
+
+    .step-label {
+        font-size: 0.7rem;
+        color: #6c757d;
+        margin-top: 6px;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    .step-item.active .step-label {
+        color: #0d6efd;
+        font-weight: 600;
+    }
+
+    .step-item.completed .step-label {
+        color: #198754;
+    }
+
+    /* ===== Connector Lines ===== */
+    .step-connector {
+        flex: 1;
+        height: 3px;
+        background: #dee2e6;
+        min-width: 20px;
+        max-width: 60px;
+        transition: background 0.3s;
+        margin-bottom: 24px;
+    }
+
+        .step-connector.done {
+            background: #198754;
+        }
+
+    /* ===== Step Panel ===== */
+    .step-panel {
+        display: none;
+    }
+
+        .step-panel.active {
+            display: block;
+        }
+
+    /* ===== Section Header ===== */
+    .section-header {
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+        color: white;
+        border-radius: 10px 10px 0 0;
+        padding: 16px 20px;
+        margin-bottom: 0;
+    }
+
+        .section-header h5 {
+            margin: 0;
+            color: white !important;
+            font-size: 1.1rem;
+        }
+
+    .section-body {
+        border: 1px solid #dee2e6;
+        border-top: none;
+        border-radius: 0 0 10px 10px;
+        padding: 24px;
+        background: white;
+    }
+
+    /* ===== Field Group Title ===== */
+    .field-group-title {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #0d6efd;
+        border-bottom: 2px solid #e9ecef;
+        padding-bottom: 6px;
+        margin-bottom: 16px;
+        margin-top: 8px;
+    }
+
+    /* ===== Navigation Buttons ===== */
+    .wizard-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 24px;
+        padding-top: 16px;
+        border-top: 1px solid #e9ecef;
+    }
+
+    /* ===== Review Summary ===== */
+    .review-card {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 12px;
+    }
+
+        .review-card h6 {
+            color: #0d6efd;
+            font-weight: 600;
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+
+    .review-row {
+        display: flex;
+        margin-bottom: 6px;
+        font-size: 0.9rem;
+    }
+
+    .review-label {
+        color: #6c757d;
+        min-width: 140px;
+        font-weight: 500;
+    }
+
+    .review-value {
+        color: #212529;
+        font-weight: 400;
+    }
+
+    /* ===== Final Action Buttons ===== */
+    .final-actions {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 24px;
+    }
+
+    .btn-action-primary {
+        padding: 14px 32px;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 8px;
+        min-width: 200px;
+    }
+
+    /* ===== Step Badge ===== */
+    .step-badge {
+        background: rgba(255,255,255,0.2);
+        border-radius: 20px;
+        padding: 2px 12px;
+        font-size: 0.8rem;
+        margin-right: 8px;
+    }
+</style>
+
+<div class="container-fluid mt-3" dir="rtl">
+    <div class="wizard-container">
+
+        <!-- Page Title -->
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <i class="bi bi-person-fill-gear fs-3 text-primary"></i>
+            <div>
+                <h4 class="mb-0">تجهيز سائق جديد</h4>
+                <small class="text-muted">اتبع الخطوات لإضافة السائق ثم إنشاء العقد</small>
+            </div>
+        </div>
+
+        <!-- Validation Errors -->
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger alert-dismissible">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <strong>يوجد أخطاء في البيانات، راجع الخطوات:</strong>
+                <div asp-validation-summary="All" class="mt-2 mb-0"></div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <!-- Step Indicator -->
+        <div class="steps-track" id="stepsTrack">
+            <div class="step-item active" data-step="1">
+                <div class="step-circle"><i class="bi bi-person-badge"></i></div>
+                <div class="step-label">البيانات الشخصية</div>
+            </div>
+            <div class="step-connector" id="conn1"></div>
+
+            <div class="step-item" data-step="2">
+                <div class="step-circle">2</div>
+                <div class="step-label">الاسم بالعربي</div>
+            </div>
+            <div class="step-connector" id="conn2"></div>
+
+            <div class="step-item" data-step="3">
+                <div class="step-circle">3</div>
+                <div class="step-label">الاسم بالإنجليزي</div>
+            </div>
+            <div class="step-connector" id="conn3"></div>
+
+            <div class="step-item" data-step="4">
+                <div class="step-circle">4</div>
+                <div class="step-label">الجواز والإقامة</div>
+            </div>
+            <div class="step-connector" id="conn4"></div>
+
+            <div class="step-item" data-step="5">
+                <div class="step-circle">5</div>
+                <div class="step-label">الرخصة والتصريح</div>
+            </div>
+            <div class="step-connector" id="conn5"></div>
+
+            <div class="step-item" data-step="6">
+                <div class="step-circle">6</div>
+                <div class="step-label">الوظيفة والاتصال</div>
+            </div>
+            <div class="step-connector" id="conn6"></div>
+
+            <div class="step-item" data-step="7">
+                <div class="step-circle"><i class="bi bi-check-lg"></i></div>
+                <div class="step-label">مراجعة وتأكيد</div>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress mb-4" style="height: 6px; border-radius: 3px;">
+            <div class="progress-bar bg-primary" id="progressBar" role="progressbar" style="width: 14%"></div>
+        </div>
+
+        <!-- The Form -->
+        <form asp-action="Create" method="post" id="onboardingForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="submitAction" id="submitAction" value="employees" />
+
+            <!-- ===== STEP 1: البيانات الشخصية ===== -->
+            <div class="step-panel active" id="panel1">
+                <div class="section-header">
+                    <h5>
+                        <span class="step-badge">الخطوة 1 من 7</span>
+                        <i class="bi bi-person-badge me-2"></i>
+                        البيانات الشخصية
+                    </h5>
+                </div>
+                <div class="section-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="CompanyId" class="form-label fw-semibold">اسم الشركة <span class="text-danger">*</span></label>
+                            <select asp-for="CompanyId" class="form-select" asp-items="ViewBag.CompanyId" dir="rtl" required>
+                                <option value="">-- اختر الشركة --</option>
+                            </select>
+                            <span asp-validation-for="CompanyId" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="EmpCode" class="form-label fw-semibold">كود السائق <span class="text-danger">*</span></label>
+                            <input asp-for="EmpCode" class="form-control" placeholder="مثال: 101" required />
+                            <span asp-validation-for="EmpCode" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="CivilId" class="form-label fw-semibold">الرقم المدني</label>
+                            <input asp-for="CivilId" class="form-control" placeholder="الرقم المدني" />
+                            <span asp-validation-for="CivilId" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="NationalityId" class="form-label fw-semibold">الجنسية</label>
+                            <select asp-for="NationalityId" class="form-select" asp-items="ViewBag.NationalityId" dir="rtl">
+                                <option value="">-- اختر الجنسية --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="EmpBirthDate" class="form-label fw-semibold">تاريخ الميلاد</label>
+                            <input asp-for="EmpBirthDate" type="date" class="form-control" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold d-block">الجنس</label>
+                            <div class="d-flex gap-4 mt-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" asp-for="Gender" value="1" id="genderMale" />
+                                    <label class="form-check-label" for="genderMale">ذكر</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" asp-for="Gender" value="2" id="genderFemale" />
+                                    <label class="form-check-label" for="genderFemale">أنثى</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="wizard-nav">
+                        <div></div>
+                        <button type="button" class="btn btn-primary px-4" onclick="goToStep(2)">
+                            التالي <i class="bi bi-arrow-left ms-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== STEP 2: الاسم بالعربي ===== -->
+            <div class="step-panel" id="panel2">
+                <div class="section-header">
+                    <h5>
+                        <span class="step-badge">الخطوة 2 من 7</span>
+                        <i class="bi bi-alphabet-uppercase me-2"></i>
+                        الاسم بالعربي
+                    </h5>
+                </div>
+                <div class="section-body">
+                    <div class="alert alert-info py-2">
+                        <i class="bi bi-info-circle me-1"></i>
+                        أدخل الاسم كاملاً — الأجزاء الفارغة لن تظهر في الاسم الكامل
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label asp-for="FirstNameAr" class="form-label fw-semibold">الاسم الأول <span class="text-danger">*</span></label>
+                            <input asp-for="FirstNameAr" class="form-control" placeholder="الاسم الأول" />
+                            <span asp-validation-for="FirstNameAr" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="SecondNameAr" class="form-label fw-semibold">الاسم الثاني</label>
+                            <input asp-for="SecondNameAr" class="form-control" placeholder="الاسم الثاني" />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="ThirdNameAr" class="form-label fw-semibold">الاسم الثالث</label>
+                            <input asp-for="ThirdNameAr" class="form-control" placeholder="الاسم الثالث" />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="ForthNameAr" class="form-label fw-semibold">الاسم الرابع</label>
+                            <input asp-for="ForthNameAr" class="form-control" placeholder="الاسم الرابع" />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="LastNameAr" class="form-label fw-semibold">اسم العائلة</label>
+                            <input asp-for="LastNameAr" class="form-control" placeholder="اسم العائلة" />
+                        </div>
+                        <div class="col-md-12">
+                            <div class="alert alert-light py-2 mb-0">
+                                <span class="text-muted small">الاسم الكامل بالعربي: </span>
+                                <strong id="previewAr" class="text-dark">—</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="wizard-nav">
+                        <button type="button" class="btn btn-outline-secondary px-4" onclick="goToStep(1)">
+                            <i class="bi bi-arrow-right me-1"></i> السابق
+                        </button>
+                        <button type="button" class="btn btn-primary px-4" onclick="goToStep(3)">
+                            التالي <i class="bi bi-arrow-left ms-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== STEP 3: الاسم بالإنجليزي ===== -->
+            <div class="step-panel" id="panel3">
+                <div class="section-header">
+                    <h5>
+                        <span class="step-badge">الخطوة 3 من 7</span>
+                        <i class="bi bi-translate me-2"></i>
+                        الاسم بالإنجليزي
+                    </h5>
+                </div>
+                <div class="section-body">
+                    <div class="alert alert-info py-2">
+                        <i class="bi bi-info-circle me-1"></i>
+                        أدخل الاسم بالإنجليزية كما يظهر في الجواز
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label asp-for="FirstNameEn" class="form-label fw-semibold">First Name</label>
+                            <input asp-for="FirstNameEn" class="form-control" placeholder="First Name" dir="ltr" />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="SecondNameEn" class="form-label fw-semibold">Second Name</label>
+                            <input asp-for="SecondNameEn" class="form-control" placeholder="Second Name" dir="ltr" />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="ThirdNameEn" class="form-label fw-semibold">Third Name</label>
+                            <input asp-for="ThirdNameEn" class="form-control" placeholder="Third Name" dir="ltr" />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="ForthNameEn" class="form-label fw-semibold">Fourth Name</label>
+                            <input asp-for="ForthNameEn" class="form-control" placeholder="Fourth Name" dir="ltr" />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="LastNameEn" class="form-label fw-semibold">Last Name</label>
+                            <input asp-for="LastNameEn" class="form-control" placeholder="Last Name" dir="ltr" />
+                        </div>
+                        <div class="col-md-12">
+                            <div class="alert alert-light py-2 mb-0">
+                                <span class="text-muted small">Full Name (EN): </span>
+                                <strong id="previewEn" class="text-dark" dir="ltr">—</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="wizard-nav">
+                        <button type="button" class="btn btn-outline-secondary px-4" onclick="goToStep(2)">
+                            <i class="bi bi-arrow-right me-1"></i> السابق
+                        </button>
+                        <button type="button" class="btn btn-primary px-4" onclick="goToStep(4)">
+                            التالي <i class="bi bi-arrow-left ms-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== STEP 4: الجواز والإقامة ===== -->
+            <div class="step-panel" id="panel4">
+                <div class="section-header">
+                    <h5>
+                        <span class="step-badge">الخطوة 4 من 7</span>
+                        <i class="bi bi-passport me-2"></i>
+                        بيانات الجواز والإقامة
+                    </h5>
+                </div>
+                <div class="section-body">
+                    <div class="field-group-title"><i class="bi bi-journal-bookmark me-1"></i> الجواز</div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label asp-for="PassportNo" class="form-label fw-semibold">رقم الجواز</label>
+                            <input asp-for="PassportNo" class="form-control" placeholder="رقم الجواز" dir="ltr" />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="PassportStartDate" class="form-label fw-semibold">تاريخ الإصدار</label>
+                            <input asp-for="PassportStartDate" type="date" class="form-control" />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="PassportEndDate" class="form-label fw-semibold">تاريخ الانتهاء</label>
+                            <input asp-for="PassportEndDate" type="date" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="field-group-title"><i class="bi bi-card-heading me-1"></i> الإقامة والهوية</div>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label asp-for="ResNo" class="form-label fw-semibold">رقم الإقامة</label>
+                            <input asp-for="ResNo" class="form-control" placeholder="رقم الإقامة" dir="ltr" />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="ResEndDate" class="form-label fw-semibold">تاريخ انتهاء الإقامة</label>
+                            <input asp-for="ResEndDate" type="date" class="form-control" />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="CivilIdendDate" class="form-label fw-semibold">تاريخ انتهاء الرقم المدني</label>
+                            <input asp-for="CivilIdendDate" type="date" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="wizard-nav">
+                        <button type="button" class="btn btn-outline-secondary px-4" onclick="goToStep(3)">
+                            <i class="bi bi-arrow-right me-1"></i> السابق
+                        </button>
+                        <button type="button" class="btn btn-primary px-4" onclick="goToStep(5)">
+                            التالي <i class="bi bi-arrow-left ms-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== STEP 5: رخصة القيادة وتصريح العمل ===== -->
+            <div class="step-panel" id="panel5">
+                <div class="section-header">
+                    <h5>
+                        <span class="step-badge">الخطوة 5 من 7</span>
+                        <i class="bi bi-card-checklist me-2"></i>
+                        رخصة القيادة وتصريح العمل
+                    </h5>
+                </div>
+                <div class="section-body">
+                    <div class="field-group-title"><i class="bi bi-car-front me-1"></i> رخصة القيادة</div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="StartLicense" class="form-label fw-semibold">تاريخ إصدار الرخصة</label>
+                            <input asp-for="StartLicense" type="date" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="EndLicense" class="form-label fw-semibold">تاريخ انتهاء الرخصة</label>
+                            <input asp-for="EndLicense" type="date" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="field-group-title"><i class="bi bi-file-earmark-check me-1"></i> تصريح العمل</div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="StartPerm" class="form-label fw-semibold">تاريخ إصدار التصريح</label>
+                            <input asp-for="StartPerm" type="date" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="EndPerm" class="form-label fw-semibold">تاريخ انتهاء التصريح</label>
+                            <input asp-for="EndPerm" type="date" class="form-control" />
+                        </div>
+                    </div>
+
+                    <!-- Expiry Alerts Preview -->
+                    <div class="row g-2 mt-3" id="expiryAlerts"></div>
+
+                    <div class="wizard-nav">
+                        <button type="button" class="btn btn-outline-secondary px-4" onclick="goToStep(4)">
+                            <i class="bi bi-arrow-right me-1"></i> السابق
+                        </button>
+                        <button type="button" class="btn btn-primary px-4" onclick="goToStep(6)">
+                            التالي <i class="bi bi-arrow-left ms-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== STEP 6: الوظيفة والاتصال ===== -->
+            <div class="step-panel" id="panel6">
+                <div class="section-header">
+                    <h5>
+                        <span class="step-badge">الخطوة 6 من 7</span>
+                        <i class="bi bi-briefcase me-2"></i>
+                        بيانات الوظيفة والاتصال
+                    </h5>
+                </div>
+                <div class="section-body">
+                    <div class="field-group-title"><i class="bi bi-briefcase me-1"></i> بيانات الوظيفة</div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label asp-for="JobTitleId" class="form-label fw-semibold">المسمى الوظيفي</label>
+                            <select asp-for="JobTitleId" class="form-select" asp-items="ViewBag.JobTitleId" dir="rtl">
+                                <option value="">-- اختر المسمى --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="LocationId" class="form-label fw-semibold">الموقع</label>
+                            <select asp-for="LocationId" class="form-select" asp-items="ViewBag.LocationId" dir="rtl">
+                                <option value="">-- اختر الموقع --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label asp-for="Salary" class="form-label fw-semibold">الراتب</label>
+                            <input asp-for="Salary" type="number" step="0.001" class="form-control" placeholder="0.000" />
+                        </div>
+                        <div class="col-md-2">
+                            <label asp-for="PaymentDay" class="form-label fw-semibold">يوم الاستحقاق</label>
+                            <input asp-for="PaymentDay" type="number" min="1" max="31" class="form-control" placeholder="1-31" />
+                        </div>
+                    </div>
+
+                    <div class="field-group-title"><i class="bi bi-telephone me-1"></i> بيانات الاتصال</div>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label asp-for="TelNo" class="form-label fw-semibold">رقم الهاتف</label>
+                            <input asp-for="TelNo" class="form-control" placeholder="رقم الهاتف" dir="ltr" />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="MobiileNo" class="form-label fw-semibold">رقم الجوال</label>
+                            <input asp-for="MobiileNo" class="form-control" placeholder="رقم الجوال" dir="ltr" />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="AutoAddressNo" class="form-label fw-semibold">رقم العنوان الآلي</label>
+                            <input asp-for="AutoAddressNo" class="form-control" placeholder="رقم العنوان الآلي" dir="ltr" />
+                        </div>
+                        <div class="col-md-12">
+                            <label asp-for="EmpAddress" class="form-label fw-semibold">العنوان التفصيلي</label>
+                            <textarea asp-for="EmpAddress" class="form-control" rows="2" placeholder="العنوان التفصيلي"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="wizard-nav">
+                        <button type="button" class="btn btn-outline-secondary px-4" onclick="goToStep(5)">
+                            <i class="bi bi-arrow-right me-1"></i> السابق
+                        </button>
+                        <button type="button" class="btn btn-success px-4" onclick="goToStep(7)">
+                            مراجعة البيانات <i class="bi bi-eye ms-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== STEP 7: مراجعة وتأكيد ===== -->
+            <div class="step-panel" id="panel7">
+                <div class="section-header" style="background: linear-gradient(135deg, #198754 0%, #146c43 100%);">
+                    <h5>
+                        <span class="step-badge">الخطوة 7 من 7</span>
+                        <i class="bi bi-check-circle me-2"></i>
+                        مراجعة البيانات وتأكيد الحفظ
+                    </h5>
+                </div>
+                <div class="section-body">
+
+                    <!-- Summary Cards -->
+                    <div class="row g-3 mb-3" id="summaryArea">
+                        <div class="col-md-6">
+                            <div class="review-card">
+                                <h6><i class="bi bi-person-badge me-2"></i>البيانات الشخصية</h6>
+                                <div class="review-row"><span class="review-label">كود السائق:</span><span class="review-value" id="rv-code">—</span></div>
+                                <div class="review-row"><span class="review-label">الرقم المدني:</span><span class="review-value" id="rv-civil">—</span></div>
+                                <div class="review-row"><span class="review-label">الجنسية:</span><span class="review-value" id="rv-nationality">—</span></div>
+                                <div class="review-row"><span class="review-label">تاريخ الميلاد:</span><span class="review-value" id="rv-birth">—</span></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="review-card">
+                                <h6><i class="bi bi-alphabet-uppercase me-2"></i>الأسماء</h6>
+                                <div class="review-row"><span class="review-label">الاسم بالعربي:</span><span class="review-value" id="rv-nameAr">—</span></div>
+                                <div class="review-row"><span class="review-label">الاسم بالإنجليزي:</span><span class="review-value" id="rv-nameEn" dir="ltr">—</span></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="review-card">
+                                <h6><i class="bi bi-passport me-2"></i>الجواز والإقامة</h6>
+                                <div class="review-row"><span class="review-label">رقم الجواز:</span><span class="review-value" id="rv-passport">—</span></div>
+                                <div class="review-row"><span class="review-label">انتهاء الجواز:</span><span class="review-value" id="rv-passportEnd">—</span></div>
+                                <div class="review-row"><span class="review-label">رقم الإقامة:</span><span class="review-value" id="rv-res">—</span></div>
+                                <div class="review-row"><span class="review-label">انتهاء الإقامة:</span><span class="review-value" id="rv-resEnd">—</span></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="review-card">
+                                <h6><i class="bi bi-card-checklist me-2"></i>الرخصة والتصريح</h6>
+                                <div class="review-row"><span class="review-label">انتهاء رخصة القيادة:</span><span class="review-value" id="rv-license">—</span></div>
+                                <div class="review-row"><span class="review-label">انتهاء تصريح العمل:</span><span class="review-value" id="rv-perm">—</span></div>
+                                <div class="review-row"><span class="review-label">الراتب:</span><span class="review-value" id="rv-salary">—</span></div>
+                                <div class="review-row"><span class="review-label">رقم الجوال:</span><span class="review-value" id="rv-mobile">—</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Final Action Buttons -->
+                    <div class="alert alert-success py-3 text-center">
+                        <i class="bi bi-check-circle-fill fs-4 me-2"></i>
+                        <strong>البيانات جاهزة للحفظ — اختر الخطوة التالية:</strong>
+                    </div>
+
+                    <div class="final-actions">
+                        <button type="submit" class="btn btn-primary btn-action-primary" onclick="setAction('employees')">
+                            <i class="bi bi-people-fill me-2"></i>
+                            حفظ والذهاب لشاشة الموظفين
+                        </button>
+                        <button type="submit" class="btn btn-success btn-action-primary" onclick="setAction('contract')">
+                            <i class="bi bi-file-earmark-text-fill me-2"></i>
+                            حفظ وإنشاء عقد للسائق
+                        </button>
+                    </div>
+
+                    <div class="wizard-nav">
+                        <button type="button" class="btn btn-outline-secondary px-4" onclick="goToStep(6)">
+                            <i class="bi bi-arrow-right me-1"></i> السابق
+                        </button>
+                        <div></div>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<script>
+    var currentStep = 1;
+    var totalSteps = 7;
+
+    // Check if there are validation errors on load (server-side) → show step 1 again
+    document.addEventListener('DOMContentLoaded', function () {
+        var hasErrors = document.querySelector('.validation-summary-errors, [data-valmsg-replace]');
+        updatePreviewAr();
+        updatePreviewEn();
+    });
+
+    function goToStep(step) {
+        // Hide current panel
+        document.getElementById('panel' + currentStep).classList.remove('active');
+        document.querySelectorAll('.step-item')[currentStep - 1].classList.remove('active');
+
+        // Mark previous steps as completed
+        for (var i = 1; i < step; i++) {
+            document.querySelectorAll('.step-item')[i - 1].classList.add('completed');
+            document.querySelectorAll('.step-item')[i - 1].classList.remove('active');
+            var conn = document.getElementById('conn' + i);
+            if (conn) conn.classList.add('done');
+        }
+        // Un-complete steps after current
+        for (var i = step; i <= totalSteps; i++) {
+            document.querySelectorAll('.step-item')[i - 1].classList.remove('completed');
+            var conn = document.getElementById('conn' + i);
+            if (conn) conn.classList.remove('done');
+        }
+
+        currentStep = step;
+
+        // Show new panel
+        document.getElementById('panel' + currentStep).classList.add('active');
+        document.querySelectorAll('.step-item')[currentStep - 1].classList.add('active');
+        document.querySelectorAll('.step-item')[currentStep - 1].classList.remove('completed');
+
+        // Update progress bar
+        var pct = Math.round((currentStep / totalSteps) * 100);
+        document.getElementById('progressBar').style.width = pct + '%';
+
+        // If going to review step, populate summary
+        if (step === 7) buildSummary();
+
+        // Scroll to top of wizard
+        document.querySelector('.wizard-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function setAction(action) {
+        document.getElementById('submitAction').value = action;
+    }
+
+    /* ===== Arabic Name Preview ===== */
+    function updatePreviewAr() {
+        var parts = [
+            getVal('FirstNameAr'), getVal('SecondNameAr'),
+            getVal('ThirdNameAr'), getVal('ForthNameAr'), getVal('LastNameAr')
+        ];
+        var full = parts.filter(Boolean).join(' ');
+        document.getElementById('previewAr').textContent = full || '—';
+    }
+
+    /* ===== English Name Preview ===== */
+    function updatePreviewEn() {
+        var parts = [
+            getVal('FirstNameEn'), getVal('SecondNameEn'),
+            getVal('ThirdNameEn'), getVal('ForthNameEn'), getVal('LastNameEn')
+        ];
+        var full = parts.filter(Boolean).join(' ');
+        document.getElementById('previewEn').textContent = full || '—';
+    }
+
+    /* ===== Attach preview listeners ===== */
+    ['FirstNameAr','SecondNameAr','ThirdNameAr','ForthNameAr','LastNameAr'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener('input', updatePreviewAr);
+    });
+    ['FirstNameEn','SecondNameEn','ThirdNameEn','ForthNameEn','LastNameEn'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener('input', updatePreviewEn);
+    });
+
+    /* ===== Build Summary for Step 7 ===== */
+    function buildSummary() {
+        setText('rv-code', getVal('EmpCode'));
+        setText('rv-civil', getVal('CivilId'));
+        setText('rv-birth', getVal('EmpBirthDate'));
+
+        var natSel = document.getElementById('NationalityId');
+        setText('rv-nationality', natSel && natSel.selectedIndex > 0 ? natSel.options[natSel.selectedIndex].text : '—');
+
+        // Names
+        var arParts = [getVal('FirstNameAr'),getVal('SecondNameAr'),getVal('ThirdNameAr'),getVal('ForthNameAr'),getVal('LastNameAr')];
+        setText('rv-nameAr', arParts.filter(Boolean).join(' ') || '—');
+        var enParts = [getVal('FirstNameEn'),getVal('SecondNameEn'),getVal('ThirdNameEn'),getVal('ForthNameEn'),getVal('LastNameEn')];
+        setText('rv-nameEn', enParts.filter(Boolean).join(' ') || '—');
+
+        // Passport & Res
+        setText('rv-passport', getVal('PassportNo'));
+        setText('rv-passportEnd', getVal('PassportEndDate'));
+        setText('rv-res', getVal('ResNo'));
+        setText('rv-resEnd', getVal('ResEndDate'));
+
+        // License & Perm
+        setText('rv-license', getVal('EndLicense'));
+        setText('rv-perm', getVal('EndPerm'));
+
+        // Job
+        setText('rv-salary', getVal('Salary') ? getVal('Salary') + ' د.ك' : '—');
+        setText('rv-mobile', getVal('MobiileNo'));
+    }
+
+    function getVal(name) {
+        var el = document.getElementById(name) || document.querySelector('[name="' + name + '"]');
+        return el ? el.value.trim() : '';
+    }
+
+    function setText(id, val) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = val || '—';
+    }
+</script>

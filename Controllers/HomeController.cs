@@ -43,6 +43,20 @@ namespace CarRentWeb.Controllers
                 c.DiscountDate != null &&
                 c.DiscountDate >= today && c.DiscountDate <= thirtyDaysLater);
 
+            // Cars with no active contract
+            var activeCarsInContract = _context.Contracts
+                .Where(c => c.DeleteFlag == 0 && c.Status == 0)
+                .Select(c => c.CarId);
+            ViewBag.CarsWithoutContractCount = _context.CarInfos
+                .Count(c => c.DeleteFlag == 0 && !activeCarsInContract.Contains(c.Id));
+
+            // Employees with no active contract
+            var activeEmpsInContract = _context.Contracts
+                .Where(c => c.DeleteFlag == 0 && c.Status == 0)
+                .Select(c => c.EmployeeId);
+            ViewBag.EmpsWithoutContractCount = _context.EmployeeInfos
+                .Count(e => e.DeleteFlag == 0 && !activeEmpsInContract.Contains(e.Id));
+
             TempData["Username"] = HttpContext.Session.GetString("Username");
             ViewData["UserId"] = HttpContext.Session.GetInt32("UserId");
             TempData.Keep(); // Keeps all TempData values
@@ -133,6 +147,38 @@ namespace CarRentWeb.Controllers
 
                 ViewBag.Header = "عقود تقترب من موعد التخفيض";
                 ViewBag.DataType = "NearDiscountDate";
+                return View(data);
+            }
+
+            else if (id == 7)
+            {
+                var activeCarIds = _context.Contracts
+                    .Where(c => c.DeleteFlag == 0 && c.Status == 0)
+                    .Select(c => c.CarId);
+                var data = _context.CarInfos
+                    .Include(c => c.Company)
+                    .Include(c => c.CarType)
+                    .Where(c => c.DeleteFlag == 0 && !activeCarIds.Contains(c.Id))
+                    .OrderBy(c => c.CarCode)
+                    .ToList();
+
+                ViewBag.Header = "سيارات بلا عقود";
+                ViewBag.DataType = "CarsWithoutContract";
+                return View(data);
+            }
+            else if (id == 8)
+            {
+                var activeEmpIds = _context.Contracts
+                    .Where(c => c.DeleteFlag == 0 && c.Status == 0)
+                    .Select(c => c.EmployeeId);
+                var data = _context.EmployeeInfos
+                    .Include(e => e.Company)
+                    .Where(e => e.DeleteFlag == 0 && !activeEmpIds.Contains(e.Id))
+                    .OrderBy(e => e.EmpCode)
+                    .ToList();
+
+                ViewBag.Header = "موظفين بلا عقود";
+                ViewBag.DataType = "EmpsWithoutContract";
                 return View(data);
             }
 

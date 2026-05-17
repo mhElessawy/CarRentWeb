@@ -1,0 +1,220 @@
+﻿@model List<CarRentWeb.Models.DriverOnboardingStep>
+
+@{
+    ViewData["Title"] = "تعريف خطوات تجهيز السائق";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .steps-table th, .steps-table td { vertical-align: middle; }
+    .badge-order {
+        background: #e9ecef;
+        color: #495057;
+        font-weight: 700;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+    }
+    .step-row.inactive { opacity: 0.55; }
+    .card-header-custom {
+        background: linear-gradient(135deg, #0d6efd, #0a58ca);
+        color: white;
+        border-radius: 10px 10px 0 0;
+        padding: 14px 20px;
+    }
+</style>
+
+<div class="container-fluid mt-3" dir="rtl">
+    <div class="row">
+
+        <!-- ===== Right: Step List ===== -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm" style="border-radius:10px">
+                <div class="card-header-custom d-flex justify-content-between align-items-center">
+                    <span>
+                        <i class="bi bi-list-check me-2"></i>
+                        تعريف خطوات تجهيز السائق
+                    </span>
+                    <span class="badge bg-light text-dark">@Model.Count خطوة</span>
+                </div>
+                <div class="card-body p-0">
+                    @if (!Model.Any())
+                    {
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-clipboard-x fs-1 d-block mb-2"></i>
+                            لا توجد خطوات محددة بعد — أضف الخطوات من النموذج
+                        </div>
+                    }
+                    else
+                    {
+                        <table class="table table-hover steps-table mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="60" class="text-center">الترتيب</th>
+                                    <th>اسم الخطوة</th>
+                                    <th>الوصف</th>
+                                    <th width="90" class="text-center">الحالة</th>
+                                    <th width="140" class="text-center">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var step in Model)
+                                {
+                                    <tr class="step-row @(step.IsActive ? "" : "inactive")">
+                                        <td class="text-center">
+                                            <span class="badge-order">@step.StepOrder</span>
+                                        </td>
+                                        <td>
+                                            <strong>@step.StepName</strong>
+                                        </td>
+                                        <td class="text-muted small">@(step.Description ?? "—")</td>
+                                        <td class="text-center">
+                                            @if (step.IsActive)
+                                            {
+                                                <span class="badge bg-success">فعّال</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">موقوف</span>
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="d-flex gap-1 justify-content-center">
+                                                <!-- Edit Button -->
+                                                <button class="btn btn-sm btn-outline-primary"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#editModal"
+                                                        data-id="@step.Id"
+                                                        data-name="@step.StepName"
+                                                        data-desc="@step.Description"
+                                                        data-order="@step.StepOrder"
+                                                        title="تعديل">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+
+                                                <!-- Toggle Active -->
+                                                <form asp-action="ToggleActive" asp-route-id="@step.Id" method="post" style="display:inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit"
+                                                            class="btn btn-sm @(step.IsActive ? "btn-outline-warning" : "btn-outline-success")"
+                                                            title="@(step.IsActive ? "إيقاف" : "تفعيل")">
+                                                        <i class="bi @(step.IsActive ? "bi-pause-circle" : "bi-play-circle")"></i>
+                                                    </button>
+                                                </form>
+
+                                                <!-- Delete -->
+                                                <form asp-action="Delete" asp-route-id="@step.Id" method="post" style="display:inline"
+                                                      onsubmit="return confirm('هل تريد حذف الخطوة: @step.StepName؟')">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="حذف">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== Left: Add New Step ===== -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm" style="border-radius:10px">
+                <div class="card-header" style="background:#198754;color:white;border-radius:10px 10px 0 0;padding:14px 20px;">
+                    <i class="bi bi-plus-circle me-2"></i>
+                    إضافة خطوة جديدة
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">اسم الخطوة <span class="text-danger">*</span></label>
+                            <input type="text" name="stepName" class="form-control"
+                                   placeholder="مثال: استخراج سمة الدخول" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">وصف الخطوة</label>
+                            <textarea name="description" class="form-control" rows="2"
+                                      placeholder="وصف اختياري للخطوة"></textarea>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">الترتيب</label>
+                            <input type="number" name="stepOrder" class="form-control"
+                                   value="@(Model.Any() ? Model.Max(s => s.StepOrder) + 1 : 1)"
+                                   min="1" />
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="bi bi-plus-lg me-1"></i> إضافة الخطوة
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Quick Nav -->
+            <div class="card mt-3 shadow-sm" style="border-radius:10px">
+                <div class="card-body text-center">
+                    <p class="text-muted small mb-2">بعد تعريف الخطوات انتقل لمتابعة تجهيز السائقين</p>
+                    <a asp-action="Index" asp-controller="EmployeeOnboarding" class="btn btn-primary w-100">
+                        <i class="bi bi-person-check me-1"></i>
+                        متابعة تجهيز السائقين
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== Edit Modal ===== -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog" dir="rtl">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>تعديل الخطوة</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="Edit" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" id="editId" />
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">اسم الخطوة <span class="text-danger">*</span></label>
+                        <input type="text" name="stepName" id="editStepName" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">وصف الخطوة</label>
+                        <textarea name="description" id="editDescription" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">الترتيب</label>
+                        <input type="number" name="stepOrder" id="editStepOrder" class="form-control" min="1" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg me-1"></i> حفظ التعديلات
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Populate edit modal
+    document.getElementById('editModal').addEventListener('show.bs.modal', function (e) {
+        var btn = e.relatedTarget;
+        document.getElementById('editId').value = btn.dataset.id;
+        document.getElementById('editStepName').value = btn.dataset.name;
+        document.getElementById('editDescription').value = btn.dataset.desc || '';
+        document.getElementById('editStepOrder').value = btn.dataset.order;
+    });
+</script>

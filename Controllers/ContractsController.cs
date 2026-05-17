@@ -146,7 +146,7 @@ namespace CarRentWeb.Controllers
         {
 
             var branches = _context.CarInfos
-                        .Where(b => b.CompanyId == Id &&
+                        .Where(b => b.CompanyId == Id && b.DeleteFlag == 0  &&
                      !_context.Contracts
                          .Where(c => c.DeleteFlag == 0 && c.Status == 0)
                          .Any(c => c.CarId == b.Id)) // ← Use the correct column name here

@@ -1,4 +1,4 @@
-﻿﻿@{
+﻿﻿﻿@{
 ViewData["Title"] = "Home Page";
 }
 
@@ -190,6 +190,32 @@ ViewData["Title"] = "Home Page";
                         <i class="bi bi-tag" style="font-size:2.5rem;color:#11998e;"></i>
                     </div>
                     <h3 class="card-title">عقود تقترب من موعد التخفيض</h3>
+                </div>
+            </div>
+        </a>
+        <a href="@Url.Action("PrintData", "Home", new { id = 7 })" class="card-link">
+            <div class="card">
+                <div class="card-body">
+                    <div class="count-badge" style="background: linear-gradient(135deg, #6c757d 0%, #adb5bd 100%);">
+                        @ViewBag.CarsWithoutContractCount
+                    </div>
+                    <div class="image-container" style="background:#f1f3f5;">
+                        <i class="bi bi-car-front" style="font-size:2.5rem;color:#6c757d;"></i>
+                    </div>
+                    <h3 class="card-title">سيارات بلا عقود</h3>
+                </div>
+            </div>
+        </a>
+        <a href="@Url.Action("PrintData", "Home", new { id = 8 })" class="card-link">
+            <div class="card">
+                <div class="card-body">
+                    <div class="count-badge" style="background: linear-gradient(135deg, #e67e22 0%, #f39c12 100%);">
+                        @ViewBag.EmpsWithoutContractCount
+                    </div>
+                    <div class="image-container" style="background:#fef9e7;">
+                        <i class="bi bi-person-x" style="font-size:2.5rem;color:#e67e22;"></i>
+                    </div>
+                    <h3 class="card-title">موظفين بلا عقود</h3>
                 </div>
             </div>
         </a>
