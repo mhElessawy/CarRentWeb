@@ -176,10 +176,24 @@
                     </select>
                 </div>
 
-                <div class="form-group-row" id="discountDateRow">
-                    <label for="DiscountDate">تاريخ التخفيض</label>
-                    <input type="date" name="DiscountDate" id="DiscountDate"
-                           value="@(Model.DiscountDate.HasValue ? Model.DiscountDate.Value.ToString("yyyy-MM-dd") : "")" />
+                <div id="discountDateRow">
+                    <div class="form-group-row">
+                        <label for="DiscountDate">تاريخ التخفيض الافتراضي</label>
+                        <input type="date" name="DiscountDate" id="DiscountDate"
+                               value="@(Model.DiscountDate.HasValue ? Model.DiscountDate.Value.ToString("yyyy-MM-dd") : "")" />
+                    </div>
+                    <div class="form-group-row">
+                        <label for="RealDiscountDate">تاريخ التخفيض الحقيقي</label>
+                        <input type="date" name="RealDiscountDate" id="RealDiscountDate"
+                               value="@(Model.RealDiscountDate.HasValue ? Model.RealDiscountDate.Value.ToString("yyyy-MM-dd") : "")" />
+                    </div>
+                    <div class="form-group-row">
+                        <label for="DiscountAmount">مبلغ التخفيض</label>
+                        <input type="number" name="DiscountAmount" id="DiscountAmount"
+                               step="0.01" min="0"
+                               value="@(Model.DiscountAmount.HasValue ? Model.DiscountAmount.Value.ToString("F2") : "")"
+                               style="width:100%;padding:8px 12px;border:1px solid #ced4da;border-radius:5px;font-size:0.9rem;" />
+                    </div>
                 </div>
 
                 <div class="btn-row">
