@@ -781,6 +781,9 @@ namespace CarRentWeb.Migrations
                     b.Property<DateOnly?>("DiscountDate")
                         .HasColumnType("date");
 
+                    b.Property<DateOnly?>("RealDiscountDate")
+                        .HasColumnType("date");
+
                     b.Property<int?>("EmployeeId")
                         .HasColumnType("int");
 

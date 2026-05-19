@@ -557,15 +557,16 @@
                     <th>عدد الأيام</th>
                     <th>المبلغ اليومي</th>
                     <th>نوع التأجير</th>
-                    <th>تاريخ التخفيض</th>
                     <th>عدد السنين</th>
+                    <th>تاريخ التخفيض الافتراضي</th>
+                    <th>تاريخ التخفيض الحقيقي</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
                 @if (!Model.DueToday.Any())
                 {
-                    <tr><td colspan="14" style="text-align:center;padding:14px;color:#999;">لا توجد عقود</td></tr>
+                    <tr><td colspan="15" style="text-align:center;padding:14px;color:#999;">لا توجد عقود</td></tr>
                 }
                 @{ int rn1 = 1; }
                 @foreach (var item in Model.DueToday)
@@ -596,15 +597,16 @@
                     <th>عدد الأيام</th>
                     <th>المبلغ اليومي</th>
                     <th>نوع التأجير</th>
-                    <th>تاريخ التخفيض</th>
                     <th>عدد السنين</th>
+                    <th>تاريخ التخفيض الافتراضي</th>
+                    <th>تاريخ التخفيض الحقيقي</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
                 @if (!Model.PaidToday.Any())
                 {
-                    <tr><td colspan="14" style="text-align:center;padding:14px;color:#999;">لا توجد عقود</td></tr>
+                    <tr><td colspan="15" style="text-align:center;padding:14px;color:#999;">لا توجد عقود</td></tr>
                 }
                 @{ int rn2 = 1; }
                 @foreach (var item in Model.PaidToday)
@@ -635,15 +637,16 @@
                     <th>عدد الأيام</th>
                     <th>المبلغ اليومي</th>
                     <th>نوع التأجير</th>
-                    <th>تاريخ التخفيض</th>
                     <th>عدد السنين</th>
+                    <th>تاريخ التخفيض الافتراضي</th>
+                    <th>تاريخ التخفيض الحقيقي</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
                 @if (!Model.Others.Any())
                 {
-                    <tr><td colspan="14" style="text-align:center;padding:14px;color:#999;">لا توجد عقود</td></tr>
+                    <tr><td colspan="15" style="text-align:center;padding:14px;color:#999;">لا توجد عقود</td></tr>
                 }
                 @{ int rn3 = 1; }
                 @foreach (var item in Model.Others)
@@ -670,7 +673,8 @@
             ? item.EndDate.Value.DayNumber - item.StartDate.Value.DayNumber
             : (item.NoOfDays ?? 0);
         double cy = Math.Round(cd / 365.0, 1);
-        string discount = item.DiscountDate.HasValue ? item.DiscountDate.Value.ToString() : "-";
+        string discountDate = item.DiscountDate.HasValue ? item.DiscountDate.Value.ToString() : "-";
+        string realDiscountDate = item.RealDiscountDate.HasValue ? item.RealDiscountDate.Value.ToString() : "-";
 
         string payBtn = $"<a href='/Bills/CreateDaily/{item.Id}' class='btn-danger'><i class='fas fa-paypal'></i> دفع</a>";
         string detBtn = $"<a href='/Contracts/DetailsDaily/{item.Id}' class='btn-details'><i class='fas fa-info-circle'></i> تفاصيل</a>";
@@ -689,8 +693,9 @@
             <td>{item.NoOfDays}</td>
             <td>{item.DailyCredit}</td>
             <td>{RentalTypeText(item.RentalType)}</td>
-            <td>{discount}</td>
             <td>{cy}</td>
+            <td>{discountDate}</td>
+            <td>{realDiscountDate}</td>
             <td class='action-links'>{payBtn}{detBtn}{editBtn}{endBtn}</td>
         </tr>";
     }
