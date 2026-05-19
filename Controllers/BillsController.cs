@@ -865,77 +865,121 @@ namespace CarRentWeb.Controllers
         {
             try
             {
-                // Get filtered data (reuse your existing filtering logic)
-                var bills = GetFilteredBills(CarNoSearch, EmpNoSearch, ContractNoSearch, companyId, pageNumber, FromDateSearch, ToDateSearch, EmpNameSearch, UserId);
+                TempData.Keep();
+                TempData["UserCompanyData"] = HttpContext.Session.GetString("UserCompanyData");
+                var userCompanyData = TempData["UserCompanyData"]?.ToString();
+                var companyIds = userCompanyData!.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
+                var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
 
-                using (var workbook = new XLWorkbook())
+                var query = _context.Bills
+                    .FromSqlRaw($"Select * from Bill where EmployeeId In ( Select Id From EmployeeInfo where CompanyId IN ({companyIdsString}))")
+                    .Include(c => c.Employee)
+                    .Include(c => c.Contract)
+                    .Include(c => c.Contract!.Car)
+                    .Where(a => a.DeleteFlag == 0);
+
+                if (!string.IsNullOrEmpty(CarNoSearch))
+                    query = query.Where(e => e.Contract!.Car!.CarNo!.Contains(CarNoSearch));
+                if (EmpNoSearch.HasValue)
+                    query = query.Where(e => e.Employee!.EmpCode == EmpNoSearch);
+                if (!string.IsNullOrEmpty(EmpNameSearch))
+                    query = query.Where(e => e.Employee!.FullNameAr!.Contains(EmpNameSearch));
+                if (!string.IsNullOrEmpty(ContractNoSearch))
+                    query = query.Where(e => e.Contract!.ContractNo!.Contains(ContractNoSearch));
+                if (companyId.HasValue)
+                    query = query.Where(e => e.Employee!.CompanyId == companyId.Value);
+                if (FromDateSearch.HasValue)
+                    query = query.Where(e => e.BillDate >= DateOnly.FromDateTime(FromDateSearch.Value));
+                if (ToDateSearch.HasValue)
+                    query = query.Where(e => e.BillDate <= DateOnly.FromDateTime(ToDateSearch.Value));
+                if (UserId.HasValue)
+                    query = query.Where(e => e.UserId == UserId.Value);
+                if (FromDateSearch == null && ToDateSearch == null)
                 {
-                    var worksheet = workbook.Worksheets.Add("فواتير التحصيل");
-
-                    // Set RTL direction for the worksheet
-                    worksheet.RightToLeft = true;
-
-                    // Add headers
-                    var headers = new string[]
-                    {
-                "رقم الفاتورة", "رقم العقد", "رقم السيارة", "رقم السائق",
-                "الرقم المدني", "اسم السائق", "تاريخ الفاتورة", "الوقت",
-                "من تاريخ", "إلى تاريخ", "عدد الأيام", "المبلغ",
-                "نوع العقد", "ملاحظات"
-                    };
-
-                    for (int i = 0; i < headers.Length; i++)
-                    {
-                        worksheet.Cell(1, i + 1).Value = headers[i];
-                        worksheet.Cell(1, i + 1).Style.Font.Bold = true;
-                        worksheet.Cell(1, i + 1).Style.Fill.BackgroundColor = XLColor.LightGray;
-                    }
-
-                    // Add data
-                    int row = 2;
-                    foreach (var bill in bills)
-                    {
-                        worksheet.Cell(row, 1).Value = bill.BillNo;
-                        worksheet.Cell(row, 2).Value = bill.Contract?.ContractNo;
-                        worksheet.Cell(row, 3).Value = bill.Contract?.Car?.CarNo;
-                        worksheet.Cell(row, 4).Value = bill.Employee?.EmpCode;
-                        worksheet.Cell(row, 5).Value = bill.Employee?.CivilId;
-                        worksheet.Cell(row, 6).Value = bill.Employee?.FullNameAr;
-                        worksheet.Cell(row, 7).Value = bill.BillDate?.ToString("yyyy-MM-dd");
-                        worksheet.Cell(row, 8).Value = bill.BillTime?.ToString();
-                        worksheet.Cell(row, 9).Value = bill.FromDate?.ToString("yyyy-MM-dd");
-                        worksheet.Cell(row, 10).Value = bill.ToDate?.ToString("yyyy-MM-dd");
-                        worksheet.Cell(row, 11).Value = bill.NoOfDays;
-                        worksheet.Cell(row, 12).Value = bill.BillPayed;
-                        worksheet.Cell(row, 13).Value = bill.Contract?.ContractType == 0 ? "يومي" : "شهري";
-                        worksheet.Cell(row, 14).Value = bill.BillHent;
-
-                        row++;
-                    }
-
-                    // Auto-fit columns
-                    worksheet.Columns().AdjustToContents();
-
-                    // Format currency column
-                    worksheet.Column(12).Style.NumberFormat.Format = "#,##0.00";
-
-                    // Create memory stream
-                    var stream = new MemoryStream();
-                    workbook.SaveAs(stream);
-                    stream.Position = 0; // Reset stream position
-
-                    string fileName = $"فواتير_التحصيل_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
-
-                    // This will trigger the browser's "Save As" dialog
-                    return File(
-                        fileStream: stream,
-                        contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        fileDownloadName: fileName);
+                    var sevenDaysAgo = DateOnly.FromDateTime(DateTime.Now).AddDays(-7);
+                    query = query.Where(e => e.BillDate >= sevenDaysAgo);
                 }
+
+                var bills = query.OrderByDescending(b => b.BillDate).ToList();
+
+                using var workbook = new XLWorkbook();
+                var worksheet = workbook.Worksheets.Add("فواتير التحصيل");
+                worksheet.RightToLeft = true;
+
+                var headers = new string[]
+                {
+                    "#", "رقم الفاتورة", "رقم العقد", "رقم السيارة", "رقم السائق",
+                    "الرقم المدني", "اسم السائق", "تاريخ الفاتورة", "الوقت",
+                    "من تاريخ", "إلى تاريخ", "عدد الأيام", "المبلغ",
+                    "نوع العقد", "ملاحظات"
+                };
+
+                for (int i = 0; i < headers.Length; i++)
+                {
+                    var cell = worksheet.Cell(1, i + 1);
+                    cell.Value = headers[i];
+                    cell.Style.Font.Bold = true;
+                    cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#1a1a2e");
+                    cell.Style.Font.FontColor = XLColor.White;
+                    cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                    cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                }
+
+                int row = 2;
+                int num = 1;
+                foreach (var bill in bills)
+                {
+                    worksheet.Cell(row, 1).Value = num++;
+                    worksheet.Cell(row, 2).Value = bill.BillNo;
+                    worksheet.Cell(row, 3).Value = bill.Contract?.ContractNo;
+                    worksheet.Cell(row, 4).Value = bill.Contract?.Car?.CarNo;
+                    worksheet.Cell(row, 5).Value = bill.Employee?.EmpCode;
+                    worksheet.Cell(row, 6).Value = bill.Employee?.CivilId;
+                    worksheet.Cell(row, 7).Value = bill.Employee?.FullNameAr;
+                    worksheet.Cell(row, 8).Value = bill.BillDate?.ToString("yyyy-MM-dd");
+                    worksheet.Cell(row, 9).Value = bill.BillTime?.ToString();
+                    worksheet.Cell(row, 10).Value = bill.FromDate?.ToString("yyyy-MM-dd");
+                    worksheet.Cell(row, 11).Value = bill.ToDate?.ToString("yyyy-MM-dd");
+                    worksheet.Cell(row, 12).Value = bill.NoOfDays;
+                    worksheet.Cell(row, 13).Value = bill.BillPayed;
+                    worksheet.Cell(row, 14).Value = bill.Contract?.ContractType == 0 ? "يومي" : "شهري";
+                    worksheet.Cell(row, 15).Value = bill.BillHent;
+
+                    for (int col = 1; col <= 15; col++)
+                    {
+                        worksheet.Cell(row, col).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        worksheet.Cell(row, col).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                    }
+                    if (row % 2 == 0)
+                        worksheet.Range(row, 1, row, 15).Style.Fill.BackgroundColor = XLColor.FromHtml("#f8f9fa");
+
+                    row++;
+                }
+
+                // Totals row
+                worksheet.Cell(row, 1).Value = "الإجمالي";
+                worksheet.Range(row, 1, row, 12).Merge();
+                worksheet.Cell(row, 13).Value = bills.Sum(b => b.BillPayed ?? 0);
+                for (int col = 1; col <= 15; col++)
+                {
+                    worksheet.Cell(row, col).Style.Font.Bold = true;
+                    worksheet.Cell(row, col).Style.Fill.BackgroundColor = XLColor.FromHtml("#f0f4f8");
+                    worksheet.Cell(row, col).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                    worksheet.Cell(row, col).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                }
+
+                worksheet.Column(13).Style.NumberFormat.Format = "#,##0.00";
+                worksheet.Columns().AdjustToContents();
+
+                var stream = new MemoryStream();
+                workbook.SaveAs(stream);
+                stream.Position = 0;
+
+                string fileName = $"فواتير_التحصيل_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+                return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
             }
             catch (Exception)
             {
-                // Log error
                 return RedirectToAction("Index");
             }
         }

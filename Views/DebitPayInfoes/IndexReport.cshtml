@@ -142,6 +142,17 @@
     إجمالي الإيراد   @String.Format("{0:C}", ViewBag.TotalBillPayed)
 </div>
 <button onclick="printBills()" class="btn btn-success">طباعة</button>
+<form asp-action="ExportToExcel" method="post" style="display:inline">
+    <input type="hidden" name="EmpCodeString" value="@ViewData["EmpCodeFilter"]" />
+    <input type="hidden" name="EmpSearch" value="@ViewData["EmpFilter"]" />
+    <input type="hidden" name="DefTypeId" value="@ViewData["DefTypeFilter"]" />
+    <input type="hidden" name="companyId" value="@ViewData["CompanyFilter"]" />
+    <input type="hidden" name="FromDateSearch" value="@ViewData["FromDateFilter"]" />
+    <input type="hidden" name="ToDateSearch" value="@ViewData["ToDateFilter"]" />
+    <button type="submit" class="btn btn-success">
+        <i class="fas fa-file-excel"></i> تصدير إكسل
+    </button>
+</form>
 <script>
     function printBills() {
         var printContents = document.querySelector('.bordered-table').outerHTML;

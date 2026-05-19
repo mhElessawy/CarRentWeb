@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using ClosedXML.Excel;
 using CarRentWeb.Data;
 using CarRentWeb.Models;
 
@@ -427,6 +428,113 @@ namespace CarRentWeb.Controllers
 
             //var rahalWebContext = _context.DebitPayInfos.Include(d => d.DebitInfo).Include(d => d.User).Include(d => d.UserRecieved).Include(d => d.Violation);
             //return View(await rahalWebContext.ToListAsync());
+        }
+
+        public IActionResult ExportToExcel(int? EmpCodeString, string? EmpSearch, int? DefTypeId, int? companyId, DateTime? FromDateSearch, DateTime? ToDateSearch)
+        {
+            TempData.Keep();
+            TempData["UserCompanyData"] = HttpContext.Session.GetString("UserCompanyData");
+            var userCompanyData = TempData["UserCompanyData"]?.ToString();
+            var companyIds = userCompanyData!.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
+
+            var query = _context.DebitPayInfos
+                .FromSqlRaw($"select * from DebitPayInfo where DebitInfoId in (Select Id from DebitInfo where EmpId in ( Select Id from EmployeeInfo where deleteFlag = 0 and CompanyId IN ({companyIdsString})))")
+                .Include(c => c.DebitInfo)
+                .Include(c => c.DebitInfo!.Emp)
+                .Include(c => c.DebitInfo!.DebitType)
+                .Where(m => m.DeleteFlag == 0 && m.DebitInfo!.Emp!.DeleteFlag == 0);
+
+            if (EmpCodeString.HasValue)
+                query = query.Where(e => e.DebitInfo!.Emp!.EmpCode == EmpCodeString);
+            if (!string.IsNullOrEmpty(EmpSearch))
+                query = query.Where(e => e.DebitInfo!.Emp!.FullNameAr!.Contains(EmpSearch));
+            if (DefTypeId.HasValue)
+                query = query.Where(e => e.DebitInfo!.DebitTypeId == DefTypeId.Value);
+            if (companyId.HasValue)
+                query = query.Where(e => e.DebitInfo!.Emp!.CompanyId == companyId.Value);
+            if (FromDateSearch.HasValue)
+                query = query.Where(e => e.DebitPayDate >= DateOnly.FromDateTime(FromDateSearch.Value));
+            if (ToDateSearch.HasValue)
+                query = query.Where(e => e.DebitPayDate <= DateOnly.FromDateTime(ToDateSearch.Value));
+            if (FromDateSearch == null && ToDateSearch == null)
+            {
+                var sevenDaysAgo = DateOnly.FromDateTime(DateTime.Now).AddDays(-7);
+                query = query.Where(e => e.DebitPayDate >= sevenDaysAgo);
+            }
+
+            var data = query.OrderBy(e => e.DebitPayNo).ToList();
+
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add("تحصيل الديون");
+            ws.RightToLeft = true;
+
+            ws.Cell(1, 1).Value = "تقرير تحصيل الديون";
+            ws.Cell(1, 1).Style.Font.Bold = true;
+            ws.Cell(1, 1).Style.Font.FontSize = 14;
+            ws.Cell(1, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            ws.Range(1, 1, 1, 7).Merge();
+
+            ws.Cell(2, 1).Value = $"تاريخ التقرير: {DateTime.Today:yyyy/MM/dd}";
+            ws.Cell(2, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            ws.Range(2, 1, 2, 7).Merge();
+
+            string[] headers = { "#", "رقم فاتورة التحصيل", "التاريخ", "رقم الموظف", "الاسم", "نوع الدين", "المبلغ" };
+            for (int i = 0; i < headers.Length; i++)
+            {
+                var cell = ws.Cell(4, i + 1);
+                cell.Value = headers[i];
+                cell.Style.Font.Bold = true;
+                cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#1a1a2e");
+                cell.Style.Font.FontColor = XLColor.White;
+                cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+            }
+
+            int row = 5;
+            int num = 1;
+            foreach (var item in data)
+            {
+                ws.Cell(row, 1).Value = num++;
+                ws.Cell(row, 2).Value = item.DebitPayNo;
+                ws.Cell(row, 3).Value = item.DebitPayDate?.ToString("yyyy-MM-dd");
+                ws.Cell(row, 4).Value = item.DebitInfo?.Emp?.EmpCode;
+                ws.Cell(row, 5).Value = item.DebitInfo?.Emp?.FullNameAr;
+                ws.Cell(row, 6).Value = item.DebitInfo?.DebitType?.DeffName;
+                ws.Cell(row, 7).Value = item.DebitPayQty;
+
+                for (int col = 1; col <= 7; col++)
+                {
+                    ws.Cell(row, col).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                    ws.Cell(row, col).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                }
+                if (row % 2 == 0)
+                    ws.Range(row, 1, row, 7).Style.Fill.BackgroundColor = XLColor.FromHtml("#f8f9fa");
+
+                row++;
+            }
+
+            // Totals row
+            ws.Cell(row, 1).Value = "الإجمالي";
+            ws.Range(row, 1, row, 6).Merge();
+            ws.Cell(row, 7).Value = data.Sum(d => d.DebitPayQty ?? 0);
+            for (int col = 1; col <= 7; col++)
+            {
+                ws.Cell(row, col).Style.Font.Bold = true;
+                ws.Cell(row, col).Style.Fill.BackgroundColor = XLColor.FromHtml("#f0f4f8");
+                ws.Cell(row, col).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                ws.Cell(row, col).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            }
+
+            ws.Column(7).Style.NumberFormat.Format = "#,##0.00";
+            ws.Columns().AdjustToContents();
+
+            var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            stream.Position = 0;
+
+            string fileName = $"تحصيل_الديون_{DateTime.Today:yyyyMMdd}.xlsx";
+            return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
 
     }
