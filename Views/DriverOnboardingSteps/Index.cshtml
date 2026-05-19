@@ -57,6 +57,8 @@
                                     <th width="60" class="text-center">الترتيب</th>
                                     <th>اسم الخطوة</th>
                                     <th>الوصف</th>
+                                    <th>الموقع</th>
+                                    <th>الجهة</th>
                                     <th width="90" class="text-center">الحالة</th>
                                     <th width="140" class="text-center">الإجراءات</th>
                                 </tr>
@@ -72,6 +74,8 @@
                                             <strong>@step.StepName</strong>
                                         </td>
                                         <td class="text-muted small">@(step.Description ?? "—")</td>
+                                        <td class="text-muted small">@(step.Location ?? "—")</td>
+                                        <td class="text-muted small">@(step.Jeha ?? "—")</td>
                                         <td class="text-center">
                                             @if (step.IsActive)
                                             {
@@ -92,6 +96,8 @@
                                                         data-name="@step.StepName"
                                                         data-desc="@step.Description"
                                                         data-order="@step.StepOrder"
+                                                        data-location="@step.Location"
+                                                        data-jeha="@step.Jeha"
                                                         title="تعديل">
                                                     <i class="bi bi-pencil"></i>
                                                 </button>
@@ -145,6 +151,16 @@
                             <textarea name="description" class="form-control" rows="2"
                                       placeholder="وصف اختياري للخطوة"></textarea>
                         </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">الموقع</label>
+                            <input type="text" name="location" class="form-control"
+                                   placeholder="مثال: وزارة الداخلية" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">الجهة</label>
+                            <input type="text" name="jeha" class="form-control"
+                                   placeholder="مثال: دائرة الجوازات" />
+                        </div>
                         <div class="mb-4">
                             <label class="form-label fw-semibold">الترتيب</label>
                             <input type="number" name="stepOrder" class="form-control"
@@ -193,6 +209,14 @@
                         <textarea name="description" id="editDescription" class="form-control" rows="2"></textarea>
                     </div>
                     <div class="mb-3">
+                        <label class="form-label fw-semibold">الموقع</label>
+                        <input type="text" name="location" id="editLocation" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">الجهة</label>
+                        <input type="text" name="jeha" id="editJeha" class="form-control" />
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label fw-semibold">الترتيب</label>
                         <input type="number" name="stepOrder" id="editStepOrder" class="form-control" min="1" />
                     </div>
@@ -216,5 +240,7 @@
         document.getElementById('editStepName').value = btn.dataset.name;
         document.getElementById('editDescription').value = btn.dataset.desc || '';
         document.getElementById('editStepOrder').value = btn.dataset.order;
+        document.getElementById('editLocation').value = btn.dataset.location || '';
+        document.getElementById('editJeha').value = btn.dataset.jeha || '';
     });
 </script>

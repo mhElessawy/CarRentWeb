@@ -1232,6 +1232,12 @@ namespace CarRentWeb.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<string>("Jeha")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Location")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("StepName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");

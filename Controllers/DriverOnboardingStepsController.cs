@@ -31,7 +31,7 @@ namespace CarRentWeb.Controllers
         // POST: DriverOnboardingSteps/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(string stepName, string? description, int stepOrder)
+        public async Task<IActionResult> Create(string stepName, string? description, int stepOrder, string? location, string? jeha)
         {
             if (!string.IsNullOrWhiteSpace(stepName))
             {
@@ -40,7 +40,9 @@ namespace CarRentWeb.Controllers
                     StepName = stepName.Trim(),
                     Description = description?.Trim(),
                     StepOrder = stepOrder,
-                    IsActive = true
+                    IsActive = true,
+                    Location = location?.Trim(),
+                    Jeha = jeha?.Trim()
                 };
                 _context.DriverOnboardingSteps.Add(step);
                 await _context.SaveChangesAsync();
@@ -51,7 +53,7 @@ namespace CarRentWeb.Controllers
         // POST: DriverOnboardingSteps/Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, string stepName, string? description, int stepOrder)
+        public async Task<IActionResult> Edit(int id, string stepName, string? description, int stepOrder, string? location, string? jeha)
         {
             var step = await _context.DriverOnboardingSteps.FindAsync(id);
             if (step == null) return NotFound();
@@ -59,6 +61,8 @@ namespace CarRentWeb.Controllers
             step.StepName = stepName.Trim();
             step.Description = description?.Trim();
             step.StepOrder = stepOrder;
+            step.Location = location?.Trim();
+            step.Jeha = jeha?.Trim();
             await _context.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
