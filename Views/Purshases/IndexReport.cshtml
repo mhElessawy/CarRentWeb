@@ -78,6 +78,7 @@
 <table class="bordered-table" dir="rtl">
     <thead>
         <tr>
+            <th>#</th>
             <th>
                 رقم الفاتورة
             </th>
@@ -97,9 +98,11 @@
         </tr>
     </thead>
     <tbody>
+        @{ int rowNum = 1; }
         @foreach (var item in Model)
         {
             <tr>
+                <td>@(rowNum++)</td>
                 <td>
                     @Html.DisplayFor(modelItem => item.PurshaseNo)
                 </td>

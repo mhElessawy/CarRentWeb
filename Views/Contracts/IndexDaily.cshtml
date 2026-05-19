@@ -546,6 +546,7 @@
         <table class="bordered-table" dir="rtl" style="border-radius:0 0 8px 8px;">
             <thead>
                 <tr>
+                    <th>#</th>
                     <th>رقم العقد</th>
                     <th>تاريخ العقد</th>
                     <th>كود السيارة</th>
@@ -564,11 +565,12 @@
             <tbody>
                 @if (!Model.DueToday.Any())
                 {
-                    <tr><td colspan="13" style="text-align:center;padding:14px;color:#999;">لا توجد عقود</td></tr>
+                    <tr><td colspan="14" style="text-align:center;padding:14px;color:#999;">لا توجد عقود</td></tr>
                 }
+                @{ int rn1 = 1; }
                 @foreach (var item in Model.DueToday)
                 {
-                    @Html.Raw(ContractRow(item, user!))
+                    @Html.Raw(ContractRow(item, user!, rn1++))
                 }
             </tbody>
         </table>
@@ -583,6 +585,7 @@
         <table class="bordered-table" dir="rtl" style="border-radius:0 0 8px 8px;">
             <thead>
                 <tr>
+                    <th>#</th>
                     <th>رقم العقد</th>
                     <th>تاريخ العقد</th>
                     <th>كود السيارة</th>
@@ -601,11 +604,12 @@
             <tbody>
                 @if (!Model.PaidToday.Any())
                 {
-                    <tr><td colspan="13" style="text-align:center;padding:14px;color:#999;">لا توجد عقود</td></tr>
+                    <tr><td colspan="14" style="text-align:center;padding:14px;color:#999;">لا توجد عقود</td></tr>
                 }
+                @{ int rn2 = 1; }
                 @foreach (var item in Model.PaidToday)
                 {
-                    @Html.Raw(ContractRow(item, user!))
+                    @Html.Raw(ContractRow(item, user!, rn2++))
                 }
             </tbody>
         </table>
@@ -620,6 +624,7 @@
         <table class="bordered-table" dir="rtl" style="border-radius:0 0 8px 8px;">
             <thead>
                 <tr>
+                    <th>#</th>
                     <th>رقم العقد</th>
                     <th>تاريخ العقد</th>
                     <th>كود السيارة</th>
@@ -638,11 +643,12 @@
             <tbody>
                 @if (!Model.Others.Any())
                 {
-                    <tr><td colspan="13" style="text-align:center;padding:14px;color:#999;">لا توجد عقود</td></tr>
+                    <tr><td colspan="14" style="text-align:center;padding:14px;color:#999;">لا توجد عقود</td></tr>
                 }
+                @{ int rn3 = 1; }
                 @foreach (var item in Model.Others)
                 {
-                    @Html.Raw(ContractRow(item, user!))
+                    @Html.Raw(ContractRow(item, user!, rn3++))
                 }
             </tbody>
         </table>
@@ -658,7 +664,7 @@
         _ => "عادي"
     };
 
-    string ContractRow(CarRentWeb.Models.Contract item, CarRentWeb.Models.PasswordDatum u)
+    string ContractRow(CarRentWeb.Models.Contract item, CarRentWeb.Models.PasswordDatum u, int rowNum)
     {
         int cd = (item.StartDate.HasValue && item.EndDate.HasValue)
             ? item.EndDate.Value.DayNumber - item.StartDate.Value.DayNumber
@@ -672,6 +678,7 @@
         string endBtn = u.ContractDailyEnd == true ? $"<a href='/Contracts/EndContractDaily/{item.Id}' class='btn-delete'><i class='fas fa-trash-alt'></i> إنتهاء عقد</a>" : "";
 
         return $@"<tr>
+            <td>{rowNum}</td>
             <td>{item.ContractNo}</td>
             <td>{item.ContractDate}</td>
             <td>{item.Car?.CarCode}</td>

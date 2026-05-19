@@ -116,6 +116,7 @@
     <table class="bordered-table" dir="rtl">
         <thead>
             <tr>
+                <th>#</th>
                 <th class="@((currentField == "BillNo") ? currentSort : "")">
                     <a asp-action="Index"
                        asp-route-sortField="BillNo"
@@ -317,9 +318,11 @@
             </tr>
         </thead>
         <tbody>
+            @{ int rowNum = 1; }
             @foreach (var item in Model)
             {
                 <tr>
+                    <td>@(rowNum++)</td>
                     <td>@Html.DisplayFor(modelItem => item.BillNo)</td>
                     <td>@Html.DisplayFor(modelItem => item.Contract!.ContractNo)</td>
                     <td>@Html.DisplayFor(modelItem => item.Contract!.Car!.CarNo)</td>
