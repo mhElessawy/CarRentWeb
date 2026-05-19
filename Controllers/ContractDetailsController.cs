@@ -892,6 +892,183 @@ namespace CarRentWeb.Controllers
 
             return View(viewModel);
         }
+        public async Task<IActionResult> BalanceReportExcel(int? EmpCodeString, string? EmpSearch, int? companyId)
+        {
+            TempData.Keep();
+            TempData["UserCompanyData"] = HttpContext.Session.GetString("UserCompanyData");
+
+            var userCompanyData = TempData["UserCompanyData"]?.ToString();
+            var companyIds = userCompanyData!.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
+
+            var today = DateOnly.FromDateTime(DateTime.Today);
+
+            var rentalQuery = _context.ContractDetails
+                .FromSqlRaw($"select * from ContractDetails where ContractId In (Select Id from Contract where DeleteFlag = 0 and status = 0 and EmployeeId In (Select Id From EmployeeInfo where DeleteFlag = 0 and CompanyId IN ({companyIdsString})))")
+                .Include(c => c.Contract)
+                    .ThenInclude(c => c!.Employee)
+                        .ThenInclude(e => e!.Company)
+                .Where(a => a.DeleteFlag == 0
+                         && a.Status == 0
+                         && a.DailyCreditDate < today
+                         && (a.DailyCredit != 0 || a.CarCredit != 0)
+                         && a.Contract!.Employee!.DeleteFlag == 0);
+
+            if (companyId.HasValue)
+                rentalQuery = rentalQuery.Where(e => e.Contract!.Employee!.CompanyId == companyId.Value);
+            if (EmpCodeString.HasValue)
+                rentalQuery = rentalQuery.Where(e => e.Contract!.Employee!.EmpCode == EmpCodeString.Value);
+            if (!string.IsNullOrEmpty(EmpSearch))
+                rentalQuery = rentalQuery.Where(e => e.Contract!.Employee!.FullNameAr!.Contains(EmpSearch));
+
+            var rentalData = await rentalQuery
+                .Where(c => c.Contract != null && c.Contract.Employee != null && c.Contract.Employee.EmpCode != null)
+                .GroupBy(c => c.Contract!.Employee!.Id)
+                .Select(g => new
+                {
+                    EmpId = g.Key,
+                    EmpCode = (int)g.First().Contract!.Employee!.EmpCode!,
+                    EmployeeName = g.First().Contract!.Employee!.FullNameAr ?? "",
+                    MobileNo = g.First().Contract!.Employee!.MobiileNo ?? "",
+                    CompanyName = g.First().Contract!.Employee!.Company!.CompNameAr ?? "",
+                    OverdueRental = g.Sum(c => (c.DailyCredit ?? 0) + (c.CarCredit ?? 0))
+                })
+                .ToListAsync();
+
+            var debitQuery = _context.DebitInfos
+                .FromSqlRaw($"select * from DebitInfo where EmpId In (Select Id From EmployeeInfo where DeleteFlag = 0 and CompanyId IN ({companyIdsString}))")
+                .Include(d => d.Emp)
+                    .ThenInclude(e => e!.Company)
+                .Where(d => d.DeleteFlag == 0 && d.DebitRemaining > 0 && d.Emp!.DeleteFlag == 0);
+
+            if (companyId.HasValue)
+                debitQuery = debitQuery.Where(d => d.Emp!.CompanyId == companyId.Value);
+            if (EmpCodeString.HasValue)
+                debitQuery = debitQuery.Where(d => d.Emp!.EmpCode == EmpCodeString.Value);
+            if (!string.IsNullOrEmpty(EmpSearch))
+                debitQuery = debitQuery.Where(d => d.Emp!.FullNameAr!.Contains(EmpSearch));
+
+            var debitData = await debitQuery
+                .Where(d => d.Emp != null && d.Emp.EmpCode != null)
+                .GroupBy(d => d.Emp!.Id)
+                .Select(g => new
+                {
+                    EmpId = g.Key,
+                    EmpCode = (int)g.First().Emp!.EmpCode!,
+                    EmployeeName = g.First().Emp!.FullNameAr ?? "",
+                    MobileNo = g.First().Emp!.MobiileNo ?? "",
+                    CompanyName = g.First().Emp!.Company!.CompNameAr ?? "",
+                    RemainingDebt = g.Sum(d => d.DebitRemaining ?? 0)
+                })
+                .ToListAsync();
+
+            var allEmpIds = rentalData.Select(r => r.EmpId)
+                .Union(debitData.Select(d => d.EmpId))
+                .Distinct();
+
+            var items = allEmpIds.Select(empId =>
+            {
+                var r = rentalData.FirstOrDefault(x => x.EmpId == empId);
+                var d = debitData.FirstOrDefault(x => x.EmpId == empId);
+                return new BalanceReportItemViewModel
+                {
+                    EmpCode = r?.EmpCode ?? d?.EmpCode ?? 0,
+                    EmployeeName = r?.EmployeeName ?? d?.EmployeeName ?? "",
+                    MobileNo = r?.MobileNo ?? d?.MobileNo ?? "",
+                    CompanyName = r?.CompanyName ?? d?.CompanyName ?? "",
+                    OverdueRental = r?.OverdueRental ?? 0,
+                    RemainingDebt = d?.RemainingDebt ?? 0
+                };
+            })
+            .OrderBy(x => x.EmpCode)
+            .ToList();
+
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add("تقرير الرصيد");
+
+            ws.RightToLeft = true;
+
+            // Title row
+            ws.Cell(1, 1).Value = "تقرير الرصيد الحالي";
+            ws.Cell(1, 1).Style.Font.Bold = true;
+            ws.Cell(1, 1).Style.Font.FontSize = 14;
+            ws.Cell(1, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            ws.Range(1, 1, 1, 8).Merge();
+
+            ws.Cell(2, 1).Value = $"تاريخ التقرير: {DateTime.Today:yyyy/MM/dd}";
+            ws.Cell(2, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            ws.Range(2, 1, 2, 8).Merge();
+
+            // Header row
+            int headerRow = 4;
+            string[] headers = { "#", "كود الموظف", "اسم الموظف", "رقم الهاتف", "الشركة", "المبالغ المتأخرة", "الديون المتبقية", "الإجمالي" };
+            for (int col = 1; col <= headers.Length; col++)
+            {
+                var cell = ws.Cell(headerRow, col);
+                cell.Value = headers[col - 1];
+                cell.Style.Font.Bold = true;
+                cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#1a1a2e");
+                cell.Style.Font.FontColor = XLColor.White;
+                cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+            }
+
+            // Data rows
+            int row = headerRow + 1;
+            int num = 1;
+            foreach (var item in items)
+            {
+                ws.Cell(row, 1).Value = num++;
+                ws.Cell(row, 2).Value = item.EmpCode;
+                ws.Cell(row, 3).Value = item.EmployeeName;
+                ws.Cell(row, 4).Value = item.MobileNo;
+                ws.Cell(row, 5).Value = item.CompanyName;
+                ws.Cell(row, 6).Value = item.OverdueRental;
+                ws.Cell(row, 7).Value = item.RemainingDebt;
+                ws.Cell(row, 8).Value = item.OverdueRental + item.RemainingDebt;
+
+                for (int col = 1; col <= 8; col++)
+                {
+                    ws.Cell(row, col).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                    ws.Cell(row, col).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                }
+
+                ws.Cell(row, 6).Style.Font.FontColor = XLColor.FromHtml("#c0392b");
+                ws.Cell(row, 7).Style.Font.FontColor = XLColor.FromHtml("#d35400");
+                ws.Cell(row, 8).Style.Font.Bold = true;
+
+                if (row % 2 == 0)
+                    ws.Range(row, 1, row, 8).Style.Fill.BackgroundColor = XLColor.FromHtml("#f8f9fa");
+
+                row++;
+            }
+
+            // Totals row
+            ws.Cell(row, 1).Value = "الإجمالي";
+            ws.Range(row, 1, row, 5).Merge();
+            ws.Cell(row, 1).Style.Font.Bold = true;
+            ws.Cell(row, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            ws.Cell(row, 6).Value = items.Sum(x => x.OverdueRental);
+            ws.Cell(row, 7).Value = items.Sum(x => x.RemainingDebt);
+            ws.Cell(row, 8).Value = items.Sum(x => x.OverdueRental + x.RemainingDebt);
+            for (int col = 1; col <= 8; col++)
+            {
+                ws.Cell(row, col).Style.Fill.BackgroundColor = XLColor.FromHtml("#f0f4f8");
+                ws.Cell(row, col).Style.Font.Bold = true;
+                ws.Cell(row, col).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                ws.Cell(row, col).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            }
+
+            ws.Columns().AdjustToContents();
+
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            stream.Position = 0;
+
+            string fileName = $"BalanceReport_{DateTime.Today:yyyyMMdd}.xlsx";
+            return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
+
         public async Task<IActionResult> CollectionReport(int? EmpCodeString, string? EmpSearch, int? companyId, DateTime? FromDateSearch, DateTime? ToDateSearch)
         {
             TempData.Keep();

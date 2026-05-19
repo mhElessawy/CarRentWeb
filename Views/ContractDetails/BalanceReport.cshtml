@@ -212,8 +212,29 @@
             background-color: #218838;
         }
 
+    .btn-excel {
+        background-color: #1d6f42;
+        color: white;
+        border: none;
+        padding: 9px 22px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-top: 14px;
+        margin-right: 8px;
+        text-decoration: none;
+        display: inline-block;
+        transition: background 0.2s;
+    }
+
+        .btn-excel:hover {
+            background-color: #155232;
+            color: white;
+        }
+
     @@media print {
-        .filter-bar, .btn-print, .report-header {
+        .filter-bar, .btn-print, .btn-excel, .report-header {
             display: none !important;
         }
     }
@@ -309,7 +330,14 @@
         </tbody>
     </table>
 
-    <button onclick="printReport()" class="btn-print">طباعة</button>
+    <div style="display:flex; gap:8px; align-items:center;">
+        <button onclick="printReport()" class="btn-print">طباعة</button>
+        <a asp-action="BalanceReportExcel"
+           asp-route-EmpCodeString="@Context.Request.Query["EmpCodeString"]"
+           asp-route-EmpSearch="@Context.Request.Query["EmpSearch"]"
+           asp-route-companyId="@Context.Request.Query["companyId"]"
+           class="btn-excel">&#128190; تصدير إلى Excel</a>
+    </div>
 </div>
 
 <!-- قسم الطباعة المخفي -->
