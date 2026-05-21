@@ -371,12 +371,31 @@
         font-size: 0.82rem;
     }
 
-    /* Table container always scrollable */
+    /* Prevent the page itself from scrolling horizontally */
+    html, body {
+        overflow-x: hidden;
+    }
+
+    /* Table container: fixed to viewport width, scrolls internally */
     .table-container {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
-        width: 100%;
+        max-width: calc(100vw - 3rem); /* viewport minus px-4 padding */
+        display: block;
     }
+
+    /* Compact table cells */
+    .bordered-table {
+        font-size: 0.72rem;
+        width: max-content; /* let table be as wide as it needs, container scrolls */
+        min-width: 100%;
+    }
+
+        .bordered-table th,
+        .bordered-table td {
+            padding: 4px 5px;
+            white-space: nowrap;
+        }
 
     /* Responsive design */
     @@media (max-width: 1200px) {
