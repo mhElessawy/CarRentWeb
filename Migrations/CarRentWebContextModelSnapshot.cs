@@ -511,6 +511,15 @@ namespace CarRentWeb.Migrations
                     .HasColumnType("int")
                     .HasDefaultValue(0);
 
+                b.Property<int?>("MoiAllowedCars")
+                    .HasColumnType("int");
+
+                b.Property<DateOnly?>("MoiExpiryDate")
+                    .HasColumnType("date");
+
+                b.Property<string>("MoiUnifiedNo")
+                    .HasColumnType("nvarchar(max)");
+
                 b.Property<DateOnly?>("EndLicense")
                     .HasColumnType("date");
 

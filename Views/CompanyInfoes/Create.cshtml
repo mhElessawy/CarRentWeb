@@ -464,6 +464,28 @@
         </div>
     </div>
 
+    <!-- ===== القسم 9: وزارة الداخلية ===== -->
+    <div class="form-section">
+        <div class="form-section-title"><i class="bi bi-shield-fill"></i> وزارة الداخلية</div>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label asp-for="MoiUnifiedNo" class="form-label">الرقم الموحد</label>
+                <input asp-for="MoiUnifiedNo" class="form-control" />
+                <span asp-validation-for="MoiUnifiedNo" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="MoiExpiryDate" class="form-label">تاريخ الانتهاء</label>
+                <input asp-for="MoiExpiryDate" type="date" class="form-control" />
+                <span asp-validation-for="MoiExpiryDate" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="MoiAllowedCars" class="form-label">عدد السيارات المسموح به</label>
+                <input asp-for="MoiAllowedCars" type="number" min="0" class="form-control" />
+                <span asp-validation-for="MoiAllowedCars" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+
     <!-- ===== أزرار الحفظ والإلغاء ===== -->
     <div class="form-actions">
         <button type="submit" class="btn btn-primary btn-lg">
