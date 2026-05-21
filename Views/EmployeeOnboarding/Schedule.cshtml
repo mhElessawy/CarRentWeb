@@ -176,7 +176,7 @@
     }
     else
     {
-        @{
+        {
             var overdueCount = Model.Count(x => x.TargetDate.HasValue && x.TargetDate.Value < today);
             var todayCount   = Model.Count(x => x.TargetDate.HasValue && x.TargetDate.Value == today);
         }
