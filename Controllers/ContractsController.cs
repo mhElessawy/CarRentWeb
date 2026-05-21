@@ -206,6 +206,18 @@ namespace CarRentWeb.Controllers
 
             var allContracts = await query.AsNoTracking().ToListAsync();
 
+            // Payment ratio: paid (Status=3) vs total per contract
+            var contractIds = allContracts.Select(c => c.Id).ToList();
+            var contractDetails = await _context.ContractDetails
+                .Where(d => contractIds.Contains(d.ContractId ?? 0) && d.DeleteFlag != 1)
+                .ToListAsync();
+
+            var grouped = contractDetails.GroupBy(d => d.ContractId ?? 0);
+            ViewBag.PaidAmounts  = grouped.ToDictionary(g => g.Key,
+                g => g.Where(d => d.Status == 3).Sum(d => d.DailyCredit ?? 0));
+            ViewBag.TotalAmounts = grouped.ToDictionary(g => g.Key,
+                g => g.Sum(d => d.DailyCredit ?? 0));
+
             var paidTodayIds = allContracts
                 .Where(c => c.Bills.Any(b => b.DeleteFlag == 0 && b.BillDate == today))
                 .Select(c => c.Id)
