@@ -1,0 +1,260 @@
+@model List<CarRentWeb.Models.MyModel.EmployeeScheduleItem>
+
+@{
+    ViewData["Title"] = "جدول مهام المندوب";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #6f42c1, #5a2d9b);
+        color: white;
+        border-radius: 10px;
+        padding: 16px 20px;
+        margin-bottom: 20px;
+    }
+
+    .schedule-table th {
+        background: #f8f9fa;
+        font-size: 0.85rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .schedule-table td {
+        vertical-align: middle;
+        font-size: 0.9rem;
+    }
+
+    .step-badge {
+        background: #e8f4fd;
+        color: #0d6efd;
+        border-radius: 6px;
+        padding: 3px 10px;
+        font-size: 0.82rem;
+        font-weight: 500;
+        display: inline-block;
+    }
+
+    .meta-tag {
+        font-size: 0.78rem;
+        color: #6c757d;
+    }
+
+    .progress-mini {
+        height: 6px;
+        border-radius: 3px;
+        background: #e9ecef;
+        min-width: 80px;
+    }
+
+    .progress-mini .fill {
+        height: 100%;
+        border-radius: 3px;
+        background: linear-gradient(90deg, #0d6efd, #198754);
+    }
+
+    .date-input {
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        padding: 5px 8px;
+        font-size: 0.85rem;
+        width: 140px;
+    }
+
+    .date-input:focus {
+        border-color: #6f42c1;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(111,66,193,0.15);
+    }
+
+    .overdue {
+        background: #fff5f5 !important;
+    }
+
+    .overdue .date-input {
+        border-color: #dc3545;
+        color: #dc3545;
+    }
+
+    .today-row {
+        background: #fffbf0 !important;
+    }
+</style>
+
+<div class="container-fluid mt-3" dir="rtl">
+
+    <!-- Header -->
+    <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <h5 class="mb-0"><i class="bi bi-calendar-check me-2"></i>جدول مهام المندوب</h5>
+            <small class="opacity-75">الإجراء التالي لكل سائق مع تحديد موعد التنفيذ</small>
+        </div>
+        <a asp-action="Index" asp-controller="EmployeeOnboarding" class="btn btn-light btn-sm">
+            <i class="bi bi-arrow-right me-1"></i> قائمة السائقين
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible">
+            <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Filters -->
+    <form method="get" class="card p-3 mb-3 shadow-sm" style="border-radius:10px">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label small fw-semibold mb-1">اسم السائق</label>
+                <input type="text" name="nameSearch" class="form-control form-control-sm"
+                       placeholder="ابحث بالاسم" value="@ViewBag.NameSearch" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small fw-semibold mb-1">الشركة</label>
+                <select name="companyId" class="form-select form-select-sm" asp-items="ViewBag.Companies" dir="rtl">
+                    <option value="">-- كل الشركات --</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary btn-sm w-100">
+                    <i class="bi bi-search me-1"></i> بحث
+                </button>
+            </div>
+            <div class="col-md-2">
+                <a asp-action="Schedule" class="btn btn-outline-secondary btn-sm w-100">
+                    <i class="bi bi-x me-1"></i> مسح
+                </a>
+            </div>
+        </div>
+    </form>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-calendar-check fs-1 d-block mb-2 text-success"></i>
+            <div class="fw-semibold">لا توجد مهام معلقة</div>
+            <div class="small">جميع السائقين أكملوا إجراءاتهم أو لا يوجد سائقون</div>
+        </div>
+    }
+    else
+    {
+        <div class="d-flex align-items-center gap-3 mb-3">
+            <span class="fw-semibold text-muted small">
+                <i class="bi bi-people me-1"></i>@Model.Count سائق بانتظار الإجراء
+            </span>
+            @{
+                var today = DateOnly.FromDateTime(DateTime.Today);
+                var overdueCount = Model.Count(x => x.TargetDate.HasValue && x.TargetDate.Value < today);
+                var todayCount = Model.Count(x => x.TargetDate.HasValue && x.TargetDate.Value == today);
+            }
+            @if (overdueCount > 0)
+            {
+                <span class="badge bg-danger">@overdueCount متأخر</span>
+            }
+            @if (todayCount > 0)
+            {
+                <span class="badge bg-warning text-dark">@todayCount اليوم</span>
+            }
+        </div>
+
+        <div class="card shadow-sm" style="border-radius:10px;overflow:hidden">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 schedule-table">
+                    <thead>
+                        <tr>
+                            <th class="px-3">السائق</th>
+                            <th>الشركة</th>
+                            <th>الإجراء التالي</th>
+                            <th>الجهة / الموقع</th>
+                            <th>التقدم</th>
+                            <th>تاريخ التنفيذ المطلوب</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.OrderBy(x => x.TargetDate ?? DateOnly.MaxValue).ThenBy(x => x.EmpCode))
+                        {
+                            var isOverdue = item.TargetDate.HasValue && item.TargetDate.Value < today;
+                            var isToday = item.TargetDate.HasValue && item.TargetDate.Value == today;
+                            var rowClass = isOverdue ? "overdue" : isToday ? "today-row" : "";
+                            var pct = item.TotalCount > 0 ? (int)Math.Round((double)item.CompletedCount / item.TotalCount * 100) : 0;
+
+                            <tr class="@rowClass">
+                                <td class="px-3">
+                                    <a asp-action="Progress" asp-controller="EmployeeOnboarding"
+                                       asp-route-id="@item.EmployeeId"
+                                       class="fw-semibold text-decoration-none text-dark">
+                                        @item.FullNameAr
+                                    </a>
+                                    <div class="meta-tag">كود: @item.EmpCode</div>
+                                </td>
+                                <td>
+                                    <span class="meta-tag">@(item.CompanyName ?? "—")</span>
+                                </td>
+                                <td>
+                                    <span class="step-badge">@item.NextStepName</span>
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(item.NextStepJeha))
+                                    {
+                                        <div class="meta-tag"><i class="bi bi-building me-1"></i>@item.NextStepJeha</div>
+                                    }
+                                    @if (!string.IsNullOrEmpty(item.NextStepLocation))
+                                    {
+                                        <div class="meta-tag"><i class="bi bi-geo-alt me-1"></i>@item.NextStepLocation</div>
+                                    }
+                                    @if (string.IsNullOrEmpty(item.NextStepJeha) && string.IsNullOrEmpty(item.NextStepLocation))
+                                    {
+                                        <span class="meta-tag">—</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="progress-mini">
+                                        <div class="fill" style="width:@pct%"></div>
+                                    </div>
+                                    <div class="meta-tag mt-1">@item.CompletedCount / @item.TotalCount</div>
+                                </td>
+                                <td>
+                                    <form asp-action="SaveTargetDate" method="post" class="d-flex align-items-center gap-2">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="employeeId" value="@item.EmployeeId" />
+                                        <input type="hidden" name="stepId" value="@item.NextStepId" />
+                                        <input type="date"
+                                               name="targetDate"
+                                               class="date-input"
+                                               value="@(item.TargetDate?.ToString("yyyy-MM-dd") ?? "")"
+                                               id="date-@item.EmployeeId" />
+                                        <button type="submit" class="btn btn-sm btn-outline-primary px-2" title="حفظ">
+                                            <i class="bi bi-save"></i>
+                                        </button>
+                                    </form>
+                                    @if (isOverdue)
+                                    {
+                                        <div class="meta-tag text-danger mt-1">
+                                            <i class="bi bi-exclamation-circle me-1"></i>متأخر
+                                        </div>
+                                    }
+                                    @if (isToday)
+                                    {
+                                        <div class="meta-tag text-warning mt-1">
+                                            <i class="bi bi-clock me-1"></i>اليوم
+                                        </div>
+                                    }
+                                </td>
+                                <td>
+                                    <a asp-action="Progress" asp-controller="EmployeeOnboarding"
+                                       asp-route-id="@item.EmployeeId"
+                                       class="btn btn-sm btn-outline-secondary" title="تفاصيل التجهيز">
+                                        <i class="bi bi-arrow-left"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>

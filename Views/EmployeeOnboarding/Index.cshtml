@@ -84,10 +84,16 @@
             <h5 class="mb-0"><i class="bi bi-person-check me-2"></i>متابعة تجهيز السائقين</h5>
             <small class="opacity-75">اختر سائقاً لعرض وتحديث خطوات التجهيز</small>
         </div>
-        <a asp-action="Index" asp-controller="DriverOnboardingSteps" class="btn btn-light btn-sm">
-            <i class="bi bi-gear me-1"></i>
-            إدارة الخطوات
-        </a>
+        <div class="d-flex gap-2">
+            <a asp-action="Schedule" asp-controller="EmployeeOnboarding" class="btn btn-warning btn-sm">
+                <i class="bi bi-calendar-check me-1"></i>
+                جدول المندوب
+            </a>
+            <a asp-action="Index" asp-controller="DriverOnboardingSteps" class="btn btn-light btn-sm">
+                <i class="bi bi-gear me-1"></i>
+                إدارة الخطوات
+            </a>
+        </div>
     </div>
 
     @if (totalSteps == 0)

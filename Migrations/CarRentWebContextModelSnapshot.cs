@@ -1477,6 +1477,9 @@ namespace CarRentWeb.Migrations
                 b.Property<int>("StepId")
                     .HasColumnType("int");
 
+                b.Property<DateOnly?>("TargetDate")
+                    .HasColumnType("date");
+
                 b.HasKey("Id");
 
                 b.HasIndex("EmployeeId");
