@@ -376,6 +376,19 @@
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         width: 100%;
+        max-width: 100%;
+    }
+
+    /* Prevent page-level horizontal scroll */
+    .page-content {
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    /* Compact columns for wide tables */
+    .bordered-table th,
+    .bordered-table td {
+        font-size: 0.75rem;
     }
 
     /* Responsive design */
@@ -537,7 +550,7 @@
 </div>
 
 @* ── القسم 1: العقود المفروض تندفع اليوم ── *@
-<div dir="rtl">
+<div dir="rtl" class="page-content">
     <div class="section-header section-due">
         <i class="fas fa-clock"></i> العقود المفروض تندفع اليوم
         <span class="section-badge">@Model.DueToday.Count</span>
