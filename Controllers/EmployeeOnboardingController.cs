@@ -317,5 +317,81 @@ namespace CarRentWeb.Controllers
                 dateTo   = parsedTo?.ToString("yyyy-MM-dd")
             });
         }
+
+        // GET: EmployeeOnboarding/Report
+        public async Task<IActionResult> Report(int? companyId, string? nameSearch,
+            DateOnly? targetDateFrom, DateOnly? targetDateTo,
+            DateOnly? completedDateFrom, DateOnly? completedDateTo)
+        {
+            TempData["Username"] = HttpContext.Session.GetString("Username");
+            TempData.Keep();
+
+            var userCompanyData = HttpContext.Session.GetString("UserCompanyData") ?? "";
+            var companyIds = userCompanyData.Split(',')
+                .Where(x => int.TryParse(x.Trim(), out _))
+                .Select(x => int.Parse(x.Trim()))
+                .ToList();
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
+
+            ViewBag.Companies = new SelectList(
+                await _context.CompanyInfos
+                    .FromSqlRaw($"SELECT * FROM CompanyInfo WHERE DeleteFlag = 0 AND Id IN ({companyIdsString})")
+                    .OrderBy(c => c.CompNameAr)
+                    .ToListAsync(),
+                "Id", "CompNameAr", companyId);
+
+            var progressQuery = _context.EmployeeOnboardingProgresses
+                .Include(p => p.Employee).ThenInclude(e => e!.Company)
+                .Include(p => p.Step)
+                .Where(p => p.IsCompleted
+                    && p.Employee != null
+                    && p.Employee.DeleteFlag == 0
+                    && companyIds.Contains(p.Employee.CompanyId ?? 0));
+
+            if (!string.IsNullOrEmpty(nameSearch))
+                progressQuery = progressQuery.Where(p =>
+                    p.Employee!.FullNameAr!.Contains(nameSearch) ||
+                    p.Employee!.FullNameEn!.Contains(nameSearch));
+
+            if (companyId.HasValue)
+                progressQuery = progressQuery.Where(p => p.Employee!.CompanyId == companyId.Value);
+
+            if (targetDateFrom.HasValue)
+                progressQuery = progressQuery.Where(p => p.TargetDate >= targetDateFrom.Value);
+            if (targetDateTo.HasValue)
+                progressQuery = progressQuery.Where(p => p.TargetDate <= targetDateTo.Value);
+
+            if (completedDateFrom.HasValue)
+                progressQuery = progressQuery.Where(p => p.CompletedDate >= completedDateFrom.Value);
+            if (completedDateTo.HasValue)
+                progressQuery = progressQuery.Where(p => p.CompletedDate <= completedDateTo.Value);
+
+            var records = await progressQuery
+                .OrderBy(p => p.Employee!.EmpCode)
+                .ThenBy(p => p.Step!.StepOrder)
+                .ToListAsync();
+
+            var report = records.Select(p => new OnboardingReportItem
+            {
+                EmployeeId    = p.EmployeeId,
+                FullNameAr    = p.Employee?.FullNameAr ?? "",
+                EmpCode       = p.Employee?.EmpCode,
+                CompanyName   = p.Employee?.Company?.CompNameAr,
+                StepName      = p.Step?.StepName ?? "",
+                StepJeha      = p.Step?.Jeha,
+                StepLocation  = p.Step?.Location,
+                TargetDate    = p.TargetDate,
+                CompletedDate = p.CompletedDate,
+                Notes         = p.Notes
+            }).ToList();
+
+            ViewBag.NameSearch        = nameSearch;
+            ViewBag.CompanyId         = companyId;
+            ViewBag.TargetDateFrom    = targetDateFrom?.ToString("yyyy-MM-dd");
+            ViewBag.TargetDateTo      = targetDateTo?.ToString("yyyy-MM-dd");
+            ViewBag.CompletedDateFrom = completedDateFrom?.ToString("yyyy-MM-dd");
+            ViewBag.CompletedDateTo   = completedDateTo?.ToString("yyyy-MM-dd");
+            return View(report);
+        }
     }
 }

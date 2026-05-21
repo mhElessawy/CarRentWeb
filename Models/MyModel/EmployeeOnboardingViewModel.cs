@@ -38,3 +38,17 @@ public class EmployeeScheduleItem
     public DateOnly? TargetDate { get; set; }
     public int? ProgressRecordId { get; set; }
 }
+
+public class OnboardingReportItem
+{
+    public int EmployeeId { get; set; }
+    public string FullNameAr { get; set; } = "";
+    public int? EmpCode { get; set; }
+    public string? CompanyName { get; set; }
+    public string StepName { get; set; } = "";
+    public string? StepJeha { get; set; }
+    public string? StepLocation { get; set; }
+    public DateOnly? TargetDate { get; set; }
+    public DateOnly? CompletedDate { get; set; }
+    public string? Notes { get; set; }
+}
