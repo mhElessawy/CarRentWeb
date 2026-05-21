@@ -19,4 +19,6 @@ public class StepProgressItem
     public bool IsCompleted { get; set; }
     public DateOnly? CompletedDate { get; set; }
     public string? Notes { get; set; }
+    public string? Location { get; set; }
+    public string? Jeha { get; set; }
 }

@@ -93,7 +93,6 @@ namespace CarRentWeb.Controllers
                 .Include(e => e.Company)
                 .Include(e => e.Nationality)
                 .Include(e => e.JobTitle)
-                .Include(e => e.Location)
                 .FirstOrDefaultAsync(e => e.Id == id);
 
             if (employee == null) return NotFound();
@@ -117,6 +116,8 @@ namespace CarRentWeb.Controllers
                     StepName = s.StepName,
                     Description = s.Description,
                     StepOrder = s.StepOrder,
+                    Location = s.Location,
+                    Jeha = s.Jeha,
                     IsCompleted = existingProgress.ContainsKey(s.Id) && existingProgress[s.Id].IsCompleted,
                     CompletedDate = existingProgress.ContainsKey(s.Id) ? existingProgress[s.Id].CompletedDate : null,
                     Notes = existingProgress.ContainsKey(s.Id) ? existingProgress[s.Id].Notes : null
