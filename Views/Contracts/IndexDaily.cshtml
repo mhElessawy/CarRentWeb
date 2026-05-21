@@ -371,25 +371,29 @@
         font-size: 0.82rem;
     }
 
-    /* Table container always scrollable */
+    /* Prevent the page itself from scrolling horizontally */
+    html, body { overflow-x: hidden; }
+
+    /* Table container: fixed to viewport width, scrolls internally */
     .table-container {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
-        width: 100%;
-        max-width: 100%;
+        max-width: calc(100vw - 3rem);   /* viewport minus px-4 padding */
+        display: block;
     }
 
-    /* Prevent page-level horizontal scroll */
-    .page-content {
-        max-width: 100%;
-        overflow-x: hidden;
+    /* Compact table cells */
+    .bordered-table {
+        font-size: 0.72rem;
+        width: max-content;   /* let table be as wide as it needs, container scrolls */
+        min-width: 100%;
     }
 
-    /* Compact columns for wide tables */
-    .bordered-table th,
-    .bordered-table td {
-        font-size: 0.75rem;
-    }
+        .bordered-table th,
+        .bordered-table td {
+            padding: 4px 5px;
+            white-space: nowrap;
+        }
 
     /* Responsive design */
     @@media (max-width: 1200px) {
@@ -550,7 +554,7 @@
 </div>
 
 @* ── القسم 1: العقود المفروض تندفع اليوم ── *@
-<div dir="rtl" class="page-content">
+<div dir="rtl">
     <div class="section-header section-due">
         <i class="fas fa-clock"></i> العقود المفروض تندفع اليوم
         <span class="section-badge">@Model.DueToday.Count</span>
