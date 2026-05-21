@@ -81,6 +81,7 @@
                         }
                         <li><a asp-action="Index" asp-controller="EmployeeOnboarding"><i class="bi bi-person-check-fill"></i> تجهيز السائقين</a></li>
                         <li><a asp-action="Schedule" asp-controller="EmployeeOnboarding"><i class="bi bi-calendar-check-fill"></i> جدول مهام المندوب</a></li>
+                        <li><a asp-action="Report" asp-controller="EmployeeOnboarding"><i class="bi bi-clipboard2-check-fill"></i> تقرير الأعمال المنجزة</a></li>
                         @if (user.UserAdmin == true)
                         {
                             <li><a asp-action="Index" asp-controller="DriverOnboardingSteps"><i class="bi bi-list-check"></i> تعريف خطوات التجهيز</a></li>
