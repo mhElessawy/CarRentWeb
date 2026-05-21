@@ -93,6 +93,7 @@ namespace CarRentWeb.Controllers
                 .Include(e => e.Company)
                 .Include(e => e.Nationality)
                 .Include(e => e.JobTitle)
+                .Include(e => e.Location)
                 .FirstOrDefaultAsync(e => e.Id == id);
 
             if (employee == null) return NotFound();
