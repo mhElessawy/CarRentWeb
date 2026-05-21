@@ -19,4 +19,22 @@ public class StepProgressItem
     public bool IsCompleted { get; set; }
     public DateOnly? CompletedDate { get; set; }
     public string? Notes { get; set; }
+    public string? Location { get; set; }
+    public string? Jeha { get; set; }
+}
+
+public class EmployeeScheduleItem
+{
+    public int EmployeeId { get; set; }
+    public string FullNameAr { get; set; } = "";
+    public int? EmpCode { get; set; }
+    public string? CompanyName { get; set; }
+    public int NextStepId { get; set; }
+    public string NextStepName { get; set; } = "";
+    public string? NextStepJeha { get; set; }
+    public string? NextStepLocation { get; set; }
+    public int CompletedCount { get; set; }
+    public int TotalCount { get; set; }
+    public DateOnly? TargetDate { get; set; }
+    public int? ProgressRecordId { get; set; }
 }

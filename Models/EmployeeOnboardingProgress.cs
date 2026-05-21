@@ -8,6 +8,7 @@ public class EmployeeOnboardingProgress
     public bool IsCompleted { get; set; }
     public DateOnly? CompletedDate { get; set; }
     public string? Notes { get; set; }
+    public DateOnly? TargetDate { get; set; }
 
     public virtual EmployeeInfo? Employee { get; set; }
     public virtual DriverOnboardingStep? Step { get; set; }

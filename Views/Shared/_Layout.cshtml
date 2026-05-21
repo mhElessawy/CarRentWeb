@@ -80,6 +80,7 @@
                             <li><a asp-action="Index" asp-controller="EmployeeInfoes"><i class="bi bi-person-lines-fill"></i> بيانات الموظفين</a></li>
                         }
                         <li><a asp-action="Index" asp-controller="EmployeeOnboarding"><i class="bi bi-person-check-fill"></i> تجهيز السائقين</a></li>
+                        <li><a asp-action="Schedule" asp-controller="EmployeeOnboarding"><i class="bi bi-calendar-check-fill"></i> جدول مهام المندوب</a></li>
                         @if (user.UserAdmin == true)
                         {
                             <li><a asp-action="Index" asp-controller="DriverOnboardingSteps"><i class="bi bi-list-check"></i> تعريف خطوات التجهيز</a></li>

@@ -1,4 +1,4 @@
-﻿@model CarRentWeb.Models.MyModel.EmployeeOnboardingViewModel
+﻿@model  CarRentWeb.Models.MyModel.EmployeeOnboardingViewModel
 
 @{
     ViewData["Title"] = "تجهيز السائق";
@@ -258,6 +258,23 @@
                             @if (!string.IsNullOrEmpty(step.Description))
                             {
                                 <div class="step-desc">@step.Description</div>
+                            }
+                            @if (!string.IsNullOrEmpty(step.Jeha) || !string.IsNullOrEmpty(step.Location))
+                            {
+                                <div class="d-flex flex-wrap gap-3 mt-1">
+                                    @if (!string.IsNullOrEmpty(step.Jeha))
+                                    {
+                                        <span class="step-desc">
+                                            <i class="bi bi-building me-1"></i>@step.Jeha
+                                        </span>
+                                    }
+                                    @if (!string.IsNullOrEmpty(step.Location))
+                                    {
+                                        <span class="step-desc">
+                                            <i class="bi bi-geo-alt me-1"></i>@step.Location
+                                        </span>
+                                    }
+                                </div>
                             }
                             @if (step.IsCompleted && step.CompletedDate.HasValue)
                             {
