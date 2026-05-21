@@ -1,4 +1,4 @@
-﻿﻿﻿@{
+﻿﻿﻿﻿@{
 ViewData["Title"] = "Home Page";
 }
 
@@ -225,7 +225,157 @@ ViewData["Title"] = "Home Page";
 </section>
 <br />
 
+@{
+    var companyDashboard = ViewBag.CompanyDashboard as List<CarRentWeb.Models.MyModel.CompanyDashboardItem>;
+}
+@if (companyDashboard != null && companyDashboard.Any())
+{
+    <div class="container-fluid mt-2 mb-4" dir="rtl">
+        <div class="company-table-card">
+            <div class="company-table-header">
+                <i class="bi bi-building me-2"></i>إحصائيات الشركات
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 company-stats-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>اسم الشركة</th>
+                            <th class="text-center">السيارات المسموح بها<br /><small class="fw-normal">(وزارة الداخلية)</small></th>
+                            <th class="text-center">السيارات الفعلية</th>
+                            <th class="text-center">العقود الفعّالة</th>
+                            <th class="text-center">نسبة الاستخدام</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            int rn = 0;
+                        }
+                        @foreach (var co in companyDashboard)
+                        {
+                            rn++;
+                            var ratio = co.Ratio;
+                            var barColor = ratio == null ? "#adb5bd"
+                            : ratio >= 90 ? "#dc3545"
+                            : ratio >= 70 ? "#fd7e14"
+                            : "#198754";
+                            var ratioText = ratio == null ? "—" : ratio.Value.ToString("0.#") + "%";
+                            <tr>
+                                <td class="text-muted small">@rn</td>
+                                <td class="fw-semibold">@co.CompanyName</td>
+                                <td class="text-center">
+                                    @if (co.MoiAllowedCars.HasValue)
+                                    {
+                                        <span class="stat-pill stat-allowed">@co.MoiAllowedCars</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <span class="stat-pill stat-actual">@co.ActualCars</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="stat-pill stat-contracts">@co.ActiveContracts</span>
+                                </td>
+                                <td class="text-center" style="min-width:130px">
+                                    @if (ratio != null)
+                                    {
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="ratio-bar-bg flex-grow-1">
+                                                <div class="ratio-bar-fill"
+                                                     style="width:@(Math.Min(ratio.Value, 100))%;background:@barColor"></div>
+                                            </div>
+                                            <span class="ratio-label" style="color:@barColor">@ratioText</span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">لا يوجد حد</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
+    <style>
+        .company-table-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .company-table-header {
+            background: linear-gradient(135deg, #0d6efd, #0a58ca);
+            color: white;
+            padding: 14px 20px;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .company-stats-table th {
+            background: #f8f9fa;
+            font-size: 0.82rem;
+            font-weight: 600;
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+
+        .company-stats-table td {
+            vertical-align: middle;
+            font-size: 0.9rem;
+        }
+
+        .stat-pill {
+            display: inline-block;
+            min-width: 38px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .stat-allowed {
+            background: #e0ecff;
+            color: #0d47a1;
+        }
+
+        .stat-actual {
+            background: #e8f5e9;
+            color: #1b5e20;
+        }
+
+        .stat-contracts {
+            background: #fff3cd;
+            color: #7d4e00;
+        }
+
+        .ratio-bar-bg {
+            height: 8px;
+            border-radius: 4px;
+            background: #e9ecef;
+        }
+
+        .ratio-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width .4s;
+        }
+
+        .ratio-label {
+            font-size: 0.82rem;
+            font-weight: 700;
+            white-space: nowrap;
+            min-width: 42px;
+        }
+    </style>
+}
 
 @{
     var info = ViewBag.DeffInfo as CarRentWeb.Models.DeffInformation;

@@ -59,7 +59,7 @@ namespace CarRentWeb.Controllers
 
             TempData["Username"] = HttpContext.Session.GetString("Username");
             ViewData["UserId"] = HttpContext.Session.GetInt32("UserId");
-            TempData.Keep(); // Keeps all TempData values
+            TempData.Keep();
             if (HttpContext.Session.GetInt32("UserId") == 0)
             {
                 return RedirectToAction("Login", "PasswordDatums");
@@ -69,6 +69,42 @@ namespace CarRentWeb.Controllers
             var user = HttpContext.Session.GetObjectFromJson<PasswordDatum>("CurrentUser");
 
             ViewBag.DeffInfo = await _context.DeffInformation.FirstOrDefaultAsync();
+
+            // Company dashboard: per-company stats
+            var userCompanyData = HttpContext.Session.GetString("UserCompanyData") ?? "";
+            var companyIds = userCompanyData.Split(',')
+                .Where(x => int.TryParse(x.Trim(), out _))
+                .Select(x => int.Parse(x.Trim()))
+                .ToList();
+
+            var companies = await _context.CompanyInfos
+                .Where(c => c.DeleteFlag == 0 && companyIds.Contains(c.Id))
+                .OrderBy(c => c.CompNameAr)
+                .ToListAsync();
+
+            var carsByCompany = await _context.CarInfos
+                .Where(c => c.DeleteFlag == 0)
+                .GroupBy(c => c.CompanyId)
+                .Select(g => new { CompanyId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.CompanyId ?? 0, x => x.Count);
+
+            var contractsByCompany = await _context.Contracts
+                .Where(c => c.DeleteFlag == 0 && c.Status == 0)
+                .Join(_context.CarInfos, ct => ct.CarId, car => car.Id, (ct, car) => car.CompanyId)
+                .GroupBy(cid => cid)
+                .Select(g => new { CompanyId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.CompanyId ?? 0, x => x.Count);
+
+            var companyDashboard = companies.Select(c => new CarRentWeb.Models.MyModel.CompanyDashboardItem
+            {
+                CompanyId = c.Id,
+                CompanyName = c.CompNameAr ?? "",
+                MoiAllowedCars = c.MoiAllowedCars,
+                ActualCars = carsByCompany.GetValueOrDefault(c.Id, 0),
+                ActiveContracts = contractsByCompany.GetValueOrDefault(c.Id, 0)
+            }).ToList();
+
+            ViewBag.CompanyDashboard = companyDashboard;
 
             return View();
         }

@@ -250,6 +250,16 @@ public partial class CompanyInfo
 
     public int? DeleteFlag { get; set; }
 
+    // وزارة الداخلية
+    [Display(Name = "الرقم الموحد (وزارة الداخلية)")]
+    public string? MoiUnifiedNo { get; set; }
+
+    [Display(Name = "تاريخ انتهاء (وزارة الداخلية)")]
+    public DateOnly? MoiExpiryDate { get; set; }
+
+    [Display(Name = "عدد السيارات المسموح به")]
+    public int? MoiAllowedCars { get; set; }
+
     public virtual ICollection<CarInfo> CarInfos { get; set; } = new List<CarInfo>();
 
     public virtual Deff? City { get; set; }

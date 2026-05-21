@@ -1,4 +1,4 @@
-﻿﻿﻿﻿@using CarRentWeb.Data
+﻿﻿﻿﻿﻿@using CarRentWeb.Data
 @model CarRentWeb.Models.MyModel.IndexDailyViewModel
 @using CarRentWeb.Models.MyModel
 @inject IHttpContextAccessor HttpContextAccessor
@@ -560,20 +560,25 @@
                     <th>عدد السنين</th>
                     <th>تاريخ التخفيض الافتراضي</th>
                     <th>تاريخ التخفيض الحقيقي</th>
+                    <th>نسبة الدفع</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
                 @if (!Model.DueToday.Any())
                 {
-                    <tr><td colspan="15" style="text-align:center;padding:14px;color:#999;">لا توجد عقود</td></tr>
+                    <tr><td colspan="16" style="text-align:center;padding:14px;color:#999;">لا توجد عقود</td></tr>
                 }
                 @{
                     int rn1 = 1;
+                    var paid1Dict = ViewBag.PaidAmounts as Dictionary<int, decimal> ?? new();
+                    var total1Dict = ViewBag.TotalAmounts as Dictionary<int, decimal> ?? new();
                 }
                 @foreach (var item in Model.DueToday)
                 {
-                    @Html.Raw(ContractRow(item, user!, rn1++))
+                    decimal paid1 = paid1Dict.ContainsKey(item.Id) ? paid1Dict[item.Id] : 0m;
+                    decimal total1 = total1Dict.ContainsKey(item.Id) ? total1Dict[item.Id] : 0m;
+                    @Html.Raw(ContractRow(item, user!, rn1++, paid1, total1))
                 }
             </tbody>
         </table>
@@ -602,20 +607,25 @@
                     <th>عدد السنين</th>
                     <th>تاريخ التخفيض الافتراضي</th>
                     <th>تاريخ التخفيض الحقيقي</th>
+                    <th>نسبة الدفع</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
                 @if (!Model.PaidToday.Any())
                 {
-                    <tr><td colspan="15" style="text-align:center;padding:14px;color:#999;">لا توجد عقود</td></tr>
+                    <tr><td colspan="16" style="text-align:center;padding:14px;color:#999;">لا توجد عقود</td></tr>
                 }
                 @{
                     int rn2 = 1;
+                    var paid2Dict = ViewBag.PaidAmounts as Dictionary<int, decimal> ?? new();
+                    var total2Dict = ViewBag.TotalAmounts as Dictionary<int, decimal> ?? new();
                 }
                 @foreach (var item in Model.PaidToday)
                 {
-                    @Html.Raw(ContractRow(item, user!, rn2++))
+                    decimal paid2 = paid2Dict.ContainsKey(item.Id) ? paid2Dict[item.Id] : 0m;
+                    decimal total2 = total2Dict.ContainsKey(item.Id) ? total2Dict[item.Id] : 0m;
+                    @Html.Raw(ContractRow(item, user!, rn2++, paid2, total2))
                 }
             </tbody>
         </table>
@@ -644,20 +654,25 @@
                     <th>عدد السنين</th>
                     <th>تاريخ التخفيض الافتراضي</th>
                     <th>تاريخ التخفيض الحقيقي</th>
+                    <th>نسبة الدفع</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
                 @if (!Model.Others.Any())
                 {
-                    <tr><td colspan="15" style="text-align:center;padding:14px;color:#999;">لا توجد عقود</td></tr>
+                    <tr><td colspan="16" style="text-align:center;padding:14px;color:#999;">لا توجد عقود</td></tr>
                 }
                 @{
                     int rn3 = 1;
+                    var paid3Dict = ViewBag.PaidAmounts as Dictionary<int, decimal> ?? new();
+                    var total3Dict = ViewBag.TotalAmounts as Dictionary<int, decimal> ?? new();
                 }
                 @foreach (var item in Model.Others)
                 {
-                    @Html.Raw(ContractRow(item, user!, rn3++))
+                    decimal paid3 = paid3Dict.ContainsKey(item.Id) ? paid3Dict[item.Id] : 0m;
+                    decimal total3 = total3Dict.ContainsKey(item.Id) ? total3Dict[item.Id] : 0m;
+                    @Html.Raw(ContractRow(item, user!, rn3++, paid3, total3))
                 }
             </tbody>
         </table>
@@ -673,7 +688,28 @@
         _ => "عادي"
     };
 
-    string ContractRow(CarRentWeb.Models.Contract item, CarRentWeb.Models.PasswordDatum u, int rowNum)
+    string PaymentRatioCell(decimal paid, decimal total)
+    {
+        if (total == 0) return "<td>—</td>";
+        double pct = Math.Round((double)paid / (double)total * 100, 1);
+        string color = pct >= 80 ? "#198754" : pct >= 50 ? "#fd7e14" : "#dc3545";
+        string bgColor = pct >= 80 ? "#d1f0df" : pct >= 50 ? "#fff0de" : "#fde8e8";
+        int barWidth = (int)Math.Min(pct, 100);
+        return $@"<td style='min-width:110px;padding:4px 8px;'>
+            <div style='font-size:0.78rem;font-weight:700;color:{color};margin-bottom:3px;'>
+                {pct}%
+            </div>
+            <div style='height:6px;border-radius:3px;background:#e9ecef;'>
+                <div style='height:100%;width:{barWidth}%;border-radius:3px;background:{color};'></div>
+            </div>
+            <div style='font-size:0.7rem;color:#6c757d;margin-top:2px;'>
+                {paid:N0} / {total:N0}
+            </div>
+        </td>";
+    }
+
+    string ContractRow(CarRentWeb.Models.Contract item, CarRentWeb.Models.PasswordDatum u, int rowNum,
+        decimal paid, decimal total)
     {
         int cd = (item.StartDate.HasValue && item.EndDate.HasValue)
             ? item.EndDate.Value.DayNumber - item.StartDate.Value.DayNumber
@@ -702,6 +738,7 @@
             <td>{cy}</td>
             <td>{discountDate}</td>
             <td>{realDiscountDate}</td>
+            {PaymentRatioCell(paid, total)}
             <td class='action-links'>{payBtn}{detBtn}{editBtn}{endBtn}</td>
         </tr>";
     }

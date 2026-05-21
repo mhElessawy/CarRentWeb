@@ -1,4 +1,4 @@
-﻿@using CarRentWeb.Data
+﻿﻿@using CarRentWeb.Data
 @model PaginatedList<CarRentWeb.Models.MyModel.CarInfoWithCreditsViewModel>
 @using CarRentWeb.Models.MyModel
 @inject IHttpContextAccessor HttpContextAccessor
@@ -355,14 +355,14 @@
 <div class="search-container" dir="rtl">
     <form asp-action="Index" method="get">
         <div class="form-group">
-            <label for="CarCodeString">بحث بكود السيارة:</label>                   
+            <label for="CarCodeString">بحث بكود السيارة:</label>
             <input type="number" name="CarCodeString" value="@ViewData["CarCodeFilter"]" placeholder=" كود السيارة " style="width:120px" />
 
             <label for="CarNoSearch">بحث برقم السيارة:</label>
             <input type="text" name="CarNoSearch" value="@ViewData["CarNoFilter"]" placeholder="بحث برقم السيارة" style="width:120px" />
 
             <label for="CarTypeId">بحث بنوع السيارة:</label>
-            <select name="CarTypeId" asp-items="ViewBag.CarTypeId" class="form-control" style="width:120px" >
+            <select name="CarTypeId" asp-items="ViewBag.CarTypeId" class="form-control" style="width:120px">
                 <option value="">-- نوع السيارة --</option>
             </select>
 
@@ -373,7 +373,7 @@
 
             <input type="submit" value="بحث" class="btn btn-primary" />
             <a asp-action="Index" class="btn btn-secondary">إعادة تعيين</a>
-        </div>            
+        </div>
     </form>
 </div>
 
@@ -382,6 +382,7 @@
 <table class="bordered-table" dir="rtl">
     <thead>
         <tr>
+            <th>#</th>
             <th>كود السيارة</th>
             <th>رقم السيارة</th>
             <th>الشركة المصنعة</th>
@@ -396,9 +397,13 @@
         </tr>
     </thead>
     <tbody>
+        @{
+            int rowNum = (Model.PageIndex - 1) * 50 + 1;
+        }
         @foreach (var item in Model)
         {
             <tr>
+                <td class="text-muted small">@(rowNum++)</td>
                 <td>@Html.DisplayFor(modelItem => item.Car.CarCode)</td>
                 <td>@Html.DisplayFor(modelItem => item.Car.CarNo)</td>
                 <td>@Html.DisplayFor(modelItem => item.Car.CarType!.DeffName)</td>
@@ -431,7 +436,6 @@
         var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
         var nextDisabled = !Model.HasNextPage ? "disabled" : "";
     }
-
     <a asp-action="Index"
        asp-route-pageNumber="@(Model.PageIndex - 1)"
        asp-route-CarCodeString="@ViewData["CarCodeFilter"]"
