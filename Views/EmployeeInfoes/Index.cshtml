@@ -402,6 +402,7 @@
         <table class="bordered-table" dir="rtl">
             <thead>
                 <tr>
+                    <th>#</th>
                     <th>كود الموظف</th>
                     <th>اسم الموظف</th>
                     <th>الرقم المدني</th>
@@ -412,9 +413,11 @@
                 </tr>
             </thead>
             <tbody>
+                @{ int rowNum = (Model.PageIndex - 1) * 50 + 1; }
                 @foreach (var item in Model)
                 {
                     <tr>
+                        <td class="text-muted small">@(rowNum++)</td>
                         <td>@Html.DisplayFor(modelItem => item.EmpCode)</td>
                         <td>@Html.DisplayFor(modelItem => item.FullNameAr)</td>
                         <td>@Html.DisplayFor(modelItem => item.CivilId)</td>
