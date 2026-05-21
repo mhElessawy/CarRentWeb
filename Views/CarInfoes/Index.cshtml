@@ -382,6 +382,7 @@
 <table class="bordered-table" dir="rtl">
     <thead>
         <tr>
+            <th>#</th>
             <th>كود السيارة</th>
             <th>رقم السيارة</th>
             <th>الشركة المصنعة</th>
@@ -396,9 +397,11 @@
         </tr>
     </thead>
     <tbody>
+        @{ int rowNum = (Model.PageIndex - 1) * 50 + 1; }
         @foreach (var item in Model)
         {
             <tr>
+                <td class="text-muted small">@(rowNum++)</td>
                 <td>@Html.DisplayFor(modelItem => item.Car.CarCode)</td>
                 <td>@Html.DisplayFor(modelItem => item.Car.CarNo)</td>
                 <td>@Html.DisplayFor(modelItem => item.Car.CarType!.DeffName)</td>
