@@ -176,10 +176,8 @@
     }
     else
     {
-        {
-            var overdueCount = Model.Count(x => x.TargetDate.HasValue && x.TargetDate.Value < today);
-            var todayCount   = Model.Count(x => x.TargetDate.HasValue && x.TargetDate.Value == today);
-        }
+        var overdueCount = Model.Count(x => x.TargetDate.HasValue && x.TargetDate.Value < today);
+        var todayCount   = Model.Count(x => x.TargetDate.HasValue && x.TargetDate.Value == today);
 
         <!-- Summary + Print button -->
         <div class="d-flex align-items-center gap-3 mb-3 no-print">
