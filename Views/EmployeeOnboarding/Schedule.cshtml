@@ -3,9 +3,13 @@
 @{
     ViewData["Title"] = "جدول مهام المندوب";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var today = DateOnly.FromDateTime(DateTime.Today);
+    var dateFromVal = ViewBag.DateFrom as string ?? "";
+    var dateToVal   = ViewBag.DateTo   as string ?? "";
 }
 
 <style>
+    /* ===== Screen styles ===== */
     .page-header {
         background: linear-gradient(135deg, #6f42c1, #5a2d9b);
         color: white;
@@ -21,10 +25,7 @@
         white-space: nowrap;
     }
 
-    .schedule-table td {
-        vertical-align: middle;
-        font-size: 0.9rem;
-    }
+    .schedule-table td { vertical-align: middle; font-size: 0.9rem; }
 
     .step-badge {
         background: #e8f4fd;
@@ -36,23 +37,10 @@
         display: inline-block;
     }
 
-    .meta-tag {
-        font-size: 0.78rem;
-        color: #6c757d;
-    }
+    .meta-tag { font-size: 0.78rem; color: #6c757d; }
 
-    .progress-mini {
-        height: 6px;
-        border-radius: 3px;
-        background: #e9ecef;
-        min-width: 80px;
-    }
-
-    .progress-mini .fill {
-        height: 100%;
-        border-radius: 3px;
-        background: linear-gradient(90deg, #0d6efd, #198754);
-    }
+    .progress-mini { height: 6px; border-radius: 3px; background: #e9ecef; min-width: 80px; }
+    .progress-mini .fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg,#0d6efd,#198754); }
 
     .date-input {
         border: 1px solid #dee2e6;
@@ -61,31 +49,71 @@
         font-size: 0.85rem;
         width: 140px;
     }
+    .date-input:focus { border-color: #6f42c1; outline: none; box-shadow: 0 0 0 2px rgba(111,66,193,.15); }
 
-    .date-input:focus {
-        border-color: #6f42c1;
-        outline: none;
-        box-shadow: 0 0 0 2px rgba(111,66,193,0.15);
+    .overdue    { background: #fff5f5 !important; }
+    .overdue .date-input { border-color: #dc3545; color: #dc3545; }
+    .today-row  { background: #fffbf0 !important; }
+
+    /* ===== Print styles ===== */
+    @@media print {
+        body { direction: rtl; font-family: Arial, sans-serif; font-size: 12px; }
+
+        .no-print { display: none !important; }
+
+        .print-header {
+            display: block !important;
+            text-align: center;
+            margin-bottom: 16px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+
+        .print-header h4 { margin: 0 0 4px; font-size: 16px; }
+        .print-header p  { margin: 0; font-size: 12px; color: #555; }
+
+        .schedule-table th { background: #eee !important; -webkit-print-color-adjust: exact; }
+        .schedule-table td, .schedule-table th { border: 1px solid #ccc !important; padding: 5px 8px !important; }
+
+        .overdue   { background: #ffe0e0 !important; -webkit-print-color-adjust: exact; }
+        .today-row { background: #fff8dc !important; -webkit-print-color-adjust: exact; }
+
+        .step-badge { background: #d0e8ff !important; -webkit-print-color-adjust: exact; }
+
+        /* Hide save-form column, show only the date value */
+        .col-save-form { display: none !important; }
+        .col-date-val  { display: table-cell !important; }
+
+        /* Hide the action-link column */
+        .col-action    { display: none !important; }
+
+        .progress-mini { display: none; }
     }
 
-    .overdue {
-        background: #fff5f5 !important;
-    }
-
-    .overdue .date-input {
-        border-color: #dc3545;
-        color: #dc3545;
-    }
-
-    .today-row {
-        background: #fffbf0 !important;
-    }
+    /* hide print-only elements on screen */
+    .print-header { display: none; }
+    .col-date-val { display: none; }
 </style>
 
 <div class="container-fluid mt-3" dir="rtl">
 
-    <!-- Header -->
-    <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <!-- Print-only header -->
+    <div class="print-header">
+        <h4>جدول مهام المندوب</h4>
+        <p>
+            @if (!string.IsNullOrEmpty(dateFromVal) || !string.IsNullOrEmpty(dateToVal))
+            {
+                @("الفترة: " + (string.IsNullOrEmpty(dateFromVal) ? "—" : dateFromVal) + " إلى " + (string.IsNullOrEmpty(dateToVal) ? "—" : dateToVal))
+            }
+            else
+            {
+                @("تاريخ الطباعة: " + today.ToString("yyyy/MM/dd"))
+            }
+        </p>
+    </div>
+
+    <!-- Screen header -->
+    <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2 no-print">
         <div>
             <h5 class="mb-0"><i class="bi bi-calendar-check me-2"></i>جدول مهام المندوب</h5>
             <small class="opacity-75">الإجراء التالي لكل سائق مع تحديد موعد التنفيذ</small>
@@ -97,34 +125,42 @@
 
     @if (TempData["Success"] != null)
     {
-        <div class="alert alert-success alert-dismissible">
+        <div class="alert alert-success alert-dismissible no-print">
             <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
 
     <!-- Filters -->
-    <form method="get" class="card p-3 mb-3 shadow-sm" style="border-radius:10px">
+    <form method="get" class="card p-3 mb-3 shadow-sm no-print" style="border-radius:10px">
         <div class="row g-2 align-items-end">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <label class="form-label small fw-semibold mb-1">اسم السائق</label>
                 <input type="text" name="nameSearch" class="form-control form-control-sm"
                        placeholder="ابحث بالاسم" value="@ViewBag.NameSearch" />
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <label class="form-label small fw-semibold mb-1">الشركة</label>
                 <select name="companyId" class="form-select form-select-sm" asp-items="ViewBag.Companies" dir="rtl">
                     <option value="">-- كل الشركات --</option>
                 </select>
             </div>
             <div class="col-md-2">
-                <button type="submit" class="btn btn-primary btn-sm w-100">
-                    <i class="bi bi-search me-1"></i> بحث
-                </button>
+                <label class="form-label small fw-semibold mb-1">التاريخ من</label>
+                <input type="date" name="dateFrom" class="form-control form-control-sm" value="@dateFromVal" />
             </div>
             <div class="col-md-2">
-                <a asp-action="Schedule" class="btn btn-outline-secondary btn-sm w-100">
-                    <i class="bi bi-x me-1"></i> مسح
+                <label class="form-label small fw-semibold mb-1">التاريخ إلى</label>
+                <input type="date" name="dateTo" class="form-control form-control-sm" value="@dateToVal" />
+            </div>
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-primary btn-sm w-100">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
+            <div class="col-md-1">
+                <a asp-action="Schedule" class="btn btn-outline-secondary btn-sm w-100" title="مسح الفلتر">
+                    <i class="bi bi-x-lg"></i>
                 </a>
             </div>
         </div>
@@ -132,31 +168,29 @@
 
     @if (!Model.Any())
     {
-        <div class="text-center py-5 text-muted">
+        <div class="text-center py-5 text-muted no-print">
             <i class="bi bi-calendar-check fs-1 d-block mb-2 text-success"></i>
-            <div class="fw-semibold">لا توجد مهام معلقة</div>
-            <div class="small">جميع السائقين أكملوا إجراءاتهم أو لا يوجد سائقون</div>
+            <div class="fw-semibold">لا توجد مهام مطابقة</div>
+            <div class="small">جرّب تغيير الفلتر أو مسحه</div>
         </div>
     }
     else
     {
-        <div class="d-flex align-items-center gap-3 mb-3">
+        @{
+            var overdueCount = Model.Count(x => x.TargetDate.HasValue && x.TargetDate.Value < today);
+            var todayCount   = Model.Count(x => x.TargetDate.HasValue && x.TargetDate.Value == today);
+        }
+
+        <!-- Summary + Print button -->
+        <div class="d-flex align-items-center gap-3 mb-3 no-print">
             <span class="fw-semibold text-muted small">
-                <i class="bi bi-people me-1"></i>@Model.Count سائق بانتظار الإجراء
+                <i class="bi bi-people me-1"></i>@Model.Count سائق
             </span>
-            @{
-                var today = DateOnly.FromDateTime(DateTime.Today);
-                var overdueCount = Model.Count(x => x.TargetDate.HasValue && x.TargetDate.Value < today);
-                var todayCount = Model.Count(x => x.TargetDate.HasValue && x.TargetDate.Value == today);
-            }
-            @if (overdueCount > 0)
-            {
-                <span class="badge bg-danger">@overdueCount متأخر</span>
-            }
-            @if (todayCount > 0)
-            {
-                <span class="badge bg-warning text-dark">@todayCount اليوم</span>
-            }
+            @if (overdueCount > 0) { <span class="badge bg-danger">@overdueCount متأخر</span> }
+            @if (todayCount   > 0) { <span class="badge bg-warning text-dark">@todayCount اليوم</span> }
+            <button class="btn btn-outline-secondary btn-sm me-auto" onclick="window.print()">
+                <i class="bi bi-printer me-1"></i> طباعة
+            </button>
         </div>
 
         <div class="card shadow-sm" style="border-radius:10px;overflow:hidden">
@@ -164,46 +198,48 @@
                 <table class="table table-hover mb-0 schedule-table">
                     <thead>
                         <tr>
-                            <th class="px-3">السائق</th>
+                            <th class="px-3">#</th>
+                            <th>السائق</th>
                             <th>الشركة</th>
                             <th>الإجراء التالي</th>
                             <th>الجهة / الموقع</th>
                             <th>التقدم</th>
                             <th>تاريخ التنفيذ المطلوب</th>
-                            <th></th>
+                            <th class="col-save-form no-print"></th>
+                            <th class="col-action no-print"></th>
                         </tr>
                     </thead>
                     <tbody>
+                        @{ int rowNum = 0; }
                         @foreach (var item in Model.OrderBy(x => x.TargetDate ?? DateOnly.MaxValue).ThenBy(x => x.EmpCode))
                         {
+                            rowNum++;
                             var isOverdue = item.TargetDate.HasValue && item.TargetDate.Value < today;
-                            var isToday = item.TargetDate.HasValue && item.TargetDate.Value == today;
-                            var rowClass = isOverdue ? "overdue" : isToday ? "today-row" : "";
+                            var isToday   = item.TargetDate.HasValue && item.TargetDate.Value == today;
+                            var rowClass  = isOverdue ? "overdue" : isToday ? "today-row" : "";
                             var pct = item.TotalCount > 0 ? (int)Math.Round((double)item.CompletedCount / item.TotalCount * 100) : 0;
 
                             <tr class="@rowClass">
-                                <td class="px-3">
+                                <td class="px-3 text-muted small">@rowNum</td>
+                                <td>
                                     <a asp-action="Progress" asp-controller="EmployeeOnboarding"
                                        asp-route-id="@item.EmployeeId"
-                                       class="fw-semibold text-decoration-none text-dark">
+                                       class="fw-semibold text-decoration-none text-dark no-print">
                                         @item.FullNameAr
                                     </a>
+                                    <span class="fw-semibold d-none d-print-inline">@item.FullNameAr</span>
                                     <div class="meta-tag">كود: @item.EmpCode</div>
                                 </td>
-                                <td>
-                                    <span class="meta-tag">@(item.CompanyName ?? "—")</span>
-                                </td>
-                                <td>
-                                    <span class="step-badge">@item.NextStepName</span>
-                                </td>
+                                <td><span class="meta-tag">@(item.CompanyName ?? "—")</span></td>
+                                <td><span class="step-badge">@item.NextStepName</span></td>
                                 <td>
                                     @if (!string.IsNullOrEmpty(item.NextStepJeha))
                                     {
-                                        <div class="meta-tag"><i class="bi bi-building me-1"></i>@item.NextStepJeha</div>
+                                        <div class="meta-tag"><i class="bi bi-building me-1 no-print"></i>@item.NextStepJeha</div>
                                     }
                                     @if (!string.IsNullOrEmpty(item.NextStepLocation))
                                     {
-                                        <div class="meta-tag"><i class="bi bi-geo-alt me-1"></i>@item.NextStepLocation</div>
+                                        <div class="meta-tag"><i class="bi bi-geo-alt me-1 no-print"></i>@item.NextStepLocation</div>
                                     }
                                     @if (string.IsNullOrEmpty(item.NextStepJeha) && string.IsNullOrEmpty(item.NextStepLocation))
                                     {
@@ -216,34 +252,36 @@
                                     </div>
                                     <div class="meta-tag mt-1">@item.CompletedCount / @item.TotalCount</div>
                                 </td>
-                                <td>
+                                <!-- Print: show date as text -->
+                                <td class="col-date-val">
+                                    @if (item.TargetDate.HasValue)
+                                    {
+                                        <span class="@(isOverdue ? "text-danger fw-semibold" : isToday ? "text-warning fw-semibold" : "")">
+                                            @item.TargetDate.Value.ToString("yyyy/MM/dd")
+                                            @if (isOverdue) { <text> ⚠</text> }
+                                            @if (isToday)   { <text> ★</text> }
+                                        </span>
+                                    }
+                                    else { <span class="text-muted">—</span> }
+                                </td>
+                                <!-- Screen: editable date + save -->
+                                <td class="col-save-form no-print">
                                     <form asp-action="SaveTargetDate" method="post" class="d-flex align-items-center gap-2">
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="employeeId" value="@item.EmployeeId" />
-                                        <input type="hidden" name="stepId" value="@item.NextStepId" />
-                                        <input type="date"
-                                               name="targetDate"
-                                               class="date-input"
-                                               value="@(item.TargetDate?.ToString("yyyy-MM-dd") ?? "")"
-                                               id="date-@item.EmployeeId" />
+                                        <input type="hidden" name="stepId"     value="@item.NextStepId" />
+                                        <input type="hidden" name="dateFrom"   value="@dateFromVal" />
+                                        <input type="hidden" name="dateTo"     value="@dateToVal" />
+                                        <input type="date" name="targetDate" class="date-input"
+                                               value="@(item.TargetDate?.ToString("yyyy-MM-dd") ?? "")" />
                                         <button type="submit" class="btn btn-sm btn-outline-primary px-2" title="حفظ">
                                             <i class="bi bi-save"></i>
                                         </button>
                                     </form>
-                                    @if (isOverdue)
-                                    {
-                                        <div class="meta-tag text-danger mt-1">
-                                            <i class="bi bi-exclamation-circle me-1"></i>متأخر
-                                        </div>
-                                    }
-                                    @if (isToday)
-                                    {
-                                        <div class="meta-tag text-warning mt-1">
-                                            <i class="bi bi-clock me-1"></i>اليوم
-                                        </div>
-                                    }
+                                    @if (isOverdue) { <div class="meta-tag text-danger mt-1"><i class="bi bi-exclamation-circle me-1"></i>متأخر</div> }
+                                    @if (isToday)   { <div class="meta-tag text-warning mt-1"><i class="bi bi-clock me-1"></i>اليوم</div> }
                                 </td>
-                                <td>
+                                <td class="col-action no-print">
                                     <a asp-action="Progress" asp-controller="EmployeeOnboarding"
                                        asp-route-id="@item.EmployeeId"
                                        class="btn btn-sm btn-outline-secondary" title="تفاصيل التجهيز">

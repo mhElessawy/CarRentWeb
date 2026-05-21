@@ -179,7 +179,7 @@ namespace CarRentWeb.Controllers
         }
 
         // GET: EmployeeOnboarding/Schedule
-        public async Task<IActionResult> Schedule(int? companyId, string? nameSearch)
+        public async Task<IActionResult> Schedule(int? companyId, string? nameSearch, DateOnly? dateFrom, DateOnly? dateTo)
         {
             TempData["Username"] = HttpContext.Session.GetString("Username");
             TempData.Keep();
@@ -208,6 +208,8 @@ namespace CarRentWeb.Controllers
             {
                 ViewBag.NameSearch = nameSearch;
                 ViewBag.CompanyId = companyId;
+                ViewBag.DateFrom = dateFrom?.ToString("yyyy-MM-dd");
+                ViewBag.DateTo = dateTo?.ToString("yyyy-MM-dd");
                 return View(new List<EmployeeScheduleItem>());
             }
 
@@ -246,6 +248,12 @@ namespace CarRentWeb.Controllers
 
                 var progressRecord = empProgress.FirstOrDefault(p => p.StepId == nextStep.Id);
 
+                var targetDate = progressRecord?.TargetDate;
+
+                // Apply date filter
+                if (dateFrom.HasValue && (!targetDate.HasValue || targetDate.Value < dateFrom.Value)) continue;
+                if (dateTo.HasValue && (!targetDate.HasValue || targetDate.Value > dateTo.Value)) continue;
+
                 scheduleItems.Add(new EmployeeScheduleItem
                 {
                     EmployeeId = emp.Id,
@@ -258,20 +266,23 @@ namespace CarRentWeb.Controllers
                     NextStepLocation = nextStep.Location,
                     CompletedCount = completedCount,
                     TotalCount = totalCount,
-                    TargetDate = progressRecord?.TargetDate,
+                    TargetDate = targetDate,
                     ProgressRecordId = progressRecord?.Id
                 });
             }
 
             ViewBag.NameSearch = nameSearch;
             ViewBag.CompanyId = companyId;
+            ViewBag.DateFrom = dateFrom?.ToString("yyyy-MM-dd");
+            ViewBag.DateTo = dateTo?.ToString("yyyy-MM-dd");
             return View(scheduleItems);
         }
 
         // POST: EmployeeOnboarding/SaveTargetDate
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SaveTargetDate(int employeeId, int stepId, DateOnly? targetDate)
+        public async Task<IActionResult> SaveTargetDate(int employeeId, int stepId, DateOnly? targetDate,
+            string? dateFrom, string? dateTo, int? companyId, string? nameSearch)
         {
             var progress = await _context.EmployeeOnboardingProgresses
                 .FirstOrDefaultAsync(p => p.EmployeeId == employeeId && p.StepId == stepId);
@@ -294,7 +305,17 @@ namespace CarRentWeb.Controllers
 
             await _context.SaveChangesAsync();
             TempData["Success"] = "تم حفظ الموعد بنجاح";
-            return RedirectToAction(nameof(Schedule));
+
+            DateOnly? parsedFrom = DateOnly.TryParse(dateFrom, out var df) ? df : null;
+            DateOnly? parsedTo   = DateOnly.TryParse(dateTo,   out var dt) ? dt : null;
+
+            return RedirectToAction(nameof(Schedule), new
+            {
+                companyId,
+                nameSearch,
+                dateFrom = parsedFrom?.ToString("yyyy-MM-dd"),
+                dateTo   = parsedTo?.ToString("yyyy-MM-dd")
+            });
         }
     }
 }
