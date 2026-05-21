@@ -146,7 +146,7 @@ namespace CarRentWeb.Controllers
         {
 
             var branches = _context.CarInfos
-                        .Where(b => b.CompanyId == Id && b.DeleteFlag == 0  &&
+                        .Where(b => b.CompanyId == Id && b.DeleteFlag == 0 &&
                      !_context.Contracts
                          .Where(c => c.DeleteFlag == 0 && c.Status == 0)
                          .Any(c => c.CarId == b.Id)) // ← Use the correct column name here
@@ -1484,13 +1484,15 @@ namespace CarRentWeb.Controllers
         // POST: Contracts/EditDailyContract/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditDailyContract(int id, int RentalType, DateOnly? DiscountDate)
+        public async Task<IActionResult> EditDailyContract(int id, int RentalType, DateOnly? DiscountDate, DateOnly? RealDiscountDate, decimal? DiscountAmount)
         {
             var contract = await _context.Contracts.FindAsync(id);
             if (contract == null) return NotFound();
 
             contract.RentalType = RentalType;
             contract.DiscountDate = DiscountDate;
+            contract.RealDiscountDate = RealDiscountDate;
+            contract.DiscountAmount = DiscountAmount;
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(IndexDaily));

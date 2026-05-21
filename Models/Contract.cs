@@ -55,6 +55,8 @@ public partial class Contract
 
     public decimal? DiscountAmount { get; set; }
 
+    public DateOnly? RealDiscountDate { get; set; }
+
     public virtual ICollection<Bill> Bills { get; set; } = new List<Bill>();
 
     public virtual CarInfo? Car { get; set; }
