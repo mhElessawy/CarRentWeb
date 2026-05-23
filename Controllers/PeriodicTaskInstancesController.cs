@@ -15,14 +15,21 @@ public class PeriodicTaskInstancesController : Controller
         _context = context;
     }
 
-    // GET: المهام النشطة — تُولَّد تلقائياً من الموظفين والسيارات
-    public async Task<IActionResult> Index()
+    // GET: المهام النشطة
+    public async Task<IActionResult> Index(int? taskDefId, string? sourceType, string? status)
     {
         var today = DateOnly.FromDateTime(DateTime.Today);
-        var defs = await _context.PeriodicTaskDefs
+        var allDefs = await _context.PeriodicTaskDefs
             .Where(d => d.IsActive)
             .Include(d => d.Steps)
+            .OrderBy(d => d.TaskName)
             .ToListAsync();
+
+        var defs = allDefs;
+        if (taskDefId.HasValue)
+            defs = defs.Where(d => d.Id == taskDefId.Value).ToList();
+        if (!string.IsNullOrEmpty(sourceType))
+            defs = defs.Where(d => d.SourceType == sourceType).ToList();
 
         var activeItems = new List<ActiveTaskViewModel>();
 
@@ -82,10 +89,21 @@ public class PeriodicTaskInstancesController : Controller
             }
         }
 
+        // فلتر الحالة
+        if (status == "pending")
+            activeItems = activeItems.Where(x => !x.Instance.IsCompleted).ToList();
+        else if (status == "completed")
+            activeItems = activeItems.Where(x => x.Instance.IsCompleted).ToList();
+
         var sorted = activeItems
             .OrderBy(x => x.Instance.IsCompleted)
             .ThenBy(x => x.DaysLeft)
             .ToList();
+
+        ViewBag.AllDefs = allDefs;
+        ViewBag.SelectedTaskDefId = taskDefId;
+        ViewBag.SelectedSourceType = sourceType;
+        ViewBag.SelectedStatus = status;
 
         return View(sorted);
     }
