@@ -1,0 +1,89 @@
+@model IEnumerable<CarRentWeb.Models.PeriodicTaskDef>
+@using CarRentWeb.Helpers
+
+@{
+    ViewData["Title"] = "تعريف المهام الدورية";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var empFields = (Dictionary<string,string>)ViewBag.EmployeeFields;
+    var carFields = (Dictionary<string,string>)ViewBag.CarFields;
+}
+
+<div class="container mt-4" dir="rtl">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4><i class="bi bi-arrow-repeat text-primary"></i> تعريف المهام الدورية</h4>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> إضافة مهمة جديدة
+        </a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> لا توجد مهام دورية محددة بعد. ابدأ بإضافة مهمة جديدة.
+        </div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var def in Model)
+            {
+                var fieldLabel = PeriodicTaskHelper.GetFieldLabel(def.SourceType, def.DateFieldName);
+                <div class="col-md-6">
+                    <div class="card shadow-sm h-100 @(def.IsActive ? "" : "border-secondary opacity-75")">
+                        <div class="card-header d-flex justify-content-between align-items-center
+                                    @(def.SourceType == "Car" ? "bg-warning text-dark" : "bg-primary text-white")">
+                            <span>
+                                <i class="bi @(def.SourceType == "Car" ? "bi-car-front-fill" : "bi-person-fill")"></i>
+                                @def.TaskName
+                            </span>
+                            <span class="badge bg-light text-dark">@(def.IsActive ? "نشطة" : "معطلة")</span>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-1 small text-muted">
+                                <i class="bi bi-link-45deg"></i>
+                                مرتبطة بـ <strong>@(def.SourceType == "Car" ? "السيارات" : "الموظفين")</strong>
+                                — حقل: <strong>@fieldLabel</strong>
+                            </p>
+                            <p class="mb-2 small text-muted">
+                                <i class="bi bi-bell"></i> تنبيه قبل: <strong>@def.AlertDaysBefore يوم</strong>
+                            </p>
+
+                            @if (def.Steps.Any())
+                            {
+                                <p class="mb-1 fw-bold small"><i class="bi bi-list-check"></i> خطوات التجديد:</p>
+                                <ol class="list-group list-group-numbered list-group-flush small mb-2">
+                                    @foreach (var step in def.Steps)
+                                    {
+                                        <li class="list-group-item px-2 py-1">
+                                            <strong>@step.StepName</strong>
+                                            @if (!string.IsNullOrEmpty(step.Authority))
+                                            { <span class="text-muted"> — الجهة: @step.Authority</span> }
+                                            @if (!string.IsNullOrEmpty(step.Location))
+                                            { <span class="text-muted"> — الموقع: @step.Location</span> }
+                                        </li>
+                                    }
+                                </ol>
+                            }
+                            else
+                            {
+                                <p class="text-muted small"><i class="bi bi-exclamation-circle"></i> لا توجد خطوات محددة بعد</p>
+                            }
+                        </div>
+                        <div class="card-footer d-flex gap-2 justify-content-end">
+                            <a asp-action="EditSteps" asp-route-id="@def.Id" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i> تعديل وإدارة الخطوات
+                            </a>
+                            <form asp-action="Delete" method="post" onsubmit="return confirm('هل تريد حذف هذه المهمة؟')">
+                                <input type="hidden" name="id" value="@def.Id" />
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

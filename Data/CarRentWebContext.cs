@@ -62,6 +62,12 @@ public partial class CarRentWebContext : DbContext
     public virtual DbSet<CompanyApproval> CompanyApprovals { get; set; }
     public virtual DbSet<CompanyDebit> CompanyDebits { get; set; }
     public virtual DbSet<CompanyDebitDetails> CompanyDebitDetails { get; set; }
+
+    public virtual DbSet<PeriodicTaskDef> PeriodicTaskDefs { get; set; }
+    public virtual DbSet<PeriodicTaskStep> PeriodicTaskSteps { get; set; }
+    public virtual DbSet<PeriodicTaskInstance> PeriodicTaskInstances { get; set; }
+    public virtual DbSet<PeriodicTaskInstanceStep> PeriodicTaskInstanceSteps { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.UseCollation("SQL_Latin1_General_CP1_CI_AS");
@@ -701,6 +707,56 @@ public partial class CarRentWebContext : DbContext
                   .OnDelete(DeleteBehavior.NoAction)
                   .HasConstraintName("FK_EmployeeTakeMoneyUser_PasswordData");
         });
+        modelBuilder.Entity<PeriodicTaskDef>(entity =>
+        {
+            entity.ToTable("PeriodicTaskDef");
+            entity.Property(e => e.TaskName).HasMaxLength(200);
+            entity.Property(e => e.SourceType).HasMaxLength(20);
+            entity.Property(e => e.DateFieldName).HasMaxLength(100);
+            entity.Property(e => e.AlertDaysBefore).HasDefaultValue(30);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+        });
+
+        modelBuilder.Entity<PeriodicTaskStep>(entity =>
+        {
+            entity.ToTable("PeriodicTaskStep");
+            entity.Property(e => e.StepName).HasMaxLength(200);
+            entity.Property(e => e.Authority).HasMaxLength(200);
+            entity.Property(e => e.Location).HasMaxLength(200);
+            entity.HasOne(d => d.TaskDef)
+                .WithMany(p => p.Steps)
+                .HasForeignKey(d => d.TaskDefId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_PeriodicTaskStep_PeriodicTaskDef");
+        });
+
+        modelBuilder.Entity<PeriodicTaskInstance>(entity =>
+        {
+            entity.ToTable("PeriodicTaskInstance");
+            entity.Property(e => e.IsCompleted).HasDefaultValue(false);
+            entity.HasOne(d => d.TaskDef)
+                .WithMany(p => p.Instances)
+                .HasForeignKey(d => d.TaskDefId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_PeriodicTaskInstance_PeriodicTaskDef");
+        });
+
+        modelBuilder.Entity<PeriodicTaskInstanceStep>(entity =>
+        {
+            entity.ToTable("PeriodicTaskInstanceStep");
+            entity.Property(e => e.IsCompleted).HasDefaultValue(false);
+            entity.HasOne(d => d.Instance)
+                .WithMany(p => p.StepStatuses)
+                .HasForeignKey(d => d.InstanceId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_PeriodicTaskInstanceStep_Instance");
+            entity.HasOne(d => d.Step)
+                .WithMany(p => p.InstanceSteps)
+                .HasForeignKey(d => d.StepId)
+                .OnDelete(DeleteBehavior.NoAction)
+                .HasConstraintName("FK_PeriodicTaskInstanceStep_Step");
+        });
+
         OnModelCreatingPartial(modelBuilder);
     }
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);

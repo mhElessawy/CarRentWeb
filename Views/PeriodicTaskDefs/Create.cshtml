@@ -1,0 +1,86 @@
+@model CarRentWeb.Models.PeriodicTaskDef
+@using CarRentWeb.Helpers
+
+@{
+    ViewData["Title"] = "إضافة مهمة دورية";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var empFields = (Dictionary<string, string>)ViewBag.EmployeeFields;
+    var carFields = (Dictionary<string, string>)ViewBag.CarFields;
+}
+
+<div class="container mt-4" dir="rtl">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0" style="color:white"><i class="bi bi-plus-circle"></i> إضافة مهمة دورية جديدة</h4>
+        </div>
+        <div class="card-body">
+            <form asp-action="Create" class="row g-3">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                <div class="col-md-6">
+                    <label asp-for="TaskName" class="form-label">اسم المهمة</label>
+                    <input asp-for="TaskName" class="form-control" placeholder="مثال: تجديد دفتر السيارة" required />
+                    <span asp-validation-for="TaskName" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="AlertDaysBefore" class="form-label">التنبيه قبل (بالأيام)</label>
+                    <input asp-for="AlertDaysBefore" type="number" min="1" max="365" class="form-control" />
+                    <span asp-validation-for="AlertDaysBefore" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-3 d-flex align-items-end">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" asp-for="IsActive" id="isActiveCheck" checked />
+                        <label class="form-check-label" for="isActiveCheck">مهمة نشطة</label>
+                    </div>
+                </div>
+
+                <div class="col-md-12 mt-2">
+                    <h5 class="border-bottom pb-2">ربط بمصدر البيانات</h5>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="SourceType" class="form-label">المصدر</label>
+                    <select asp-for="SourceType" id="sourceTypeSelect" class="form-select" onchange="updateFields()" required>
+                        <option value="">-- اختر --</option>
+                        <option value="Employee">الموظفين</option>
+                        <option value="Car">السيارات</option>
+                    </select>
+                </div>
+
+                <div class="col-md-8">
+                    <label asp-for="DateFieldName" class="form-label">الحقل (تاريخ الانتهاء)</label>
+                    <select asp-for="DateFieldName" id="dateFieldSelect" class="form-select" required>
+                        <option value="">-- اختر المصدر أولاً --</option>
+                    </select>
+                    <span asp-validation-for="DateFieldName" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-12 mt-4 d-flex justify-content-between">
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> رجوع
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> حفظ والانتقال لإضافة الخطوات
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    var employeeFields = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(empFields));
+    var carFields = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(carFields));
+
+    function updateFields() {
+        var source = document.getElementById('sourceTypeSelect').value;
+        var sel = document.getElementById('dateFieldSelect');
+        sel.innerHTML = '<option value="">-- اختر الحقل --</option>';
+        var fields = source === 'Car' ? carFields : (source === 'Employee' ? employeeFields : {});
+        for (var key in fields) {
+            sel.innerHTML += `<option value="${key}">${fields[key]}</option>`;
+        }
+    }
+</script>
