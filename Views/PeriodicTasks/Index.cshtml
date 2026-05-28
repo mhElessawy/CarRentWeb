@@ -1,0 +1,262 @@
+@model List<CarRentWeb.Models.PeriodicTask>
+
+@{
+    ViewData["Title"] = "تعريف المهام الدورية";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .tasks-table th, .tasks-table td { vertical-align: middle; }
+    .badge-order {
+        background: #e9ecef;
+        color: #495057;
+        font-weight: 700;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+    }
+    .task-row.inactive { opacity: 0.55; }
+    .card-header-custom {
+        background: linear-gradient(135deg, #198754, #146c43);
+        color: white;
+        border-radius: 10px 10px 0 0;
+        padding: 14px 20px;
+    }
+    .freq-badge {
+        background: #fff3cd;
+        color: #856404;
+        border-radius: 6px;
+        padding: 2px 8px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+</style>
+
+<div class="container-fluid mt-3" dir="rtl">
+    <div class="row">
+
+        <!-- ===== Right: Task List ===== -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm" style="border-radius:10px">
+                <div class="card-header-custom d-flex justify-content-between align-items-center">
+                    <span>
+                        <i class="bi bi-arrow-repeat me-2"></i>
+                        تعريف المهام الدورية
+                    </span>
+                    <span class="badge bg-light text-dark">@Model.Count مهمة</span>
+                </div>
+                <div class="card-body p-0">
+                    @if (!Model.Any())
+                    {
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-clipboard-x fs-1 d-block mb-2"></i>
+                            لا توجد مهام دورية محددة بعد — أضف المهام من النموذج
+                        </div>
+                    }
+                    else
+                    {
+                        <table class="table table-hover tasks-table mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="60" class="text-center">الترتيب</th>
+                                    <th>اسم المهمة</th>
+                                    <th>الوصف</th>
+                                    <th>الموقع</th>
+                                    <th>الجهة</th>
+                                    <th>التكرار</th>
+                                    <th width="90" class="text-center">الحالة</th>
+                                    <th width="140" class="text-center">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var task in Model)
+                                {
+                                    <tr class="task-row @(task.IsActive ? "" : "inactive")">
+                                        <td class="text-center">
+                                            <span class="badge-order">@task.TaskOrder</span>
+                                        </td>
+                                        <td>
+                                            <strong>@task.TaskName</strong>
+                                        </td>
+                                        <td class="text-muted small">@(task.Description ?? "—")</td>
+                                        <td class="text-muted small">@(task.Location ?? "—")</td>
+                                        <td class="text-muted small">@(task.Jeha ?? "—")</td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(task.Frequency))
+                                            {
+                                                <span class="freq-badge">@task.Frequency</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted small">—</span>
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            @if (task.IsActive)
+                                            {
+                                                <span class="badge bg-success">فعّال</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">موقوف</span>
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="d-flex gap-1 justify-content-center">
+                                                <button class="btn btn-sm btn-outline-primary"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#editModal"
+                                                        data-id="@task.Id"
+                                                        data-name="@task.TaskName"
+                                                        data-desc="@task.Description"
+                                                        data-order="@task.TaskOrder"
+                                                        data-location="@task.Location"
+                                                        data-jeha="@task.Jeha"
+                                                        data-frequency="@task.Frequency"
+                                                        title="تعديل">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+
+                                                <form asp-action="ToggleActive" asp-route-id="@task.Id" method="post" style="display:inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit"
+                                                            class="btn btn-sm @(task.IsActive ? "btn-outline-warning" : "btn-outline-success")"
+                                                            title="@(task.IsActive ? "إيقاف" : "تفعيل")">
+                                                        <i class="bi @(task.IsActive ? "bi-pause-circle" : "bi-play-circle")"></i>
+                                                    </button>
+                                                </form>
+
+                                                <form asp-action="Delete" asp-route-id="@task.Id" method="post" style="display:inline"
+                                                      onsubmit="return confirm('هل تريد حذف المهمة: @task.TaskName؟')">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="حذف">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== Left: Add New Task ===== -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm" style="border-radius:10px">
+                <div class="card-header" style="background:#0d6efd;color:white;border-radius:10px 10px 0 0;padding:14px 20px;">
+                    <i class="bi bi-plus-circle me-2"></i>
+                    إضافة مهمة دورية جديدة
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">اسم المهمة <span class="text-danger">*</span></label>
+                            <input type="text" name="taskName" class="form-control"
+                                   placeholder="مثال: تجديد الإقامة" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">وصف المهمة</label>
+                            <textarea name="description" class="form-control" rows="2"
+                                      placeholder="وصف اختياري للمهمة"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">الموقع</label>
+                            <input type="text" name="location" class="form-control"
+                                   placeholder="مثال: وزارة الداخلية" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">الجهة</label>
+                            <input type="text" name="jeha" class="form-control"
+                                   placeholder="مثال: دائرة الجوازات" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">التكرار</label>
+                            <input type="text" name="frequency" class="form-control"
+                                   placeholder="مثال: سنوي، نصف سنوي، شهري" />
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">الترتيب</label>
+                            <input type="number" name="taskOrder" class="form-control"
+                                   value="@(Model.Any() ? Model.Max(t => t.TaskOrder) + 1 : 1)"
+                                   min="1" />
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-plus-lg me-1"></i> إضافة المهمة
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ===== Edit Modal ===== -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog" dir="rtl">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>تعديل المهمة</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="Edit" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" id="editId" />
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">اسم المهمة <span class="text-danger">*</span></label>
+                        <input type="text" name="taskName" id="editTaskName" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">وصف المهمة</label>
+                        <textarea name="description" id="editDescription" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">الموقع</label>
+                        <input type="text" name="location" id="editLocation" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">الجهة</label>
+                        <input type="text" name="jeha" id="editJeha" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">التكرار</label>
+                        <input type="text" name="frequency" id="editFrequency" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">الترتيب</label>
+                        <input type="number" name="taskOrder" id="editTaskOrder" class="form-control" min="1" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg me-1"></i> حفظ التعديلات
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('editModal').addEventListener('show.bs.modal', function (e) {
+        var btn = e.relatedTarget;
+        document.getElementById('editId').value = btn.dataset.id;
+        document.getElementById('editTaskName').value = btn.dataset.name;
+        document.getElementById('editDescription').value = btn.dataset.desc || '';
+        document.getElementById('editTaskOrder').value = btn.dataset.order;
+        document.getElementById('editLocation').value = btn.dataset.location || '';
+        document.getElementById('editJeha').value = btn.dataset.jeha || '';
+        document.getElementById('editFrequency').value = btn.dataset.frequency || '';
+    });
+</script>
