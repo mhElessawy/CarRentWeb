@@ -1,4 +1,4 @@
-﻿@model  CarRentWeb.Models.EmployeeInfo
+﻿@model   CarRentWeb.Models.EmployeeInfo
 
 @{
     ViewData["Title"] = "Edit";
@@ -175,6 +175,23 @@
                     <label asp-for="PassportEndDate" class="form-label">نهاية الإصدار</label>
                     <input asp-for="PassportEndDate" type="date" class="form-control" />
                     <span asp-validation-for="PassportEndDate" class="text-danger small"></span>
+                </div>
+
+                <!-- Residence & License -->
+                <div class="col-md-12 mt-3">
+                    <h5 class="border-bottom pb-2">بيانات الإقامة والرخصة</h5>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="ResEndDate" class="form-label">نهاية الإقامة</label>
+                    <input asp-for="ResEndDate" type="date" class="form-control" />
+                    <span asp-validation-for="ResEndDate" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="EndLicense" class="form-label">نهاية الرخصة</label>
+                    <input asp-for="EndLicense" type="date" class="form-control" />
+                    <span asp-validation-for="EndLicense" class="text-danger small"></span>
                 </div>
 
                 <div class="col-md-2">

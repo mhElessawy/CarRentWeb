@@ -214,7 +214,8 @@ namespace CarRentWeb.Controllers
                 .Select(g => new { ContractId = g.Key, Amount = g.Sum(d => d.DailyCredit) })
                 .ToDictionaryAsync(x => x.ContractId ?? 0, x => x.Amount ?? 0m);
             ViewBag.TotalAmounts = await _context.ContractDetails
-                .Where(d => contractIds.Contains(d.ContractId ?? 0) && d.DeleteFlag != 1)
+                .Where(d => contractIds.Contains(d.ContractId ?? 0) && d.DeleteFlag != 1
+                         && d.DailyCreditDate <= today)
                 .GroupBy(d => d.ContractId)
                 .Select(g => new { ContractId = g.Key, Amount = g.Sum(d => d.DailyCredit) })
                 .ToDictionaryAsync(x => x.ContractId ?? 0, x => x.Amount ?? 0m);
