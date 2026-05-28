@@ -8,6 +8,7 @@ public class PeriodicTaskInstance
     public DateOnly DueDate { get; set; }
     public DateTime CreatedDate { get; set; }
     public bool IsCompleted { get; set; } = false;
+    public DateOnly? TargetDate { get; set; }
 
     public virtual PeriodicTaskDef? TaskDef { get; set; }
     public virtual ICollection<PeriodicTaskInstanceStep> StepStatuses { get; set; } = new List<PeriodicTaskInstanceStep>();

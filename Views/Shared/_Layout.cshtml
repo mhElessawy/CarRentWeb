@@ -150,6 +150,7 @@
                             <a href="#"><i class="bi bi-arrow-repeat"></i> مهام دورية <i class="bi bi-chevron-left submenu-arrow"></i></a>
                             <ul class="submenu">
                                 <li><a asp-action="Index" asp-controller="PeriodicTaskInstances"><i class="bi bi-bell-fill"></i> المهام النشطة</a></li>
+                                <li><a asp-action="Schedule" asp-controller="PeriodicTaskInstances"><i class="bi bi-calendar-check-fill"></i> جدول مهام المندوب</a></li>
                                 @if (user.UserAdmin == true)
                                 {
                                     <li><a asp-action="Index" asp-controller="PeriodicTaskDefs"><i class="bi bi-gear-fill"></i> تعريف المهام الدورية</a></li>
