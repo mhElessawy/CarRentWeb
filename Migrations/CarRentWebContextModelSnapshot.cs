@@ -1305,31 +1305,24 @@ namespace CarRentWeb.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<DateOnly?>("CompletedDate")
+                        .HasColumnType("date");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Jeha")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Location")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("PeriodicTaskId")
+                    b.Property<int>("InstanceId")
                         .HasColumnType("int");
 
-                    b.Property<string>("StepName")
-                        .IsRequired()
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Notes")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("StepOrder")
+                    b.Property<int>("StepId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PeriodicTaskId");
+                    b.HasIndex("InstanceId");
 
                     b.ToTable("PeriodicTaskInstanceStep");
                 });
@@ -2778,22 +2771,6 @@ namespace CarRentWeb.Migrations
                     b.Navigation("DebitPayInfos");
                 });
 
-            modelBuilder.Entity("CarRentWeb.Models.PeriodicTaskInstanceStep", b =>
-                {
-                    b.HasOne("CarRentWeb.Models.PeriodicTask", "PeriodicTask")
-                        .WithMany("InstanceSteps")
-                        .HasForeignKey("PeriodicTaskId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_PeriodicTaskInstanceStep_PeriodicTask");
-
-                    b.Navigation("PeriodicTask");
-                });
-
-            modelBuilder.Entity("CarRentWeb.Models.PeriodicTask", b =>
-                {
-                    b.Navigation("InstanceSteps");
-                });
 #pragma warning restore 612, 618
         }
     }

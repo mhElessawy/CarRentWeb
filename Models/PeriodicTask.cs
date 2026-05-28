@@ -10,6 +10,4 @@ public class PeriodicTask
     public string? Location { get; set; }
     public string? Jeha { get; set; }
     public string? Frequency { get; set; }
-
-    public virtual ICollection<PeriodicTaskInstanceStep> InstanceSteps { get; set; } = new List<PeriodicTaskInstanceStep>();
 }

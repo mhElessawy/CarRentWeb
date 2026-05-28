@@ -35,29 +35,21 @@ namespace CarRentWeb.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    PeriodicTaskId = table.Column<int>(type: "int", nullable: false),
-                    StepName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    StepOrder = table.Column<int>(type: "int", nullable: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    Location = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Jeha = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    InstanceId = table.Column<int>(type: "int", nullable: false),
+                    StepId = table.Column<int>(type: "int", nullable: false),
+                    IsCompleted = table.Column<bool>(type: "bit", nullable: false),
+                    CompletedDate = table.Column<DateOnly>(type: "date", nullable: true),
+                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_PeriodicTaskInstanceStep", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_PeriodicTaskInstanceStep_PeriodicTask",
-                        column: x => x.PeriodicTaskId,
-                        principalTable: "PeriodicTask",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_PeriodicTaskInstanceStep_PeriodicTaskId",
+                name: "IX_PeriodicTaskInstanceStep_InstanceId",
                 table: "PeriodicTaskInstanceStep",
-                column: "PeriodicTaskId");
+                column: "InstanceId");
         }
 
         /// <inheritdoc />
