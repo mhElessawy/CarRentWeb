@@ -707,6 +707,7 @@ public partial class CarRentWebContext : DbContext
         modelBuilder.Entity<PeriodicTaskInstance>().ToTable("PeriodicTaskInstance");
         modelBuilder.Entity<PeriodicTaskInstanceStep>().ToTable("PeriodicTaskInstanceStep");
         modelBuilder.Entity<PeriodicTask>().ToTable("PeriodicTask");
+        modelBuilder.Entity<AdminTask>().ToTable("AdminTask");
 
         modelBuilder.Entity<PeriodicTaskStep>()
             .HasOne(s => s.TaskDef)
@@ -732,4 +733,5 @@ public partial class CarRentWebContext : DbContext
     public virtual DbSet<PeriodicTaskStep> PeriodicTaskSteps { get; set; }
     public virtual DbSet<PeriodicTaskInstance> PeriodicTaskInstances { get; set; }
     public virtual DbSet<PeriodicTaskInstanceStep> PeriodicTaskInstanceSteps { get; set; }
+    public virtual DbSet<AdminTask> AdminTasks { get; set; }
 }

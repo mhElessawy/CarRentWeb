@@ -1,0 +1,52 @@
+﻿@model AdminTask
+
+@{
+    ViewData["Title"] = "مهمة إدارية جديدة";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4" dir="rtl" style="max-width:640px">
+    <div class="card shadow-sm" style="border-radius:12px">
+        <div class="card-header" style="background:linear-gradient(135deg,#6f42c1,#5a2d91);color:white;border-radius:12px 12px 0 0;padding:16px 20px">
+            <h5 class="mb-0"><i class="bi bi-plus-circle-fill me-2"></i>إضافة مهمة إدارية جديدة</h5>
+        </div>
+        <div class="card-body p-4">
+            <form asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <label asp-for="TaskTitle" class="form-label fw-semibold">
+                        <i class="bi bi-card-text me-1 text-primary"></i>المهمة المراد تنفيذها <span class="text-danger">*</span>
+                    </label>
+                    <input asp-for="TaskTitle" class="form-control" placeholder="أدخل وصف المهمة..." />
+                    <span asp-validation-for="TaskTitle" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="TargetDate" class="form-label fw-semibold">
+                        <i class="bi bi-calendar-event me-1 text-primary"></i>تاريخ التنفيذ المراد <span class="text-danger">*</span>
+                    </label>
+                    <input asp-for="TargetDate" type="date" class="form-control" />
+                    <span asp-validation-for="TargetDate" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="Notes" class="form-label fw-semibold">
+                        <i class="bi bi-sticky me-1 text-primary"></i>ملاحظات
+                    </label>
+                    <textarea asp-for="Notes" class="form-control" rows="3"
+                              placeholder="ملاحظات إضافية (اختياري)..."></textarea>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-save me-1"></i> حفظ
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-lg me-1"></i> إلغاء
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
