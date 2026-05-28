@@ -1297,6 +1297,42 @@ namespace CarRentWeb.Migrations
                     b.ToTable("PeriodicTask");
                 });
 
+            modelBuilder.Entity("CarRentWeb.Models.PeriodicTaskInstance", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateOnly?>("CompletedDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly>("CreatedDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("DueDate")
+                        .HasColumnType("date");
+
+                    b.Property<int?>("EmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PeriodicTaskId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PeriodicTaskId");
+
+                    b.ToTable("PeriodicTaskInstance");
+                });
+
             modelBuilder.Entity("CarRentWeb.Models.PeriodicTaskInstanceStep", b =>
                 {
                     b.Property<int>("Id")
@@ -2771,6 +2807,19 @@ namespace CarRentWeb.Migrations
                     b.Navigation("DebitPayInfos");
                 });
 
+            modelBuilder.Entity("CarRentWeb.Models.PeriodicTaskInstance", b =>
+                {
+                    b.HasOne("CarRentWeb.Models.PeriodicTask", "TaskDef")
+                        .WithMany()
+                        .HasForeignKey("PeriodicTaskId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_PeriodicTaskInstance_PeriodicTask");
+
+                    b.Navigation("TaskDef");
+
+                    b.Navigation("StepStatuses");
+                });
 #pragma warning restore 612, 618
         }
     }

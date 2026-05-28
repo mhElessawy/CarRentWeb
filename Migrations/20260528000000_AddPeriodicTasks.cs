@@ -30,6 +30,36 @@ namespace CarRentWeb.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "PeriodicTaskInstance",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PeriodicTaskId = table.Column<int>(type: "int", nullable: false),
+                    EmployeeId = table.Column<int>(type: "int", nullable: true),
+                    DueDate = table.Column<DateOnly>(type: "date", nullable: true),
+                    CompletedDate = table.Column<DateOnly>(type: "date", nullable: true),
+                    IsCompleted = table.Column<bool>(type: "bit", nullable: false),
+                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedDate = table.Column<DateOnly>(type: "date", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PeriodicTaskInstance", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PeriodicTaskInstance_PeriodicTask",
+                        column: x => x.PeriodicTaskId,
+                        principalTable: "PeriodicTask",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PeriodicTaskInstance_PeriodicTaskId",
+                table: "PeriodicTaskInstance",
+                column: "PeriodicTaskId");
+
+            migrationBuilder.CreateTable(
                 name: "PeriodicTaskInstanceStep",
                 columns: table => new
                 {
@@ -56,6 +86,7 @@ namespace CarRentWeb.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(name: "PeriodicTaskInstanceStep");
+            migrationBuilder.DropTable(name: "PeriodicTaskInstance");
             migrationBuilder.DropTable(name: "PeriodicTask");
         }
     }
