@@ -5,12 +5,15 @@
 namespace CarRentWeb.Migrations
 {
     /// <inheritdoc />
-    public partial class PeriodTask : Migration
+    public partial class AddTargetDateIfMissing : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // Superseded by CreatePeriodicTaskTablesFixed migration.
+            migrationBuilder.Sql(
+                "IF COL_LENGTH('PeriodicTaskInstance','TargetDate') IS NULL " +
+                "ALTER TABLE [PeriodicTaskInstance] ADD [TargetDate] date NULL;"
+            );
         }
 
         /// <inheritdoc />
