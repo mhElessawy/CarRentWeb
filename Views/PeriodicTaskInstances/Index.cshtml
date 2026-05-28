@@ -1,0 +1,199 @@
+﻿@model IEnumerable<CarRentWeb.Controllers.ActiveTaskViewModel>
+
+@{
+    ViewData["Title"] = "المهام الدورية النشطة";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var allDefs = (List<CarRentWeb.Models.PeriodicTaskDef>)ViewBag.AllDefs;
+    var selectedDefId = (int?)ViewBag.SelectedTaskDefId;
+    var selectedSource = (string?)ViewBag.SelectedSourceType ?? "";
+    var selectedStatus = (string?)ViewBag.SelectedStatus ?? "";
+    var pending = Model.Where(x => !x.Instance.IsCompleted).ToList();
+    var completed = Model.Where(x => x.Instance.IsCompleted).ToList();
+    bool hasFilter = selectedDefId.HasValue || !string.IsNullOrEmpty(selectedSource) || !string.IsNullOrEmpty(selectedStatus);
+}
+
+<div class="container mt-4" dir="rtl">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4><i class="bi bi-bell-fill text-warning"></i> المهام الدورية النشطة</h4>
+        <a asp-controller="PeriodicTaskDefs" asp-action="Index" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-gear"></i> تعريف المهام
+        </a>
+    </div>
+
+    <!-- شريط الفلاتر -->
+    <form method="get" class="card card-body bg-light mb-4 shadow-sm">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label small fw-bold mb-1">
+                    <i class="bi bi-funnel"></i> نوع المهمة
+                </label>
+                <select name="taskDefId" class="form-select form-select-sm">
+                    <option value="">— كل المهام —</option>
+                    @foreach (var d in allDefs)
+                    {
+                        <option value="@d.Id" selected="@(selectedDefId == d.Id)">@d.TaskName</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label small fw-bold mb-1">
+                    <i class="bi bi-diagram-3"></i> المصدر
+                </label>
+                <select name="sourceType" class="form-select form-select-sm">
+                    <option value="" selected="@(selectedSource == "")">— الكل —</option>
+                    <option value="Employee" selected="@(selectedSource == "Employee")">
+                        <i class="bi bi-person-fill"></i> الموظفين
+                    </option>
+                    <option value="Car" selected="@(selectedSource == "Car")">
+                        <i class="bi bi-car-front-fill"></i> السيارات
+                    </option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label small fw-bold mb-1">
+                    <i class="bi bi-toggles"></i> الحالة
+                </label>
+                <select name="status" class="form-select form-select-sm">
+                    <option value="" selected="@(selectedStatus == "")">— الكل —</option>
+                    <option value="pending" selected="@(selectedStatus == "pending")">غير مكتملة</option>
+                    <option value="completed" selected="@(selectedStatus == "completed")">مكتملة</option>
+                </select>
+            </div>
+
+            <div class="col-md-2 d-flex gap-1">
+                <button type="submit" class="btn btn-primary btn-sm flex-fill">
+                    <i class="bi bi-search"></i> بحث
+                </button>
+                @if (hasFilter)
+                {
+                    <a asp-action="Index" class="btn btn-outline-secondary btn-sm" title="إزالة الفلاتر">
+                        <i class="bi bi-x-circle"></i>
+                    </a>
+                }
+            </div>
+        </div>
+
+        @if (hasFilter)
+        {
+            <div class="mt-2 small text-muted">
+                <i class="bi bi-info-circle"></i>
+                عرض <strong>@Model.Count()</strong> نتيجة
+                @if (selectedDefId.HasValue)
+                {
+                    var defName = allDefs.FirstOrDefault(d => d.Id == selectedDefId)?.TaskName;
+                    <span class="badge bg-primary ms-1">@defName</span>
+                }
+                @if (!string.IsNullOrEmpty(selectedSource))
+                {
+                    <span class="badge bg-secondary ms-1">@(selectedSource == "Car" ? "السيارات" : "الموظفين")</span>
+                }
+                @if (!string.IsNullOrEmpty(selectedStatus))
+                {
+                    <span class="badge bg-info text-dark ms-1">@(selectedStatus == "pending" ? "غير مكتملة" : "مكتملة")</span>
+                }
+            </div>
+        }
+    </form>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-success">
+            <i class="bi bi-check-circle"></i>
+            @(hasFilter ? "لا توجد نتائج تطابق الفلاتر المختارة." : "لا توجد مهام دورية مستحقة الآن.")
+        </div>
+    }
+
+    @if (pending.Any())
+    {
+        <h5 class="text-danger mb-2"><i class="bi bi-exclamation-triangle-fill"></i> مهام مستحقة / قريبة الانتهاء</h5>
+        <div class="row g-3 mb-4">
+            @foreach (var item in pending)
+            {
+                var badgeClass = item.DaysLeft < 0 ? "bg-danger"
+                : item.DaysLeft <= 7 ? "bg-danger"
+                : item.DaysLeft <= 14 ? "bg-warning text-dark"
+                : "bg-info text-dark";
+                var cardBorder = item.DaysLeft < 0 ? "border-danger" : item.DaysLeft <= 7 ? "border-warning" : "";
+
+                <div class="col-md-6 col-lg-4">
+                    <div class="card shadow-sm h-100 @cardBorder">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="card-title mb-0">@item.Def.TaskName</h6>
+                                <span class="badge @badgeClass">
+                                    @(item.DaysLeft < 0 ? $"منتهي منذ {-item.DaysLeft} يوم"
+                                                                : item.DaysLeft == 0 ? "ينتهي اليوم"
+                                                                : $"باقي {item.DaysLeft} يوم")
+                        </span>
+                    </div>
+                    <p class="text-muted small mb-1">
+                        <i class="bi @(item.Def.SourceType == "Car" ? "bi-car-front-fill" : "bi-person-fill")"></i>
+                        @item.EntityName
+                    </p>
+                    <p class="text-muted small mb-2">
+                        <i class="bi bi-calendar-x"></i>
+                        @item.FieldLabel: <strong>@item.DueDate.ToString("yyyy/MM/dd")</strong>
+                    </p>
+                    <div class="d-flex gap-2">
+                        <a asp-action="Details" asp-route-id="@item.Instance.Id"
+                           class="btn btn-sm btn-primary flex-fill">
+                            <i class="bi bi-list-check"></i> الخطوات
+                        </a>
+                        <form asp-action="ToggleComplete" method="post">
+                            <input type="hidden" name="id" value="@item.Instance.Id" />
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-outline-success"
+                                    title="تعليم كمكتملة">
+                                <i class="bi bi-check-all"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+                }
+        </div>
+    }
+
+    @if (completed.Any())
+    {
+        <h5 class="text-success mb-2"><i class="bi bi-check-circle-fill"></i> مهام مكتملة</h5>
+        <div class="table-responsive">
+            <table class="table table-sm table-bordered align-middle">
+                <thead class="table-success">
+                    <tr>
+                        <th>المهمة</th>
+                        <th>المرتبط</th>
+                        <th>تاريخ الانتهاء</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in completed)
+                    {
+                        <tr>
+                            <td>@item.Def.TaskName</td>
+                            <td>@item.EntityName</td>
+                            <td>@item.DueDate.ToString("yyyy/MM/dd")</td>
+                            <td>
+                                <a asp-action="Details" asp-route-id="@item.Instance.Id"
+                                   class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <form asp-action="ToggleComplete" method="post" class="d-inline">
+                                    <input type="hidden" name="id" value="@item.Instance.Id" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-warning" title="إعادة فتح">
+                                        <i class="bi bi-arrow-counterclockwise"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

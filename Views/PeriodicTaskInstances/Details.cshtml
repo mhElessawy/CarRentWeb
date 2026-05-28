@@ -1,0 +1,155 @@
+﻿@model CarRentWeb.Models.PeriodicTaskInstance
+
+@{
+    ViewData["Title"] = "تفاصيل المهمة وخطواتها";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var entityName = (string)ViewBag.EntityName;
+    var fieldLabel = (string)ViewBag.FieldLabel;
+    var daysLeft = (int)ViewBag.DaysLeft;
+    var completedCount = Model.StepStatuses.Count(s => s.IsCompleted);
+    var totalCount = Model.StepStatuses.Count;
+    var percent = totalCount > 0 ? (completedCount * 100 / totalCount) : 0;
+}
+
+<div class="container mt-4" dir="rtl">
+
+    <!-- رأس البطاقة -->
+    <div class="card shadow mb-4">
+        <div class="card-header @(Model.IsCompleted ? "bg-success" : "bg-primary") text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0" style="color:white">
+                    <i class="bi bi-arrow-repeat"></i> @Model.TaskDef.TaskName
+                </h5>
+                @if (Model.IsCompleted)
+                {
+                    <span class="badge bg-light text-success fs-6">
+                        <i class="bi bi-check-circle-fill"></i> مكتملة
+                    </span>
+                }
+                else
+                {
+                    <span class="badge @(daysLeft < 0 ? "bg-danger" : daysLeft <= 7 ? "bg-warning text-dark" : "bg-info text-dark") fs-6">
+                        @(daysLeft < 0 ? $"منتهي منذ {-daysLeft} يوم"
+                                            : daysLeft == 0 ? "ينتهي اليوم"
+                                            : $"باقي {daysLeft} يوم")
+                </span>
+                                }
+            </div>
+        </div>
+        <div class="card-body row g-3">
+            <div class="col-md-4">
+                <span class="text-muted small">المرتبط بـ</span>
+                <p class="fw-bold mb-0">
+                    <i class="bi @(Model.TaskDef.SourceType == "Car" ? "bi-car-front-fill" : "bi-person-fill") text-primary"></i>
+                    @entityName
+                </p>
+            </div>
+            <div class="col-md-4">
+                <span class="text-muted small">@fieldLabel</span>
+                <p class="fw-bold mb-0">
+                    <i class="bi bi-calendar-x text-danger"></i>
+                    @Model.DueDate.ToString("yyyy/MM/dd")
+                </p>
+            </div>
+            <div class="col-md-4">
+                <span class="text-muted small">التقدم</span>
+                <div class="progress mt-1" style="height:20px">
+                    <div class="progress-bar @(percent == 100 ? "bg-success" : "bg-primary")"
+                         role="progressbar" style="width:@percent%">
+                        @completedCount / @totalCount
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- خطوات التجديد -->
+    <div class="card shadow">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="bi bi-list-check text-primary"></i> خطوات التجديد</h5>
+        </div>
+        <div class="card-body p-0">
+            @if (!Model.StepStatuses.Any())
+            {
+                <div class="p-4 text-muted">لا توجد خطوات محددة لهذه المهمة.</div>
+            }
+            else
+            {
+                <div class="list-group list-group-flush">
+                    @foreach (var ss in Model.StepStatuses.OrderBy(s => s.Step.StepOrder))
+                    {
+                        <div class="list-group-item @(ss.IsCompleted ? "list-group-item-success" : "")">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="badge bg-secondary me-2">@ss.Step.StepOrder</span>
+                                    <strong>@ss.Step.StepName</strong>
+                                    @if (!string.IsNullOrEmpty(ss.Step.Authority))
+                                    {
+                                        <span class="text-muted ms-2 small">
+                                            <i class="bi bi-building"></i> @ss.Step.Authority
+                                        </span>
+                                    }
+                                    @if (!string.IsNullOrEmpty(ss.Step.Location))
+                                    {
+                                        <span class="text-muted ms-2 small">
+                                            <i class="bi bi-geo-alt"></i> @ss.Step.Location
+                                        </span>
+                                    }
+                                    @if (ss.IsCompleted && ss.CompletedDate.HasValue)
+                                    {
+                                        <span class="text-success ms-2 small">
+                                            <i class="bi bi-check-circle"></i> أُنجزت @ss.CompletedDate.Value.ToString("yyyy/MM/dd")
+                                        </span>
+                                    }
+                                </div>
+                                <form asp-action="ToggleStep" method="post" class="ms-3">
+                                    <input type="hidden" name="stepStatusId" value="@ss.Id" />
+                                    <input type="hidden" name="instanceId" value="@Model.Id" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit"
+                                            class="btn btn-sm @(ss.IsCompleted ? "btn-success" : "btn-outline-secondary")">
+                                        @if (ss.IsCompleted)
+                                        {
+                                            <i class="bi bi-check-circle-fill"></i>
+                                            <span>تمت</span>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-circle"></i>
+                                            <span>لم تتم</span>
+                                        }
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+        <div class="card-footer d-flex justify-content-between">
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> رجوع
+            </a>
+            @if (!Model.IsCompleted)
+            {
+                <form asp-action="ToggleComplete" method="post">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-all"></i> تعليم المهمة كمكتملة
+                    </button>
+                </form>
+            }
+            else
+            {
+                <form asp-action="ToggleComplete" method="post">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-outline-warning">
+                        <i class="bi bi-arrow-counterclockwise"></i> إعادة فتح المهمة
+                    </button>
+                </form>
+            }
+        </div>
+    </div>
+</div>

@@ -1262,107 +1262,6 @@ namespace CarRentWeb.Migrations
                     b.ToTable("DriverOnboardingSteps");
                 });
 
-            modelBuilder.Entity("CarRentWeb.Models.PeriodicTask", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Frequency")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Jeha")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Location")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TaskName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("TaskOrder")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("PeriodicTask");
-                });
-
-            modelBuilder.Entity("CarRentWeb.Models.PeriodicTaskInstance", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateOnly?>("CompletedDate")
-                        .HasColumnType("date");
-
-                    b.Property<DateOnly>("CreatedDate")
-                        .HasColumnType("date");
-
-                    b.Property<DateOnly?>("DueDate")
-                        .HasColumnType("date");
-
-                    b.Property<int?>("EmployeeId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsCompleted")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("PeriodicTaskId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PeriodicTaskId");
-
-                    b.ToTable("PeriodicTaskInstance");
-                });
-
-            modelBuilder.Entity("CarRentWeb.Models.PeriodicTaskInstanceStep", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateOnly?>("CompletedDate")
-                        .HasColumnType("date");
-
-                    b.Property<int>("InstanceId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsCompleted")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("StepId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("InstanceId");
-
-                    b.ToTable("PeriodicTaskInstanceStep");
-                });
-
             modelBuilder.Entity("CarRentWeb.Models.EmployeeInfo", b =>
                 {
                     b.Property<int>("Id")
@@ -1926,6 +1825,141 @@ namespace CarRentWeb.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("PasswordData");
+                });
+
+            modelBuilder.Entity("CarRentWeb.Models.PeriodicTaskDef", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AlertDaysBefore")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(30);
+
+                    b.Property<string>("DateFieldName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("SourceType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("TaskName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PeriodicTaskDef", (string)null);
+                });
+
+            modelBuilder.Entity("CarRentWeb.Models.PeriodicTaskInstance", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateOnly>("DueDate")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsCompleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<int>("SourceId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TaskDefId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TaskDefId");
+
+                    b.ToTable("PeriodicTaskInstance", (string)null);
+                });
+
+            modelBuilder.Entity("CarRentWeb.Models.PeriodicTaskInstanceStep", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateOnly?>("CompletedDate")
+                        .HasColumnType("date");
+
+                    b.Property<int>("InstanceId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsCompleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<int>("StepId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InstanceId");
+
+                    b.HasIndex("StepId");
+
+                    b.ToTable("PeriodicTaskInstanceStep", (string)null);
+                });
+
+            modelBuilder.Entity("CarRentWeb.Models.PeriodicTaskStep", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Authority")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("StepName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("StepOrder")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TaskDefId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TaskDefId");
+
+                    b.ToTable("PeriodicTaskStep", (string)null);
                 });
 
             modelBuilder.Entity("CarRentWeb.Models.Purshase", b =>
@@ -2581,6 +2615,51 @@ namespace CarRentWeb.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("CarRentWeb.Models.PeriodicTaskInstance", b =>
+                {
+                    b.HasOne("CarRentWeb.Models.PeriodicTaskDef", "TaskDef")
+                        .WithMany("Instances")
+                        .HasForeignKey("TaskDefId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_PeriodicTaskInstance_PeriodicTaskDef");
+
+                    b.Navigation("TaskDef");
+                });
+
+            modelBuilder.Entity("CarRentWeb.Models.PeriodicTaskInstanceStep", b =>
+                {
+                    b.HasOne("CarRentWeb.Models.PeriodicTaskInstance", "Instance")
+                        .WithMany("StepStatuses")
+                        .HasForeignKey("InstanceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_PeriodicTaskInstanceStep_Instance");
+
+                    b.HasOne("CarRentWeb.Models.PeriodicTaskStep", "Step")
+                        .WithMany("InstanceSteps")
+                        .HasForeignKey("StepId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_PeriodicTaskInstanceStep_Step");
+
+                    b.Navigation("Instance");
+
+                    b.Navigation("Step");
+                });
+
+            modelBuilder.Entity("CarRentWeb.Models.PeriodicTaskStep", b =>
+                {
+                    b.HasOne("CarRentWeb.Models.PeriodicTaskDef", "TaskDef")
+                        .WithMany("Steps")
+                        .HasForeignKey("TaskDefId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_PeriodicTaskStep_PeriodicTaskDef");
+
+                    b.Navigation("TaskDef");
+                });
+
             modelBuilder.Entity("CarRentWeb.Models.Purshase", b =>
                 {
                     b.HasOne("CarRentWeb.Models.Deff", "PurshaseNavigation")
@@ -2802,23 +2881,26 @@ namespace CarRentWeb.Migrations
                     b.Navigation("ViolationInfos");
                 });
 
-            modelBuilder.Entity("CarRentWeb.Models.ViolationInfo", b =>
+            modelBuilder.Entity("CarRentWeb.Models.PeriodicTaskDef", b =>
                 {
-                    b.Navigation("DebitPayInfos");
+                    b.Navigation("Instances");
+
+                    b.Navigation("Steps");
                 });
 
             modelBuilder.Entity("CarRentWeb.Models.PeriodicTaskInstance", b =>
                 {
-                    b.HasOne("CarRentWeb.Models.PeriodicTask", "TaskDef")
-                        .WithMany()
-                        .HasForeignKey("PeriodicTaskId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_PeriodicTaskInstance_PeriodicTask");
-
-                    b.Navigation("TaskDef");
-
                     b.Navigation("StepStatuses");
+                });
+
+            modelBuilder.Entity("CarRentWeb.Models.PeriodicTaskStep", b =>
+                {
+                    b.Navigation("InstanceSteps");
+                });
+
+            modelBuilder.Entity("CarRentWeb.Models.ViolationInfo", b =>
+                {
+                    b.Navigation("DebitPayInfos");
                 });
 #pragma warning restore 612, 618
         }

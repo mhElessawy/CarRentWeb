@@ -709,6 +709,8 @@ public partial class CarRentWebContext : DbContext
     public virtual DbSet<DriverOnboardingStep> DriverOnboardingSteps { get; set; }
     public virtual DbSet<EmployeeOnboardingProgress> EmployeeOnboardingProgresses { get; set; }
     public virtual DbSet<PeriodicTask> PeriodicTasks { get; set; }
+    public virtual DbSet<PeriodicTaskDef> PeriodicTaskDefs { get; set; }
+    public virtual DbSet<PeriodicTaskStep> PeriodicTaskSteps { get; set; }
     public virtual DbSet<PeriodicTaskInstance> PeriodicTaskInstances { get; set; }
     public virtual DbSet<PeriodicTaskInstanceStep> PeriodicTaskInstanceSteps { get; set; }
 }
