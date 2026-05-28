@@ -48,7 +48,7 @@ namespace CarRentWeb.Migrations
                         column: x => x.TaskDefId,
                         principalTable: "PeriodicTaskDef",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
                 });
 
             migrationBuilder.CreateTable(
