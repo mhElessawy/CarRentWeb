@@ -1,0 +1,266 @@
+@model List<PeriodicTaskReportItem>
+
+@{
+    ViewData["Title"] = "تقرير المهام الدورية";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var today = DateOnly.FromDateTime(DateTime.Today);
+    var allDefs = ViewBag.AllDefs as List<CarRentWeb.Models.PeriodicTaskDef> ?? new();
+    var dateFromVal   = ViewBag.DateFrom   as string ?? "";
+    var dateToVal     = ViewBag.DateTo     as string ?? "";
+    var nameSearch    = ViewBag.NameSearch as string ?? "";
+    int? selectedDefId   = ViewBag.SelectedTaskDefId;
+    string selectedSource = ViewBag.SelectedSourceType ?? "";
+    string selectedStatus = ViewBag.SelectedStatus ?? "";
+
+    int totalCount     = Model.Count;
+    int completedCount = Model.Count(x => x.IsCompleted);
+    int overdueCount   = Model.Count(x => !x.IsCompleted && x.DelayDays.HasValue && x.DelayDays > 0);
+    int pendingCount   = Model.Count(x => !x.IsCompleted);
+    int noTargetCount  = Model.Count(x => !x.TargetDate.HasValue && !x.IsCompleted);
+}
+
+<style>
+    .page-header { background: linear-gradient(135deg, #198754, #146c43); color: white; border-radius: 10px; padding: 16px 20px; margin-bottom: 20px; }
+    .report-table th { background: #f8f9fa; font-size: 0.82rem; font-weight: 600; white-space: nowrap; }
+    .report-table td { vertical-align: middle; font-size: 0.88rem; }
+    .stat-card { border-radius: 10px; padding: 14px 18px; color: white; }
+    .row-overdue { background: #fff5f5 !important; }
+    .row-completed { background: #f0fff4 !important; opacity: .85; }
+    .row-no-target { background: #fffdf0 !important; }
+    .delay-badge { font-size: 0.78rem; padding: 3px 8px; border-radius: 5px; }
+    .source-badge { font-size: 0.76rem; padding: 2px 7px; border-radius: 5px; }
+    .meta-tag { font-size: 0.75rem; color: #6c757d; }
+
+    @@media print {
+        body { direction: rtl; font-family: Arial, sans-serif; font-size: 11px; }
+        .no-print { display: none !important; }
+        .print-header { display: block !important; text-align: center; margin-bottom: 12px; border-bottom: 2px solid #333; padding-bottom: 8px; }
+        .print-header h4 { margin: 0 0 4px; font-size: 15px; }
+        .print-header p  { margin: 0; font-size: 11px; color: #555; }
+        .stat-card { border: 1px solid #ccc !important; color: #000 !important; background: #f5f5f5 !important; -webkit-print-color-adjust: exact; }
+        .report-table th { background: #eee !important; -webkit-print-color-adjust: exact; }
+        .report-table td, .report-table th { border: 1px solid #ccc !important; padding: 4px 7px !important; }
+        .row-overdue   { background: #ffe0e0 !important; -webkit-print-color-adjust: exact; }
+        .row-completed { background: #e0ffe8 !important; -webkit-print-color-adjust: exact; }
+    }
+    .print-header { display: none; }
+</style>
+
+<div class="container-fluid mt-3" dir="rtl">
+
+    <div class="print-header">
+        <h4>تقرير المهام الدورية - مواعيد التنفيذ والتأخير</h4>
+        <p>تاريخ الطباعة: @today.ToString("yyyy/MM/dd")</p>
+    </div>
+
+    <!-- Header -->
+    <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2 no-print">
+        <div>
+            <h5 class="mb-0"><i class="bi bi-clipboard2-data me-2"></i>تقرير المهام الدورية</h5>
+            <small class="opacity-75">مواعيد التنفيذ والتأخير لجميع المهام</small>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="Schedule" asp-controller="PeriodicTaskInstances" class="btn btn-light btn-sm">
+                <i class="bi bi-calendar-check me-1"></i> جدول التنفيذ
+            </a>
+            <a asp-action="Index" asp-controller="PeriodicTaskInstances" class="btn btn-light btn-sm">
+                <i class="bi bi-arrow-right me-1"></i> المهام النشطة
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <form method="get" class="card p-3 mb-3 shadow-sm no-print" style="border-radius:10px">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold mb-1">نوع المهمة</label>
+                <select name="taskDefId" class="form-select form-select-sm" dir="rtl">
+                    <option value="">-- كل المهام --</option>
+                    @foreach (var d in allDefs)
+                    {
+                        <option value="@d.Id" selected="@(selectedDefId == d.Id)">@d.TaskName</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold mb-1">المصدر</label>
+                <select name="sourceType" class="form-select form-select-sm" dir="rtl">
+                    <option value=""  selected="@(selectedSource == "")">-- الكل --</option>
+                    <option value="Employee" selected="@(selectedSource == "Employee")">الموظفين</option>
+                    <option value="Car"      selected="@(selectedSource == "Car")">السيارات</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold mb-1">الحالة</label>
+                <select name="status" class="form-select form-select-sm" dir="rtl">
+                    <option value=""         selected="@(selectedStatus == "")">-- الكل --</option>
+                    <option value="overdue"  selected="@(selectedStatus == "overdue")">متأخرة</option>
+                    <option value="pending"  selected="@(selectedStatus == "pending")">غير منتهية</option>
+                    <option value="completed" selected="@(selectedStatus == "completed")">مكتملة</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold mb-1">بحث بالاسم</label>
+                <input type="text" name="nameSearch" class="form-control form-control-sm" placeholder="ابحث..." value="@nameSearch" />
+            </div>
+            <div class="col-md-1">
+                <label class="form-label small fw-semibold mb-1">من</label>
+                <input type="date" name="dateFrom" class="form-control form-control-sm" value="@dateFromVal" />
+            </div>
+            <div class="col-md-1">
+                <label class="form-label small fw-semibold mb-1">إلى</label>
+                <input type="date" name="dateTo" class="form-control form-control-sm" value="@dateToVal" />
+            </div>
+            <div class="col-md-1 d-flex gap-1">
+                <button type="submit" class="btn btn-success btn-sm flex-fill"><i class="bi bi-search"></i></button>
+                <a asp-action="Report" class="btn btn-outline-secondary btn-sm" title="مسح"><i class="bi bi-x-lg"></i></a>
+            </div>
+        </div>
+    </form>
+
+    <!-- Stats -->
+    <div class="row g-3 mb-3">
+        <div class="col-6 col-md-3">
+            <div class="stat-card bg-secondary">
+                <div class="fs-4 fw-bold">@totalCount</div>
+                <div class="small opacity-75">إجمالي المهام</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card bg-danger">
+                <div class="fs-4 fw-bold">@overdueCount</div>
+                <div class="small opacity-75">متأخرة عن موعد التنفيذ</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card bg-warning text-dark">
+                <div class="fs-4 fw-bold">@noTargetCount</div>
+                <div class="small opacity-75">بدون موعد تنفيذ</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card bg-success">
+                <div class="fs-4 fw-bold">@completedCount</div>
+                <div class="small opacity-75">مكتملة</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print button + count -->
+    <div class="d-flex align-items-center gap-3 mb-2 no-print">
+        <span class="fw-semibold text-muted small"><i class="bi bi-list-check me-1"></i>@totalCount مهمة</span>
+        <button class="btn btn-outline-secondary btn-sm me-auto" onclick="window.print()">
+            <i class="bi bi-printer me-1"></i> طباعة
+        </button>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5 text-muted no-print">
+            <i class="bi bi-clipboard2-x fs-1 d-block mb-2 text-muted"></i>
+            <div class="fw-semibold">لا توجد مهام مطابقة</div>
+            <div class="small">جرّب تغيير الفلتر</div>
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm" style="border-radius:10px;overflow:hidden">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 report-table">
+                    <thead>
+                        <tr>
+                            <th class="px-3">#</th>
+                            <th>المهمة</th>
+                            <th>المرتبط</th>
+                            <th>النوع</th>
+                            <th>تاريخ الاستحقاق</th>
+                            <th>متبقي</th>
+                            <th>موعد التنفيذ</th>
+                            <th>التأخير</th>
+                            <th>الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{ int rowNum = 0; }
+                        @foreach (var item in Model)
+                        {
+                            rowNum++;
+                            bool isOverdue   = !item.IsCompleted && item.DelayDays.HasValue && item.DelayDays > 0;
+                            bool isNoTarget  = !item.TargetDate.HasValue && !item.IsCompleted;
+                            string rowClass  = item.IsCompleted ? "row-completed" : isOverdue ? "row-overdue" : isNoTarget ? "row-no-target" : "";
+
+                            <tr class="@rowClass">
+                                <td class="px-3 text-muted small">@rowNum</td>
+                                <td><strong>@item.TaskName</strong></td>
+                                <td>
+                                    <div class="fw-semibold">@item.EntityName</div>
+                                    <div class="meta-tag">@item.FieldLabel</div>
+                                </td>
+                                <td>
+                                    @if (item.SourceType == "Car")
+                                    {
+                                        <span class="source-badge bg-info text-dark"><i class="bi bi-car-front-fill me-1"></i>سيارة</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="source-badge bg-success text-white"><i class="bi bi-person-fill me-1"></i>موظف</span>
+                                    }
+                                </td>
+                                <td class="small @(item.DaysLeft < 0 ? "text-danger fw-semibold" : "text-muted")">
+                                    @item.DueDate.ToString("yyyy/MM/dd")
+                                </td>
+                                <td>
+                                    <span class="badge @(item.DaysLeft < 0 ? "bg-danger" : item.DaysLeft <= 7 ? "bg-warning text-dark" : item.DaysLeft <= 30 ? "bg-info text-dark" : "bg-secondary")">
+                                        @(item.DaysLeft < 0 ? $"منتهي {-item.DaysLeft}ي" : item.DaysLeft == 0 ? "اليوم" : $"{item.DaysLeft} يوم")
+                                    </span>
+                                </td>
+                                <td class="small">
+                                    @if (item.TargetDate.HasValue)
+                                    {
+                                        <span>@item.TargetDate.Value.ToString("yyyy/MM/dd")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.IsCompleted)
+                                    {
+                                        <span class="delay-badge bg-success text-white"><i class="bi bi-check-circle-fill me-1"></i>منتهية</span>
+                                    }
+                                    else if (!item.TargetDate.HasValue)
+                                    {
+                                        <span class="delay-badge bg-light text-muted border">لم يُحدد</span>
+                                    }
+                                    else if (item.DelayDays!.Value > 0)
+                                    {
+                                        <span class="delay-badge bg-danger text-white"><i class="bi bi-exclamation-triangle-fill me-1"></i>تأخر @item.DelayDays يوم</span>
+                                    }
+                                    else if (item.DelayDays.Value == 0)
+                                    {
+                                        <span class="delay-badge bg-warning text-dark"><i class="bi bi-clock-fill me-1"></i>اليوم</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="delay-badge bg-info text-dark"><i class="bi bi-hourglass-split me-1"></i>@(-item.DelayDays.Value) يوم متبقي</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.IsCompleted)
+                                    {
+                                        <span class="badge bg-success"><i class="bi bi-check2-circle me-1"></i>مكتملة</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary"><i class="bi bi-hourglass me-1"></i>قيد التنفيذ</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>

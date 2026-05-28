@@ -151,6 +151,7 @@
                             <ul class="submenu">
                                 <li><a asp-action="Index" asp-controller="PeriodicTaskInstances"><i class="bi bi-bell-fill"></i> المهام النشطة</a></li>
                                 <li><a asp-action="Schedule" asp-controller="PeriodicTaskInstances"><i class="bi bi-calendar-check-fill"></i> جدول مهام المندوب</a></li>
+                                <li><a asp-action="Report" asp-controller="PeriodicTaskInstances"><i class="bi bi-clipboard2-data-fill"></i> تقرير التأخير</a></li>
                                 @if (user.UserAdmin == true)
                                 {
                                     <li><a asp-action="Index" asp-controller="PeriodicTaskDefs"><i class="bi bi-gear-fill"></i> تعريف المهام الدورية</a></li>
