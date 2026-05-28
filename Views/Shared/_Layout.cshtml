@@ -79,13 +79,6 @@
                         {
                             <li><a asp-action="Index" asp-controller="EmployeeInfoes"><i class="bi bi-person-lines-fill"></i> بيانات الموظفين</a></li>
                         }
-                        <li><a asp-action="Index" asp-controller="EmployeeOnboarding"><i class="bi bi-person-check-fill"></i> تجهيز السائقين</a></li>
-                        <li><a asp-action="Schedule" asp-controller="EmployeeOnboarding"><i class="bi bi-calendar-check-fill"></i> جدول مهام المندوب</a></li>
-                        <li><a asp-action="Report" asp-controller="EmployeeOnboarding"><i class="bi bi-clipboard2-check-fill"></i> تقرير الأعمال المنجزة</a></li>
-                        @if (user.UserAdmin == true)
-                        {
-                            <li><a asp-action="Index" asp-controller="DriverOnboardingSteps"><i class="bi bi-list-check"></i> تعريف خطوات التجهيز</a></li>
-                        }
                         @if (user!.DebitView == true)
                         {
                             <li class="has-submenu">
@@ -126,6 +119,53 @@
                                 <li><a asp-action="Index" asp-controller="EmployeeSalaries">إضافة راتب</a></li>
                             </ul>
                         </li> *@
+                    </ul>
+                </li>
+
+                <!-- المهام -->
+                <li class="nav-item has-dropdown">
+                    <a href="#" class="nav-tab">
+                        <i class="bi bi-check2-square"></i>
+                        المهام
+                        <i class="bi bi-chevron-down arrow"></i>
+                    </a>
+                    <ul class="dropdown-menu-custom">
+
+                        <!-- مهام تأسيسية -->
+                        <li class="has-submenu">
+                            <a href="#"><i class="bi bi-person-check-fill"></i> مهام تأسيسية <i class="bi bi-chevron-left submenu-arrow"></i></a>
+                            <ul class="submenu">
+                                <li><a asp-action="Index" asp-controller="EmployeeOnboarding"><i class="bi bi-person-check-fill"></i> تجهيز السائقين</a></li>
+                                <li><a asp-action="Schedule" asp-controller="EmployeeOnboarding"><i class="bi bi-calendar-check-fill"></i> جدول مهام المندوب</a></li>
+                                <li><a asp-action="Report" asp-controller="EmployeeOnboarding"><i class="bi bi-clipboard2-check-fill"></i> تقرير الأعمال المنجزة</a></li>
+                                @if (user.UserAdmin == true)
+                                {
+                                    <li><a asp-action="Index" asp-controller="DriverOnboardingSteps"><i class="bi bi-list-check"></i> تعريف خطوات التجهيز</a></li>
+                                }
+                            </ul>
+                        </li>
+
+                        <!-- مهام دورية -->
+                        <li class="has-submenu">
+                            <a href="#"><i class="bi bi-arrow-repeat"></i> مهام دورية <i class="bi bi-chevron-left submenu-arrow"></i></a>
+                            <ul class="submenu">
+                                <li><a asp-action="Index" asp-controller="PeriodicTaskInstances"><i class="bi bi-bell-fill"></i> المهام النشطة</a></li>
+                                <li><a asp-action="Schedule" asp-controller="PeriodicTaskInstances"><i class="bi bi-calendar-check-fill"></i> جدول مهام المندوب</a></li>
+                                @if (user.UserAdmin == true)
+                                {
+                                    <li><a asp-action="Index" asp-controller="PeriodicTaskDefs"><i class="bi bi-gear-fill"></i> تعريف المهام الدورية</a></li>
+                                }
+                            </ul>
+                        </li>
+
+                        <!-- مهام إدارية -->
+                        <li class="has-submenu">
+                            <a href="#"><i class="bi bi-briefcase-fill"></i> مهام إدارية <i class="bi bi-chevron-left submenu-arrow"></i></a>
+                            <ul class="submenu">
+                                <li class="text-muted px-3 py-1 small">قريباً...</li>
+                            </ul>
+                        </li>
+
                     </ul>
                 </li>
 

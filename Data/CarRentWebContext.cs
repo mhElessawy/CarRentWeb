@@ -701,6 +701,25 @@ public partial class CarRentWebContext : DbContext
                   .OnDelete(DeleteBehavior.NoAction)
                   .HasConstraintName("FK_EmployeeTakeMoneyUser_PasswordData");
         });
+
+        modelBuilder.Entity<PeriodicTaskDef>().ToTable("PeriodicTaskDef");
+        modelBuilder.Entity<PeriodicTaskStep>().ToTable("PeriodicTaskStep");
+        modelBuilder.Entity<PeriodicTaskInstance>().ToTable("PeriodicTaskInstance");
+        modelBuilder.Entity<PeriodicTaskInstanceStep>().ToTable("PeriodicTaskInstanceStep");
+        modelBuilder.Entity<PeriodicTask>().ToTable("PeriodicTask");
+
+        modelBuilder.Entity<PeriodicTaskStep>()
+            .HasOne(s => s.TaskDef)
+            .WithMany(d => d.Steps)
+            .HasForeignKey(s => s.TaskDefId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<PeriodicTaskInstanceStep>()
+            .HasOne(s => s.Step)
+            .WithMany(s => s.InstanceSteps)
+            .HasForeignKey(s => s.StepId)
+            .OnDelete(DeleteBehavior.NoAction);
+
         OnModelCreatingPartial(modelBuilder);
     }
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
@@ -709,6 +728,8 @@ public partial class CarRentWebContext : DbContext
     public virtual DbSet<DriverOnboardingStep> DriverOnboardingSteps { get; set; }
     public virtual DbSet<EmployeeOnboardingProgress> EmployeeOnboardingProgresses { get; set; }
     public virtual DbSet<PeriodicTask> PeriodicTasks { get; set; }
+    public virtual DbSet<PeriodicTaskDef> PeriodicTaskDefs { get; set; }
+    public virtual DbSet<PeriodicTaskStep> PeriodicTaskSteps { get; set; }
     public virtual DbSet<PeriodicTaskInstance> PeriodicTaskInstances { get; set; }
     public virtual DbSet<PeriodicTaskInstanceStep> PeriodicTaskInstanceSteps { get; set; }
 }
