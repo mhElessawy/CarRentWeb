@@ -1,0 +1,262 @@
+@model List<AdminTask>
+
+@{
+    ViewData["Title"] = "المهام الإدارية";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var today    = (DateOnly)ViewBag.Today;
+    var status   = ViewBag.Status   as string ?? "";
+    var search   = ViewBag.Search   as string ?? "";
+    var dateFrom = ViewBag.DateFrom as string ?? "";
+    var dateTo   = ViewBag.DateTo   as string ?? "";
+
+    int totalCount     = Model.Count;
+    int overdueCount   = Model.Count(t => !t.IsCompleted && t.TargetDate < today);
+    int todayCount     = Model.Count(t => !t.IsCompleted && t.TargetDate == today);
+    int completedCount = Model.Count(t => t.IsCompleted);
+}
+
+<style>
+    .page-header { background: linear-gradient(135deg, #6f42c1, #5a2d91); color: white; border-radius: 10px; padding: 16px 20px; margin-bottom: 20px; }
+    .task-table th { background: #f8f9fa; font-size: 0.85rem; font-weight: 600; white-space: nowrap; }
+    .task-table td { vertical-align: middle; font-size: 0.9rem; }
+    .row-overdue   { background: #fff5f5 !important; }
+    .row-today     { background: #fffbf0 !important; }
+    .row-completed { background: #f0fff4 !important; opacity: .85; }
+    .stat-card { border-radius: 10px; padding: 12px 16px; color: white; text-align: center; }
+
+    @@media print {
+        body { direction: rtl; font-family: Arial, sans-serif; font-size: 12px; }
+        .no-print { display: none !important; }
+        .print-header { display: block !important; text-align: center; margin-bottom: 12px; border-bottom: 2px solid #333; padding-bottom: 8px; }
+        .print-header h4 { margin: 0 0 4px; font-size: 16px; }
+        .print-header p  { margin: 0; font-size: 12px; color: #555; }
+        .task-table th { background: #eee !important; -webkit-print-color-adjust: exact; }
+        .task-table td, .task-table th { border: 1px solid #ccc !important; padding: 5px 8px !important; }
+        .row-overdue   { background: #ffe0e0 !important; -webkit-print-color-adjust: exact; }
+        .row-completed { background: #e0ffe8 !important; -webkit-print-color-adjust: exact; }
+    }
+    .print-header { display: none; }
+</style>
+
+<div class="container-fluid mt-3" dir="rtl">
+
+    <div class="print-header">
+        <h4>المهام الإدارية</h4>
+        <p>تاريخ الطباعة: @today.ToString("yyyy/MM/dd")</p>
+    </div>
+
+    <!-- Header -->
+    <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2 no-print">
+        <div>
+            <h5 class="mb-0"><i class="bi bi-briefcase-fill me-2"></i>المهام الإدارية</h5>
+            <small class="opacity-75">إدارة وتتبع المهام الإدارية ومواعيد تنفيذها</small>
+        </div>
+        <a asp-action="Create" class="btn btn-light btn-sm">
+            <i class="bi bi-plus-circle-fill me-1"></i> مهمة جديدة
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible no-print">
+            <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Stats -->
+    <div class="row g-3 mb-3 no-print">
+        <div class="col-6 col-md-3">
+            <div class="stat-card bg-secondary">
+                <div class="fs-4 fw-bold">@totalCount</div>
+                <div class="small opacity-75">الإجمالي</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card bg-danger">
+                <div class="fs-4 fw-bold">@overdueCount</div>
+                <div class="small opacity-75">متأخرة</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card bg-warning text-dark">
+                <div class="fs-4 fw-bold">@todayCount</div>
+                <div class="small">مواعيدها اليوم</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card bg-success">
+                <div class="fs-4 fw-bold">@completedCount</div>
+                <div class="small opacity-75">مكتملة</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <form method="get" class="card p-3 mb-3 shadow-sm no-print" style="border-radius:10px">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold mb-1">بحث</label>
+                <input type="text" name="search" class="form-control form-control-sm"
+                       placeholder="ابحث في المهام..." value="@search" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold mb-1">الحالة</label>
+                <select name="status" class="form-select form-select-sm" dir="rtl">
+                    <option value=""          selected="@(status == "")">-- الكل --</option>
+                    <option value="pending"   selected="@(status == "pending")">غير مكتملة</option>
+                    <option value="overdue"   selected="@(status == "overdue")">متأخرة</option>
+                    <option value="completed" selected="@(status == "completed")">مكتملة</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold mb-1">من تاريخ</label>
+                <input type="date" name="dateFrom" class="form-control form-control-sm" value="@dateFrom" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold mb-1">إلى تاريخ</label>
+                <input type="date" name="dateTo" class="form-control form-control-sm" value="@dateTo" />
+            </div>
+            <div class="col-md-3 d-flex gap-1 align-items-end">
+                <button type="submit" class="btn btn-primary btn-sm">
+                    <i class="bi bi-search me-1"></i> بحث
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary btn-sm" title="مسح">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+                <button type="button" class="btn btn-outline-secondary btn-sm me-auto" onclick="window.print()">
+                    <i class="bi bi-printer"></i>
+                </button>
+            </div>
+        </div>
+    </form>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5 text-muted no-print">
+            <i class="bi bi-briefcase fs-1 d-block mb-2 text-primary"></i>
+            <div class="fw-semibold">لا توجد مهام مطابقة</div>
+            <div class="small mt-1">
+                <a asp-action="Create" class="btn btn-primary btn-sm mt-2">
+                    <i class="bi bi-plus-circle me-1"></i> إضافة مهمة جديدة
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm" style="border-radius:10px;overflow:hidden">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 task-table">
+                    <thead>
+                        <tr>
+                            <th class="px-3">#</th>
+                            <th>المهمة</th>
+                            <th>الملاحظات</th>
+                            <th>تاريخ التنفيذ</th>
+                            <th>التأخير</th>
+                            <th>الحالة</th>
+                            <th class="no-print"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{ int rowNum = 0; }
+                        @foreach (var task in Model)
+                        {
+                            rowNum++;
+                            bool isOverdue = !task.IsCompleted && task.TargetDate < today;
+                            bool isToday   = !task.IsCompleted && task.TargetDate == today;
+                            int  delay     = today.DayNumber - task.TargetDate.DayNumber;
+                            string rowCls  = task.IsCompleted ? "row-completed" : isOverdue ? "row-overdue" : isToday ? "row-today" : "";
+
+                            <tr class="@rowCls">
+                                <td class="px-3 text-muted small">@rowNum</td>
+                                <td>
+                                    <div class="fw-semibold @(task.IsCompleted ? "text-decoration-line-through text-muted" : "")">
+                                        @task.TaskTitle
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(task.CreatedBy))
+                                    {
+                                        <div style="font-size:0.74rem;color:#6c757d">
+                                            <i class="bi bi-person me-1"></i>@task.CreatedBy
+                                        </div>
+                                    }
+                                </td>
+                                <td class="text-muted small">
+                                    @if (!string.IsNullOrEmpty(task.Notes))
+                                    {
+                                        <span title="@task.Notes">
+                                            @(task.Notes!.Length > 60 ? task.Notes[..60] + "…" : task.Notes)
+                                        </span>
+                                    }
+                                    else { <span class="text-muted">—</span> }
+                                </td>
+                                <td class="@(isOverdue ? "text-danger fw-semibold" : isToday ? "text-warning fw-semibold" : "")">
+                                    @task.TargetDate.ToString("yyyy/MM/dd")
+                                    @if (isToday) { <span class="badge bg-warning text-dark ms-1">اليوم</span> }
+                                </td>
+                                <td>
+                                    @if (task.IsCompleted)
+                                    {
+                                        <span class="badge bg-success"><i class="bi bi-check2 me-1"></i>مكتملة</span>
+                                        @if (task.CompletedDate.HasValue)
+                                        {
+                                            <div style="font-size:0.74rem;color:#6c757d">@task.CompletedDate.Value.ToString("yyyy/MM/dd")</div>
+                                        }
+                                    }
+                                    else if (isOverdue)
+                                    {
+                                        <span class="badge bg-danger">
+                                            <i class="bi bi-exclamation-triangle-fill me-1"></i>تأخر @delay يوم
+                                        </span>
+                                    }
+                                    else if (isToday)
+                                    {
+                                        <span class="badge bg-warning text-dark"><i class="bi bi-clock-fill me-1"></i>اليوم</span>
+                                    }
+                                    else
+                                    {
+                                        int daysLeft = task.TargetDate.DayNumber - today.DayNumber;
+                                        <span class="badge @(daysLeft <= 3 ? "bg-warning text-dark" : daysLeft <= 7 ? "bg-info text-dark" : "bg-light text-dark border")">
+                                            @daysLeft يوم متبقي
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    <form asp-action="ToggleComplete" method="post" class="d-inline no-print">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id"       value="@task.Id" />
+                                        <input type="hidden" name="status"   value="@status" />
+                                        <input type="hidden" name="search"   value="@search" />
+                                        <input type="hidden" name="dateFrom" value="@dateFrom" />
+                                        <input type="hidden" name="dateTo"   value="@dateTo" />
+                                        <button type="submit" class="btn btn-sm @(task.IsCompleted ? "btn-outline-secondary" : "btn-outline-success")"
+                                                title="@(task.IsCompleted ? "إعادة فتح" : "تعليم كمكتملة")">
+                                            <i class="bi @(task.IsCompleted ? "bi-arrow-counterclockwise" : "bi-check2-circle")"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                                <td class="no-print">
+                                    <div class="d-flex gap-1">
+                                        <a asp-action="Edit" asp-route-id="@task.Id"
+                                           class="btn btn-sm btn-outline-primary" title="تعديل">
+                                            <i class="bi bi-pencil-fill"></i>
+                                        </a>
+                                        <form asp-action="Delete" method="post" class="d-inline"
+                                              onsubmit="return confirm('هل تريد حذف هذه المهمة؟')">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@task.Id" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="حذف">
+                                                <i class="bi bi-trash-fill"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>

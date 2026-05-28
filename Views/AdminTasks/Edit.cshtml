@@ -1,0 +1,64 @@
+@model AdminTask
+
+@{
+    ViewData["Title"] = "تعديل المهمة";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4" dir="rtl" style="max-width:640px">
+    <div class="card shadow-sm" style="border-radius:12px">
+        <div class="card-header" style="background:linear-gradient(135deg,#0d6efd,#0a58ca);color:white;border-radius:12px 12px 0 0;padding:16px 20px">
+            <h5 class="mb-0"><i class="bi bi-pencil-fill me-2"></i>تعديل المهمة الإدارية</h5>
+        </div>
+        <div class="card-body p-4">
+            <form asp-action="Edit" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="CreatedDate" />
+                <input type="hidden" asp-for="CreatedBy" />
+
+                <div class="mb-3">
+                    <label asp-for="TaskTitle" class="form-label fw-semibold">
+                        <i class="bi bi-card-text me-1 text-primary"></i>المهمة المراد تنفيذها <span class="text-danger">*</span>
+                    </label>
+                    <input asp-for="TaskTitle" class="form-control" />
+                    <span asp-validation-for="TaskTitle" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="TargetDate" class="form-label fw-semibold">
+                        <i class="bi bi-calendar-event me-1 text-primary"></i>تاريخ التنفيذ المراد <span class="text-danger">*</span>
+                    </label>
+                    <input asp-for="TargetDate" type="date" class="form-control" />
+                    <span asp-validation-for="TargetDate" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">
+                        <i class="bi bi-toggle-on me-1 text-primary"></i>الحالة
+                    </label>
+                    <div class="form-check form-switch">
+                        <input asp-for="IsCompleted" class="form-check-input" role="switch" />
+                        <label asp-for="IsCompleted" class="form-check-label">مكتملة</label>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="Notes" class="form-label fw-semibold">
+                        <i class="bi bi-sticky me-1 text-primary"></i>ملاحظات
+                    </label>
+                    <textarea asp-for="Notes" class="form-control" rows="3"></textarea>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-save me-1"></i> حفظ التعديلات
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-lg me-1"></i> إلغاء
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
