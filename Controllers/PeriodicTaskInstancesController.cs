@@ -285,6 +285,93 @@ public class PeriodicTaskInstancesController : Controller
         return View(scheduleItems);
     }
 
+    // GET: تقرير المهام الدورية بمواعيد التنفيذ والتأخير
+    public async Task<IActionResult> Report(int? taskDefId, string? sourceType, string? status,
+        string? nameSearch, DateOnly? dateFrom, DateOnly? dateTo)
+    {
+        var today = DateOnly.FromDateTime(DateTime.Today);
+
+        var allDefs = await _context.PeriodicTaskDefs
+            .Where(d => d.IsActive)
+            .OrderBy(d => d.TaskName)
+            .ToListAsync();
+
+        ViewBag.AllDefs = allDefs;
+        ViewBag.SelectedTaskDefId = taskDefId;
+        ViewBag.SelectedSourceType = sourceType ?? "";
+        ViewBag.SelectedStatus = status ?? "";
+        ViewBag.NameSearch = nameSearch ?? "";
+        ViewBag.DateFrom = dateFrom?.ToString("yyyy-MM-dd");
+        ViewBag.DateTo = dateTo?.ToString("yyyy-MM-dd");
+
+        var query = _context.PeriodicTaskInstances
+            .Include(i => i.TaskDef)
+            .AsQueryable();
+
+        if (taskDefId.HasValue)
+            query = query.Where(i => i.TaskDefId == taskDefId.Value);
+        if (!string.IsNullOrEmpty(sourceType))
+            query = query.Where(i => i.TaskDef!.SourceType == sourceType);
+        if (dateFrom.HasValue)
+            query = query.Where(i => i.TargetDate >= dateFrom.Value);
+        if (dateTo.HasValue)
+            query = query.Where(i => i.TargetDate <= dateTo.Value);
+
+        var instances = await query.ToListAsync();
+
+        var employees = await _context.EmployeeInfos.Where(e => e.DeleteFlag == 0).ToListAsync();
+        var cars = await _context.CarInfos.Where(c => c.DeleteFlag == 0).ToListAsync();
+
+        var items = instances.Select(i =>
+        {
+            string entityName = i.TaskDef?.SourceType == "Car"
+                ? $"سيارة رقم {cars.FirstOrDefault(c => c.Id == i.SourceId)?.CarNo ?? i.SourceId.ToString()}"
+                : employees.FirstOrDefault(e => e.Id == i.SourceId)?.FullNameAr ?? $"موظف #{i.SourceId}";
+
+            if (!string.IsNullOrEmpty(nameSearch) &&
+                !entityName.Contains(nameSearch, StringComparison.OrdinalIgnoreCase))
+                return null;
+
+            int daysLeft = i.DueDate.DayNumber - today.DayNumber;
+            int? delayDays = i.TargetDate.HasValue
+                ? today.DayNumber - i.TargetDate.Value.DayNumber
+                : null;
+
+            return new PeriodicTaskReportItem
+            {
+                InstanceId = i.Id,
+                TaskName = i.TaskDef?.TaskName ?? "",
+                SourceType = i.TaskDef?.SourceType ?? "",
+                EntityName = entityName,
+                FieldLabel = i.TaskDef != null
+                    ? PeriodicTaskHelper.GetFieldLabel(i.TaskDef.SourceType, i.TaskDef.DateFieldName)
+                    : "",
+                DueDate = i.DueDate,
+                TargetDate = i.TargetDate,
+                IsCompleted = i.IsCompleted,
+                DaysLeft = daysLeft,
+                DelayDays = delayDays
+            };
+        }).Where(x => x != null).Cast<PeriodicTaskReportItem>().ToList();
+
+        // فلتر الحالة
+        items = (status switch
+        {
+            "completed" => items.Where(x => x.IsCompleted),
+            "overdue" => items.Where(x => !x.IsCompleted && x.DelayDays.HasValue && x.DelayDays > 0),
+            "pending" => items.Where(x => !x.IsCompleted),
+            _ => items.AsEnumerable()
+        }).ToList();
+
+        var sorted = items
+            .OrderBy(x => x.IsCompleted)
+            .ThenByDescending(x => x.DelayDays)
+            .ThenBy(x => x.DueDate)
+            .ToList();
+
+        return View(sorted);
+    }
+
     // POST: حفظ تاريخ التنفيذ
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -334,5 +421,3 @@ public class PeriodicTaskInstancesController : Controller
     }
 
 }
-
-
