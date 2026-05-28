@@ -1,0 +1,292 @@
+@model List<CarRentWeb.Models.PeriodicTaskInstanceStep>
+
+@{
+    ViewData["Title"] = "تعريف خطوات المهام الدورية";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    int? selectedTaskId = ViewBag.SelectedTaskId;
+    var selectedTask = ViewBag.SelectedTask as CarRentWeb.Models.PeriodicTask;
+    int nextOrder = ViewBag.NextOrder ?? 1;
+}
+
+<style>
+    .steps-table th, .steps-table td { vertical-align: middle; }
+    .badge-order {
+        background: #e9ecef;
+        color: #495057;
+        font-weight: 700;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+    }
+    .step-row.inactive { opacity: 0.55; }
+    .card-header-custom {
+        background: linear-gradient(135deg, #198754, #146c43);
+        color: white;
+        border-radius: 10px 10px 0 0;
+        padding: 14px 20px;
+    }
+    .task-selector-card {
+        border: 2px dashed #dee2e6;
+        border-radius: 10px;
+        background: #f8f9fa;
+    }
+</style>
+
+<div class="container-fluid mt-3" dir="rtl">
+
+    <!-- Task Selector Bar -->
+    <div class="card shadow-sm mb-3" style="border-radius:10px">
+        <div class="card-body py-3">
+            <form method="get" class="row g-2 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label fw-semibold mb-1">
+                        <i class="bi bi-arrow-repeat me-1 text-success"></i>اختر المهمة الدورية
+                    </label>
+                    <select name="periodicTaskId" class="form-select" asp-items="ViewBag.PeriodicTasks"
+                            onchange="this.form.submit()" dir="rtl">
+                        <option value="">-- اختر مهمة دورية --</option>
+                    </select>
+                </div>
+                @if (selectedTask != null)
+                {
+                    <div class="col-auto">
+                        <span class="badge bg-success fs-6 px-3 py-2">
+                            <i class="bi bi-check-circle me-1"></i>@selectedTask.TaskName
+                            @if (!string.IsNullOrEmpty(selectedTask.Frequency))
+                            {
+                                <span class="opacity-75 small ms-2">(@selectedTask.Frequency)</span>
+                            }
+                        </span>
+                    </div>
+                }
+            </form>
+        </div>
+    </div>
+
+    @if (!selectedTaskId.HasValue)
+    {
+        <div class="task-selector-card text-center py-5 text-muted">
+            <i class="bi bi-arrow-up-circle fs-1 d-block mb-2 text-success"></i>
+            <div class="fw-semibold fs-5">اختر مهمة دورية من القائمة أعلاه</div>
+            <div class="small mt-1">لعرض وإدارة خطواتها</div>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+
+            <!-- ===== Right: Steps Table ===== -->
+            <div class="col-lg-8">
+                <div class="card shadow-sm" style="border-radius:10px">
+                    <div class="card-header-custom d-flex justify-content-between align-items-center">
+                        <span>
+                            <i class="bi bi-list-check me-2"></i>
+                            خطوات المهمة: @(selectedTask?.TaskName ?? "")
+                        </span>
+                        <span class="badge bg-light text-dark">@Model.Count خطوة</span>
+                    </div>
+                    <div class="card-body p-0">
+                        @if (!Model.Any())
+                        {
+                            <div class="text-center py-5 text-muted">
+                                <i class="bi bi-clipboard-x fs-1 d-block mb-2"></i>
+                                لا توجد خطوات لهذه المهمة — أضف الخطوات من النموذج
+                            </div>
+                        }
+                        else
+                        {
+                            <table class="table table-hover steps-table mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th width="60" class="text-center">الترتيب</th>
+                                        <th>اسم الخطوة</th>
+                                        <th>الوصف</th>
+                                        <th>الموقع</th>
+                                        <th>الجهة</th>
+                                        <th width="90" class="text-center">الحالة</th>
+                                        <th width="140" class="text-center">الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var step in Model)
+                                    {
+                                        <tr class="step-row @(step.IsActive ? "" : "inactive")">
+                                            <td class="text-center">
+                                                <span class="badge-order">@step.StepOrder</span>
+                                            </td>
+                                            <td><strong>@step.StepName</strong></td>
+                                            <td class="text-muted small">@(step.Description ?? "—")</td>
+                                            <td class="text-muted small">@(step.Location ?? "—")</td>
+                                            <td class="text-muted small">@(step.Jeha ?? "—")</td>
+                                            <td class="text-center">
+                                                @if (step.IsActive)
+                                                {
+                                                    <span class="badge bg-success">فعّال</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary">موقوف</span>
+                                                }
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="d-flex gap-1 justify-content-center">
+                                                    <button class="btn btn-sm btn-outline-primary"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#editModal"
+                                                            data-id="@step.Id"
+                                                            data-name="@step.StepName"
+                                                            data-desc="@step.Description"
+                                                            data-order="@step.StepOrder"
+                                                            data-location="@step.Location"
+                                                            data-jeha="@step.Jeha"
+                                                            title="تعديل">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </button>
+
+                                                    <form asp-action="ToggleActive" asp-route-id="@step.Id" method="post" style="display:inline">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="periodicTaskId" value="@selectedTaskId" />
+                                                        <button type="submit"
+                                                                class="btn btn-sm @(step.IsActive ? "btn-outline-warning" : "btn-outline-success")"
+                                                                title="@(step.IsActive ? "إيقاف" : "تفعيل")">
+                                                            <i class="bi @(step.IsActive ? "bi-pause-circle" : "bi-play-circle")"></i>
+                                                        </button>
+                                                    </form>
+
+                                                    <form asp-action="Delete" asp-route-id="@step.Id" method="post" style="display:inline"
+                                                          onsubmit="return confirm('هل تريد حذف الخطوة: @step.StepName؟')">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="periodicTaskId" value="@selectedTaskId" />
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="حذف">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== Left: Add New Step ===== -->
+            <div class="col-lg-4">
+                <div class="card shadow-sm" style="border-radius:10px">
+                    <div class="card-header" style="background:#0d6efd;color:white;border-radius:10px 10px 0 0;padding:14px 20px;">
+                        <i class="bi bi-plus-circle me-2"></i>
+                        إضافة خطوة جديدة
+                    </div>
+                    <div class="card-body">
+                        <form asp-action="Create" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="periodicTaskId" value="@selectedTaskId" />
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">اسم الخطوة <span class="text-danger">*</span></label>
+                                <input type="text" name="stepName" class="form-control"
+                                       placeholder="مثال: تقديم الطلب" required />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">الوصف</label>
+                                <textarea name="description" class="form-control" rows="2"
+                                          placeholder="وصف اختياري للخطوة"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">الموقع</label>
+                                <input type="text" name="location" class="form-control"
+                                       placeholder="مثال: وزارة الداخلية" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">الجهة</label>
+                                <input type="text" name="jeha" class="form-control"
+                                       placeholder="مثال: دائرة الجوازات" />
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold">الترتيب</label>
+                                <input type="number" name="stepOrder" class="form-control"
+                                       value="@nextOrder" min="1" />
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-plus-lg me-1"></i> إضافة الخطوة
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card mt-3 shadow-sm" style="border-radius:10px">
+                    <div class="card-body text-center">
+                        <p class="text-muted small mb-2">إدارة المهام الدورية</p>
+                        <a asp-action="Index" asp-controller="PeriodicTasks" class="btn btn-outline-success w-100">
+                            <i class="bi bi-arrow-repeat me-1"></i>
+                            تعريف المهام الدورية
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    }
+</div>
+
+<!-- ===== Edit Modal ===== -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog" dir="rtl">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>تعديل الخطوة</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="Edit" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" id="editId" />
+                <input type="hidden" name="periodicTaskId" value="@selectedTaskId" />
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">اسم الخطوة <span class="text-danger">*</span></label>
+                        <input type="text" name="stepName" id="editStepName" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">الوصف</label>
+                        <textarea name="description" id="editDescription" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">الموقع</label>
+                        <input type="text" name="location" id="editLocation" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">الجهة</label>
+                        <input type="text" name="jeha" id="editJeha" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">الترتيب</label>
+                        <input type="number" name="stepOrder" id="editStepOrder" class="form-control" min="1" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg me-1"></i> حفظ التعديلات
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('editModal').addEventListener('show.bs.modal', function (e) {
+        var btn = e.relatedTarget;
+        document.getElementById('editId').value = btn.dataset.id;
+        document.getElementById('editStepName').value = btn.dataset.name;
+        document.getElementById('editDescription').value = btn.dataset.desc || '';
+        document.getElementById('editStepOrder').value = btn.dataset.order;
+        document.getElementById('editLocation').value = btn.dataset.location || '';
+        document.getElementById('editJeha').value = btn.dataset.jeha || '';
+    });
+</script>
