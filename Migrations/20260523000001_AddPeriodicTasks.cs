@@ -44,7 +44,7 @@ namespace CarRentWeb.Migrations
                 {
                     table.PrimaryKey("PK_PeriodicTaskStep", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_PeriodicTaskStep_PeriodicTaskDef",
+                        name: "FK_PeriodicTaskStep_PeriodicTaskDef_TaskDefId",
                         column: x => x.TaskDefId,
                         principalTable: "PeriodicTaskDef",
                         principalColumn: "Id",

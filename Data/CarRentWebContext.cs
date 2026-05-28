@@ -708,6 +708,18 @@ public partial class CarRentWebContext : DbContext
         modelBuilder.Entity<PeriodicTaskInstanceStep>().ToTable("PeriodicTaskInstanceStep");
         modelBuilder.Entity<PeriodicTask>().ToTable("PeriodicTask");
 
+        modelBuilder.Entity<PeriodicTaskStep>()
+            .HasOne(s => s.TaskDef)
+            .WithMany(d => d.Steps)
+            .HasForeignKey(s => s.TaskDefId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<PeriodicTaskInstanceStep>()
+            .HasOne(s => s.Step)
+            .WithMany(s => s.InstanceSteps)
+            .HasForeignKey(s => s.StepId)
+            .OnDelete(DeleteBehavior.NoAction);
+
         OnModelCreatingPartial(modelBuilder);
     }
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);

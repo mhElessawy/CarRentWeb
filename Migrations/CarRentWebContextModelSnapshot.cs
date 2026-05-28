@@ -2688,9 +2688,8 @@ namespace CarRentWeb.Migrations
                     b.HasOne("CarRentWeb.Models.PeriodicTaskDef", "TaskDef")
                         .WithMany("Steps")
                         .HasForeignKey("TaskDefId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_PeriodicTaskStep_PeriodicTaskDef");
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
 
                     b.Navigation("TaskDef");
                 });
