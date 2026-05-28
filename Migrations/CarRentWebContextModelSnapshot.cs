@@ -2656,8 +2656,7 @@ namespace CarRentWeb.Migrations
                         .WithMany("Instances")
                         .HasForeignKey("TaskDefId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_PeriodicTaskInstance_PeriodicTaskDef");
+                        .IsRequired();
 
                     b.Navigation("TaskDef");
                 });
@@ -2668,15 +2667,13 @@ namespace CarRentWeb.Migrations
                         .WithMany("StepStatuses")
                         .HasForeignKey("InstanceId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_PeriodicTaskInstanceStep_Instance");
+                        .IsRequired();
 
                     b.HasOne("CarRentWeb.Models.PeriodicTaskStep", "Step")
                         .WithMany("InstanceSteps")
                         .HasForeignKey("StepId")
                         .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_PeriodicTaskInstanceStep_Step");
+                        .IsRequired();
 
                     b.Navigation("Instance");
 

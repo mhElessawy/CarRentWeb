@@ -11,19 +11,12 @@ namespace CarRentWeb.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<DateOnly>(
-                name: "TargetDate",
-                table: "PeriodicTaskInstance",
-                type: "date",
-                nullable: true);
+            // TargetDate column is included in CreatePeriodicTaskTablesFixed migration.
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "TargetDate",
-                table: "PeriodicTaskInstance");
         }
     }
 }
