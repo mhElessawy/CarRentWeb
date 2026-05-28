@@ -701,6 +701,13 @@ public partial class CarRentWebContext : DbContext
                   .OnDelete(DeleteBehavior.NoAction)
                   .HasConstraintName("FK_EmployeeTakeMoneyUser_PasswordData");
         });
+
+        modelBuilder.Entity<PeriodicTaskDef>().ToTable("PeriodicTaskDef");
+        modelBuilder.Entity<PeriodicTaskStep>().ToTable("PeriodicTaskStep");
+        modelBuilder.Entity<PeriodicTaskInstance>().ToTable("PeriodicTaskInstance");
+        modelBuilder.Entity<PeriodicTaskInstanceStep>().ToTable("PeriodicTaskInstanceStep");
+        modelBuilder.Entity<PeriodicTask>().ToTable("PeriodicTask");
+
         OnModelCreatingPartial(modelBuilder);
     }
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
