@@ -1,4 +1,4 @@
-namespace CarRentWeb.Models;
+﻿namespace CarRentWeb.Models;
 
 public class PeriodicTaskInstanceStep
 {

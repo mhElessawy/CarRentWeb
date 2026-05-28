@@ -332,5 +332,9 @@ public class PeriodicTaskInstancesController : Controller
         await _context.SaveChangesAsync();
         return instance;
     }
+<<<<<<< HEAD
 }
 
+=======
+}
+>>>>>>> origin/master

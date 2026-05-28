@@ -1,4 +1,4 @@
-@model List<PeriodicScheduleItem>
+﻿@model List<PeriodicScheduleItem>
 
 @{
     ViewData["Title"] = "جدول مهام المندوب - دورية";
@@ -20,13 +20,19 @@
         padding: 16px 20px;
         margin-bottom: 20px;
     }
+
     .schedule-table th {
         background: #f8f9fa;
         font-size: 0.85rem;
         font-weight: 600;
         white-space: nowrap;
     }
-    .schedule-table td { vertical-align: middle; font-size: 0.9rem; }
+
+    .schedule-table td {
+        vertical-align: middle;
+        font-size: 0.9rem;
+    }
+
     .date-input {
         border: 1px solid #dee2e6;
         border-radius: 6px;
@@ -34,11 +40,31 @@
         font-size: 0.85rem;
         width: 140px;
     }
-    .date-input:focus { border-color: #0d6efd; outline: none; box-shadow: 0 0 0 2px rgba(13,110,253,.15); }
-    .overdue { background: #fff5f5 !important; }
-    .overdue .date-input { border-color: #dc3545; color: #dc3545; }
-    .today-row { background: #fffbf0 !important; }
-    .meta-tag { font-size: 0.78rem; color: #6c757d; }
+
+        .date-input:focus {
+            border-color: #0d6efd;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(13,110,253,.15);
+        }
+
+    .overdue {
+        background: #fff5f5 !important;
+    }
+
+        .overdue .date-input {
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+
+    .today-row {
+        background: #fffbf0 !important;
+    }
+
+    .meta-tag {
+        font-size: 0.78rem;
+        color: #6c757d;
+    }
+
     .source-badge {
         font-size: 0.78rem;
         padding: 2px 8px;
@@ -46,20 +72,71 @@
     }
 
     @@media print {
-        body { direction: rtl; font-family: Arial, sans-serif; font-size: 12px; }
-        .no-print { display: none !important; }
-        .print-header { display: block !important; text-align: center; margin-bottom: 16px; border-bottom: 2px solid #333; padding-bottom: 10px; }
-        .print-header h4 { margin: 0 0 4px; font-size: 16px; }
-        .print-header p { margin: 0; font-size: 12px; color: #555; }
-        .schedule-table th { background: #eee !important; -webkit-print-color-adjust: exact; }
-        .schedule-table td, .schedule-table th { border: 1px solid #ccc !important; padding: 5px 8px !important; }
-        .overdue { background: #ffe0e0 !important; -webkit-print-color-adjust: exact; }
-        .today-row { background: #fff8dc !important; -webkit-print-color-adjust: exact; }
-        .col-save { display: none !important; }
-        .col-date-val { display: table-cell !important; }
+        body {
+            direction: rtl;
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+        }
+
+        .no-print {
+            display: none !important;
+        }
+
+        .print-header {
+            display: block !important;
+            text-align: center;
+            margin-bottom: 16px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+
+            .print-header h4 {
+                margin: 0 0 4px;
+                font-size: 16px;
+            }
+
+            .print-header p {
+                margin: 0;
+                font-size: 12px;
+                color: #555;
+            }
+
+        .schedule-table th {
+            background: #eee !important;
+            -webkit-print-color-adjust: exact;
+        }
+
+        .schedule-table td, .schedule-table th {
+            border: 1px solid #ccc !important;
+            padding: 5px 8px !important;
+        }
+
+        .overdue {
+            background: #ffe0e0 !important;
+            -webkit-print-color-adjust: exact;
+        }
+
+        .today-row {
+            background: #fff8dc !important;
+            -webkit-print-color-adjust: exact;
+        }
+
+        .col-save {
+            display: none !important;
+        }
+
+        .col-date-val {
+            display: table-cell !important;
+        }
     }
-    .print-header { display: none; }
-    .col-date-val { display: none; }
+
+    .print-header {
+        display: none;
+    }
+
+    .col-date-val {
+        display: none;
+    }
 </style>
 
 <div class="container-fluid mt-3" dir="rtl">
@@ -139,14 +216,20 @@
     else
     {
         var overdueCount = Model.Count(x => x.TargetDate.HasValue && x.TargetDate.Value < today);
-        var todayCount   = Model.Count(x => x.TargetDate.HasValue && x.TargetDate.Value == today);
+        var todayCount = Model.Count(x => x.TargetDate.HasValue && x.TargetDate.Value == today);
 
         <div class="d-flex align-items-center gap-3 mb-3 no-print">
             <span class="fw-semibold text-muted small">
                 <i class="bi bi-list-check me-1"></i>@Model.Count مهمة
             </span>
-            @if (overdueCount > 0) { <span class="badge bg-danger">@overdueCount متأخر</span> }
-            @if (todayCount > 0)   { <span class="badge bg-warning text-dark">@todayCount اليوم</span> }
+            @if (overdueCount > 0)
+            {
+                <span class="badge bg-danger">@overdueCount متأخر</span>
+            }
+            @if (todayCount > 0)
+            {
+                <span class="badge bg-warning text-dark">@todayCount اليوم</span>
+            }
             <button class="btn btn-outline-secondary btn-sm me-auto no-print" onclick="window.print()">
                 <i class="bi bi-printer me-1"></i> طباعة
             </button>
@@ -168,16 +251,18 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @{ int rowNum = 0; }
+                        @{
+                            int rowNum = 0;
+                        }
                         @foreach (var item in Model)
                         {
                             rowNum++;
                             var isOverdue = item.TargetDate.HasValue && item.TargetDate.Value < today;
-                            var isToday   = item.TargetDate.HasValue && item.TargetDate.Value == today;
-                            var rowClass  = isOverdue ? "overdue" : isToday ? "today-row" : "";
+                            var isToday = item.TargetDate.HasValue && item.TargetDate.Value == today;
+                            var rowClass = isOverdue ? "overdue" : isToday ? "today-row" : "";
                             var daysClass = item.DaysLeft < 0 ? "text-danger fw-semibold"
-                                          : item.DaysLeft <= 7 ? "text-warning fw-semibold"
-                                          : "text-muted";
+                            : item.DaysLeft <= 7 ? "text-warning fw-semibold"
+                            : "text-muted";
 
                             <tr class="@rowClass">
                                 <td class="px-3 text-muted small">@rowNum</td>
@@ -208,11 +293,21 @@
                                     {
                                         <span class="@(isOverdue ? "text-danger fw-semibold" : isToday ? "text-warning fw-semibold" : "")">
                                             @item.TargetDate.Value.ToString("yyyy/MM/dd")
-                                            @if (isOverdue) { <text> ⚠</text> }
-                                            @if (isToday)   { <text> ★</text> }
+                                            @if (isOverdue)
+                                            {
+                                                <text> ⚠</text>
+                                            }
+                                            @if (isToday)
+                                            {
+                                                <text> ★</text>
+                                            }
                                         </span>
                                     }
-                                    else { <span class="text-muted">—</span> }
+                                    else
+                                    {
+
+                                        <span class="text-muted">—</span>
+                                    }
                                 </td>
                                 <!-- Screen: editable date + save -->
                                 <td class="col-save no-print">
@@ -230,8 +325,14 @@
                                             <i class="bi bi-save"></i>
                                         </button>
                                     </form>
-                                    @if (isOverdue) { <div class="meta-tag text-danger mt-1"><i class="bi bi-exclamation-circle me-1"></i>متأخر</div> }
-                                    @if (isToday)   { <div class="meta-tag text-warning mt-1"><i class="bi bi-clock me-1"></i>اليوم</div> }
+                                    @if (isOverdue)
+                                    {
+                                        <div class="meta-tag text-danger mt-1"><i class="bi bi-exclamation-circle me-1"></i>متأخر</div>
+                                    }
+                                    @if (isToday)
+                                    {
+                                        <div class="meta-tag text-warning mt-1"><i class="bi bi-clock me-1"></i>اليوم</div>
+                                    }
                                 </td>
                             </tr>
                         }
