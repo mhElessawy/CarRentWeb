@@ -1,11 +1,15 @@
 using System;
+using CarRentWeb.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace CarRentWeb.Migrations
 {
-    /// <inheritdoc />
+    [DbContext(typeof(CarRentWebContext))]
+    [Migration("20260603000000_AddSteppedAdminTasks")]
     public partial class AddSteppedAdminTasks : Migration
     {
         /// <inheritdoc />
