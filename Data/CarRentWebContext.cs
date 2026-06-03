@@ -708,6 +708,14 @@ public partial class CarRentWebContext : DbContext
         modelBuilder.Entity<PeriodicTaskInstanceStep>().ToTable("PeriodicTaskInstanceStep");
         modelBuilder.Entity<PeriodicTask>().ToTable("PeriodicTask");
         modelBuilder.Entity<AdminTask>().ToTable("AdminTask");
+        modelBuilder.Entity<SteppedAdminTask>().ToTable("SteppedAdminTask");
+        modelBuilder.Entity<SteppedAdminTaskStep>().ToTable("SteppedAdminTaskStep");
+
+        modelBuilder.Entity<SteppedAdminTaskStep>()
+            .HasOne(s => s.Task)
+            .WithMany(t => t.Steps)
+            .HasForeignKey(s => s.TaskId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<PeriodicTaskStep>()
             .HasOne(s => s.TaskDef)
@@ -734,4 +742,6 @@ public partial class CarRentWebContext : DbContext
     public virtual DbSet<PeriodicTaskInstance> PeriodicTaskInstances { get; set; }
     public virtual DbSet<PeriodicTaskInstanceStep> PeriodicTaskInstanceSteps { get; set; }
     public virtual DbSet<AdminTask> AdminTasks { get; set; }
+    public virtual DbSet<SteppedAdminTask> SteppedAdminTasks { get; set; }
+    public virtual DbSet<SteppedAdminTaskStep> SteppedAdminTaskSteps { get; set; }
 }

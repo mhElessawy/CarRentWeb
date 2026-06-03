@@ -58,6 +58,78 @@ namespace CarRentWeb.Migrations
                     b.ToTable("AdminTask", (string)null);
                 });
 
+            modelBuilder.Entity("CarRentWeb.Models.SteppedAdminTask", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AssignedTo")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateOnly?>("CompletedDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TaskTitle")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SteppedAdminTask", (string)null);
+                });
+
+            modelBuilder.Entity("CarRentWeb.Models.SteppedAdminTaskStep", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateOnly?>("CompletedDate")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("StepOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("StepName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateOnly>("TargetDate")
+                        .HasColumnType("date");
+
+                    b.Property<int>("TaskId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TaskId");
+
+                    b.ToTable("SteppedAdminTaskStep", (string)null);
+                });
+
             modelBuilder.Entity("CarRentWeb.Models.Bill", b =>
                 {
                     b.Property<int>("Id")
@@ -2674,6 +2746,17 @@ namespace CarRentWeb.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("CarRentWeb.Models.SteppedAdminTaskStep", b =>
+                {
+                    b.HasOne("CarRentWeb.Models.SteppedAdminTask", "Task")
+                        .WithMany("Steps")
+                        .HasForeignKey("TaskId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Task");
+                });
+
             modelBuilder.Entity("CarRentWeb.Models.PeriodicTaskInstance", b =>
                 {
                     b.HasOne("CarRentWeb.Models.PeriodicTaskDef", "TaskDef")
@@ -2934,6 +3017,11 @@ namespace CarRentWeb.Migrations
                     b.Navigation("UserCompanyNotAppears");
 
                     b.Navigation("ViolationInfos");
+                });
+
+            modelBuilder.Entity("CarRentWeb.Models.SteppedAdminTask", b =>
+                {
+                    b.Navigation("Steps");
                 });
 
             modelBuilder.Entity("CarRentWeb.Models.PeriodicTaskDef", b =>
