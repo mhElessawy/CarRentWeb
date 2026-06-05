@@ -88,6 +88,10 @@
                         <span>@Html.DisplayFor(model => model.PassportEndDate)</span>
                     </div>
                     <div class="info-item">
+                        <label>تاريخ إصدار الرخصة</label>
+                        <span>@Html.DisplayFor(model => model.StartLicense)</span>
+                    </div>
+                    <div class="info-item">
                         <label>تاريخ إنتهاء الرخصة</label>
                         <span>@Html.DisplayFor(model => model.EndLicense)</span>
                     </div>
@@ -129,6 +133,58 @@
                     <div class="info-item">
                         <label>تاريخ التسجيل</label>
                         <span>@Html.DisplayFor(model => model.RegDate)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-section" dir="rtl">
+            <h5>بيانات إضافية</h5>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="info-item">
+                        <label>فصيلة الدم</label>
+                        <span>@Html.DisplayFor(model => model.BloodType)</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="info-item">
+                        <label>الحالة الاجتماعية</label>
+                        <span>
+                            @switch (Model.MaritalStatus)
+                            {
+                                case 1: @:أعزب
+                                break;
+                                case 2: @:متزوج
+                                break;
+                                case 3: @:مطلق
+                                break;
+                                case 4: @:أرمل
+                                break;
+                            }
+                        </span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="info-item">
+                        <label>الديانة</label>
+                        <span>
+                            @switch (Model.Religion)
+                            {
+                                case 1: @:مسلم
+                                break;
+                                case 2: @:مسيحي
+                                break;
+                                case 3: @:أخرى
+                                break;
+                            }
+                        </span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="info-item">
+                        <label>المؤهل الدراسي</label>
+                        <span>@Html.DisplayFor(model => model.Education)</span>
                     </div>
                 </div>
             </div>

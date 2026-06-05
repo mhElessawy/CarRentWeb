@@ -195,16 +195,77 @@
                     <h5 class="border-bottom pb-2">بيانات الإقامة والرخصة</h5>
                 </div>
 
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <label asp-for="ResEndDate" class="form-label">نهاية الإقامة</label>
                     <input asp-for="ResEndDate" type="date" class="form-control" />
                     <span asp-validation-for="ResEndDate" class="text-danger small"></span>
                 </div>
 
-                <div class="col-md-6">
+                <div class="col-md-4">
+                    <label asp-for="StartLicense" class="form-label">تاريخ إصدار الرخصة</label>
+                    <input asp-for="StartLicense" type="date" class="form-control" />
+                    <span asp-validation-for="StartLicense" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-4">
                     <label asp-for="EndLicense" class="form-label">نهاية الرخصة</label>
                     <input asp-for="EndLicense" type="date" class="form-control" />
                     <span asp-validation-for="EndLicense" class="text-danger small"></span>
+                </div>
+
+                <!-- Additional Personal Info -->
+                <div class="col-md-12 mt-3">
+                    <h5 class="border-bottom pb-2">بيانات إضافية</h5>
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="BloodType" class="form-label">فصيلة الدم</label>
+                    <select asp-for="BloodType" class="form-select">
+                        <option value="">-- اختر فصيلة الدم --</option>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="MaritalStatus" class="form-label">الحالة الاجتماعية</label>
+                    <select asp-for="MaritalStatus" class="form-select">
+                        <option value="">-- اختر الحالة الاجتماعية --</option>
+                        <option value="1">أعزب</option>
+                        <option value="2">متزوج</option>
+                        <option value="3">مطلق</option>
+                        <option value="4">أرمل</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="Religion" class="form-label">الديانة</label>
+                    <select asp-for="Religion" class="form-select">
+                        <option value="">-- اختر الديانة --</option>
+                        <option value="1">مسلم</option>
+                        <option value="2">مسيحي</option>
+                        <option value="3">أخرى</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="Education" class="form-label">المؤهل الدراسي</label>
+                    <select asp-for="Education" class="form-select">
+                        <option value="">-- اختر المؤهل --</option>
+                        <option value="ابتدائي">ابتدائي</option>
+                        <option value="إعدادي">إعدادي</option>
+                        <option value="ثانوي">ثانوي</option>
+                        <option value="دبلوم">دبلوم</option>
+                        <option value="بكالوريوس">بكالوريوس</option>
+                        <option value="ماجستير">ماجستير</option>
+                        <option value="دكتوراه">دكتوراه</option>
+                    </select>
                 </div>
 
                 <div class="col-md-2">

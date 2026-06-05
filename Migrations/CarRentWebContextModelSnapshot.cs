@@ -1479,6 +1479,20 @@ namespace CarRentWeb.Migrations
                 b.Property<int?>("PaymentDay")
                     .HasColumnType("int");
 
+                b.Property<string>("BloodType")
+                    .HasMaxLength(5)
+                    .HasColumnType("nvarchar(5)");
+
+                b.Property<int?>("MaritalStatus")
+                    .HasColumnType("int");
+
+                b.Property<string>("Education")
+                    .HasMaxLength(100)
+                    .HasColumnType("nvarchar(100)");
+
+                b.Property<int?>("Religion")
+                    .HasColumnType("int");
+
                 b.Property<DateOnly?>("RegDate")
                     .HasColumnType("date");
 
