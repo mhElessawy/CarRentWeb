@@ -1,0 +1,214 @@
+﻿@model CarRentWeb.Models.MyModel.SteppedAdminTaskViewModel
+
+@{
+    ViewData["Title"] = "مهمة إدارية جديدة بخطوات";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string today = DateOnly.FromDateTime(DateTime.Today).ToString("yyyy-MM-dd");
+}
+
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #6f42c1, #5a2d91);
+        color: white;
+        border-radius: 10px;
+        padding: 16px 20px;
+        margin-bottom: 20px;
+    }
+
+    .step-row {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 12px 14px;
+        margin-bottom: 8px;
+    }
+
+    .step-number-badge {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #6f42c1;
+        color: white;
+        font-size: 0.8rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+</style>
+
+<div class="container-fluid mt-3" dir="rtl">
+
+    <div class="mb-3">
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-right me-1"></i> مهام إدارية بخطوات
+        </a>
+    </div>
+
+    <div class="page-header">
+        <h5 class="mb-0"><i class="bi bi-diagram-3-fill me-2"></i>مهمة إدارية جديدة بخطوات</h5>
+        <small class="opacity-75">أضف المهمة وحدد خطواتها مع تواريخ التنفيذ</small>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible">
+            <i class="bi bi-exclamation-circle-fill me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+
+        <div class="card shadow-sm mb-3" style="border-radius:10px">
+            <div class="card-header fw-semibold">
+                <i class="bi bi-info-circle me-1"></i> بيانات المهمة
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">عنوان المهمة <span class="text-danger">*</span></label>
+                        <input type="text" name="TaskTitle" class="form-control" value="@Model.TaskTitle"
+                               placeholder="أدخل عنوان المهمة" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">تكليف إلى (المندوب)</label>
+                        <select name="AssignedTo" class="form-select" dir="rtl">
+                            <option value="">-- اختر المندوب --</option>
+                            @foreach (dynamic u in ViewBag.Users)
+                            {
+                                <option value="@u.UserName"
+                                        selected="@(Model.AssignedTo == (string)u.UserName)">
+                                    @u.UserFullName
+                                </option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">ملاحظات</label>
+                        <textarea name="Notes" class="form-control" rows="2"
+                                  placeholder="ملاحظات إضافية (اختياري)">@Model.Notes</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Steps Section -->
+        <div class="card shadow-sm mb-3" style="border-radius:10px">
+            <div class="card-header d-flex justify-content-between align-items-center fw-semibold">
+                <span><i class="bi bi-list-ol me-1"></i> خطوات المهمة</span>
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addStep()">
+                    <i class="bi bi-plus-circle me-1"></i> إضافة خطوة
+                </button>
+            </div>
+            <div class="card-body">
+                <div id="stepsContainer">
+                    @for (int i = 0; i < Model.Steps.Count; i++)
+                    {
+                        var step = Model.Steps[i];
+                        <div class="step-row d-flex align-items-center gap-2" id="step-@i">
+                            <div class="step-number-badge">@(i + 1)</div>
+                            <div class="flex-grow-1 row g-2">
+                                <div class="col-md-5">
+                                    <input type="text" name="Steps[@i].StepName"
+                                           class="form-control form-control-sm"
+                                           placeholder="اسم الخطوة *"
+                                           value="@step.StepName" required />
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="date" name="Steps[@i].TargetDate"
+                                           class="form-control form-control-sm"
+                                           value="@step.TargetDate" required />
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="text" name="Steps[@i].Notes"
+                                           class="form-control form-control-sm"
+                                           placeholder="ملاحظة (اختياري)"
+                                           value="@step.Notes" />
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                    onclick="removeStep(this)" title="حذف الخطوة">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    }
+                </div>
+                <div class="text-muted small mt-2">
+                    <i class="bi bi-info-circle me-1"></i>
+                    اضغط "إضافة خطوة" لإضافة المزيد من الخطوات
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check2-circle me-1"></i> حفظ المهمة
+            </button>
+            <a asp-action="Index" class="btn btn-outline-secondary">إلغاء</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    let stepCount = @Model.Steps.Count;
+
+    function addStep() {
+        const idx = stepCount;
+        const todayVal = '@today';
+        const container = document.getElementById('stepsContainer');
+        const div = document.createElement('div');
+        div.className = 'step-row d-flex align-items-center gap-2';
+        div.id = 'step-' + idx;
+        div.innerHTML = `
+            <div class="step-number-badge">${idx + 1}</div>
+            <div class="flex-grow-1 row g-2">
+                <div class="col-md-5">
+                    <input type="text" name="Steps[${idx}].StepName"
+                           class="form-control form-control-sm"
+                           placeholder="اسم الخطوة *" required />
+                </div>
+                <div class="col-md-3">
+                    <input type="date" name="Steps[${idx}].TargetDate"
+                           class="form-control form-control-sm"
+                           value="${todayVal}" required />
+                </div>
+                <div class="col-md-4">
+                    <input type="text" name="Steps[${idx}].Notes"
+                           class="form-control form-control-sm"
+                           placeholder="ملاحظة (اختياري)" />
+                </div>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-danger"
+                    onclick="removeStep(this)" title="حذف الخطوة">
+                <i class="bi bi-trash"></i>
+            </button>`;
+        container.appendChild(div);
+        stepCount++;
+        renumberSteps();
+    }
+
+    function removeStep(btn) {
+        const row = btn.closest('.step-row');
+        if (document.querySelectorAll('.step-row').length <= 1) {
+            alert('يجب أن تحتوي المهمة على خطوة واحدة على الأقل');
+            return;
+        }
+        row.remove();
+        renumberSteps();
+    }
+
+    function renumberSteps() {
+        const rows = document.querySelectorAll('.step-row');
+        rows.forEach((row, i) => {
+            const badge = row.querySelector('.step-number-badge');
+            if (badge) badge.textContent = i + 1;
+            // Reindex input names
+            row.querySelectorAll('input').forEach(inp => {
+                inp.name = inp.name.replace(/Steps\[\d+\]/, `Steps[${i}]`);
+            });
+        });
+    }
+</script>
