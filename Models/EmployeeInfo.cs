@@ -99,6 +99,14 @@ public partial class EmployeeInfo
 
     public int? PaymentDay { get; set; }
 
+    public string? BloodType { get; set; }
+
+    public int? MaritalStatus { get; set; }
+
+    public string? Education { get; set; }
+
+    public int? Religion { get; set; }
+
     public virtual ICollection<Bill> Bills { get; set; } = new List<Bill>();
 
     public virtual CompanyInfo? Company { get; set; }
