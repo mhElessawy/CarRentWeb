@@ -20,6 +20,7 @@ public class TasksReportController : Controller
         string? taskType,   // "Foundation" | "Periodic" | "Admin" | ""
         string? status,     // "completed" | "overdue" | "pending" | ""
         string? search,
+        int? locationId,
         DateOnly? dateFrom,
         DateOnly? dateTo)
     {
@@ -28,9 +29,14 @@ public class TasksReportController : Controller
         ViewBag.TaskType = taskType ?? "";
         ViewBag.Status = status ?? "";
         ViewBag.Search = search ?? "";
+        ViewBag.LocationId = locationId;
         ViewBag.DateFrom = dateFrom?.ToString("yyyy-MM-dd") ?? "";
         ViewBag.DateTo = dateTo?.ToString("yyyy-MM-dd") ?? "";
         ViewBag.Today = today;
+        ViewBag.Locations = await _context.Deffs
+            .Where(d => d.DeffType == 3 && d.DeleteFlag != 1)
+            .OrderBy(d => d.DeffName)
+            .ToListAsync();
 
         var items = new List<UnifiedTaskReportItem>();
 
@@ -38,7 +44,7 @@ public class TasksReportController : Controller
         if (string.IsNullOrEmpty(taskType) || taskType == "Foundation")
         {
             var onboarding = await _context.EmployeeOnboardingProgresses
-                .Include(p => p.Employee)
+                .Include(p => p.Employee).ThenInclude(e => e!.Location)
                 .Include(p => p.Step)
                 .ToListAsync();
 
@@ -63,6 +69,8 @@ public class TasksReportController : Controller
                     TaskTypeName = "تأسيسية",
                     TaskName = taskName,
                     EntityName = entityName,
+                    LocationId = p.Employee?.LocationId,
+                    Location = p.Employee?.Location?.DeffName ?? "",
                     TargetDate = p.TargetDate,
                     CompletedDate = p.CompletedDate,
                     IsCompleted = p.IsCompleted,
@@ -79,15 +87,19 @@ public class TasksReportController : Controller
                 .ToListAsync();
 
             var employees = await _context.EmployeeInfos
+                .Include(e => e.Location)
                 .Where(e => e.DeleteFlag == 0).ToListAsync();
             var cars = await _context.CarInfos
                 .Where(c => c.DeleteFlag == 0).ToListAsync();
 
             foreach (var i in instances)
             {
-                string entityName = i.TaskDef?.SourceType == "Car"
+                bool isCar = i.TaskDef?.SourceType == "Car";
+                var emp = isCar ? null : employees.FirstOrDefault(e => e.Id == i.SourceId);
+
+                string entityName = isCar
                     ? $"سيارة رقم {cars.FirstOrDefault(c => c.Id == i.SourceId)?.CarNo ?? i.SourceId.ToString()}"
-                    : employees.FirstOrDefault(e => e.Id == i.SourceId)?.FullNameAr ?? $"موظف #{i.SourceId}";
+                    : emp?.FullNameAr ?? $"موظف #{i.SourceId}";
                 string taskName = i.TaskDef?.TaskName ?? "";
 
                 if (!string.IsNullOrEmpty(search) &&
@@ -105,6 +117,8 @@ public class TasksReportController : Controller
                     TaskTypeName = "دورية",
                     TaskName = taskName,
                     EntityName = entityName,
+                    LocationId = emp?.LocationId,
+                    Location = emp?.Location?.DeffName ?? "",
                     TargetDate = i.TargetDate,
                     CompletedDate = null,
                     IsCompleted = i.IsCompleted,
@@ -139,6 +153,10 @@ public class TasksReportController : Controller
                 });
             }
         }
+
+        // ── فلتر الموقع ──────────────────────────────────────────────────
+        if (locationId.HasValue)
+            items = items.Where(x => x.LocationId == locationId.Value).ToList();
 
         // ── فلتر التاريخ ──────────────────────────────────────────────────
         if (dateFrom.HasValue)
