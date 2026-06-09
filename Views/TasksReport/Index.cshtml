@@ -1,4 +1,4 @@
-﻿@model List<UnifiedTaskReportItem>
+﻿@model  List<UnifiedTaskReportItem>
 
 @{
     ViewData["Title"] = "التقرير الشامل للمهام";
@@ -7,8 +7,10 @@
     var taskType = ViewBag.TaskType as string ?? "";
     var status = ViewBag.Status as string ?? "";
     var search = ViewBag.Search as string ?? "";
+    var locationId = ViewBag.LocationId as int?;
     var dateFrom = ViewBag.DateFrom as string ?? "";
     var dateTo = ViewBag.DateTo as string ?? "";
+    var locations = ViewBag.Locations as List<CarRentWeb.Models.Deff> ?? new();
 
     int totalCount = Model.Count;
     int completedCount = Model.Count(x => x.IsCompleted);
@@ -237,10 +239,20 @@
                        placeholder="ابحث..." value="@search" />
             </div>
             <div class="col-md-2">
+                <label class="form-label small fw-semibold mb-1">الموقع</label>
+                <select name="locationId" class="form-select form-select-sm" dir="rtl">
+                    <option value="">-- الكل --</option>
+                    @foreach (var loc in locations)
+                    {
+                        <option value="@loc.Id" selected="@(locationId == loc.Id)">@loc.DeffName</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
                 <label class="form-label small fw-semibold mb-1">من تاريخ</label>
                 <input type="date" name="dateFrom" class="form-control form-control-sm" value="@dateFrom" />
             </div>
-            <div class="col-md-2">
+            <div class="col-md-1">
                 <label class="form-label small fw-semibold mb-1">إلى تاريخ</label>
                 <input type="date" name="dateTo" class="form-control form-control-sm" value="@dateTo" />
             </div>
@@ -270,6 +282,7 @@
                             <th>نوع المهمة</th>
                             <th>المهمة</th>
                             <th>المرتبط / المسؤول</th>
+                            <th>الموقع</th>
                             <th>موعد التنفيذ</th>
                             <th>تاريخ الإتمام</th>
                             <th>التأخير / المتبقي</th>
@@ -316,7 +329,16 @@
                                     }
                                     else
                                     {
-
+                                        <span>—</span>
+                                    }
+                                </td>
+                                <td class="text-muted small">
+                                    @if (!string.IsNullOrEmpty(item.Location))
+                                    {
+                                        <span class="badge bg-light text-dark border">@item.Location</span>
+                                    }
+                                    else
+                                    {
                                         <span>—</span>
                                     }
                                 </td>
@@ -392,7 +414,7 @@
                     <tfoot class="summary-row">
                         <tr>
                             <td colspan="2" class="px-3">الإجمالي</td>
-                            <td colspan="4">@totalCount مهمة: @overdueCount متأخرة، @pendingCount غير مكتملة، @completedCount مكتملة</td>
+                            <td colspan="5">@totalCount مهمة: @overdueCount متأخرة، @pendingCount غير مكتملة، @completedCount مكتملة</td>
                             <td colspan="2"></td>
                         </tr>
                     </tfoot>

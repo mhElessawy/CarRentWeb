@@ -42,6 +42,8 @@ public class UnifiedTaskReportItem
     public string TaskTypeName { get; set; } = "";  // تأسيسية | دورية | إدارية
     public string TaskName { get; set; } = "";
     public string EntityName { get; set; } = "";
+    public int? LocationId { get; set; }
+    public string Location { get; set; } = "";
     public DateOnly? TargetDate { get; set; }
     public DateOnly? CompletedDate { get; set; }
     public bool IsCompleted { get; set; }
