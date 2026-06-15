@@ -269,24 +269,30 @@ namespace CarRentWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateDaily(Contract contract, int maxContractNo)
         {
+            ViewData["CarId"] = new SelectList(_context.CarInfos, "Id", "CarNo", contract.CarId);
+            //ViewData["EmployeeId"] = new SelectList(_context.EmployeeInfos, "Id", "Id", contract.EmployeeId);
+            ViewData["UserId"] = new SelectList(_context.PasswordData, "Id", "UserFullName", contract.UserId);
+            ViewData["CompanyId"] = new SelectList(_context.CompanyInfos, "Id", "CompNameAr");
             if (ModelState.IsValid)
             {
                 maxContractNo = _context.Contracts.Any()
                     ? _context.Contracts.Max(a => Convert.ToInt32(a.ContractNo))
                     : 0;
                 contract.ContractNo = Convert.ToString(maxContractNo + 1);
-                contract.UserId = 1;
+                contract.UserId = ViewData["UserId"] as int?    ;
                 contract.ContractType = 0;
                 contract.DeleteFlag = 0;
                 contract.Status = 0;
                 _context.Add(contract);
                 await _context.SaveChangesAsync();
+
+
+
+
+
                 return RedirectToAction(nameof(IndexDaily));
             }
-            ViewData["CarId"] = new SelectList(_context.CarInfos, "Id", "CarNo", contract.CarId);
-            //ViewData["EmployeeId"] = new SelectList(_context.EmployeeInfos, "Id", "Id", contract.EmployeeId);
-            ViewData["UserId"] = new SelectList(_context.PasswordData, "Id", "UserFullName", contract.UserId);
-            ViewData["CompanyId"] = new SelectList(_context.CompanyInfos, "Id", "CompNameAr");
+           
             return View(contract);
         }
 
