@@ -374,7 +374,7 @@ namespace CarRentWeb.Controllers
             ViewBag.dailyCost = contract.DailyCredit;
 
             var lastBillNumber = _context.Bills
-                            .Where(b => b.EmployeeId == contract!.EmployeeId)
+                            .Where(b => b.ContractId == contract!.Id)
                             .OrderByDescending(b => b.Id)
                             .FirstOrDefault();
 
