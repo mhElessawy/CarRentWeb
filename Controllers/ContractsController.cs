@@ -279,20 +279,37 @@ namespace CarRentWeb.Controllers
                     ? _context.Contracts.Max(a => Convert.ToInt32(a.ContractNo))
                     : 0;
                 contract.ContractNo = Convert.ToString(maxContractNo + 1);
-                contract.UserId = ViewData["UserId"] as int?    ;
+                contract.UserId = HttpContext.Session.GetInt32("UserId");
                 contract.ContractType = 0;
                 contract.DeleteFlag = 0;
                 contract.Status = 0;
                 _context.Add(contract);
                 await _context.SaveChangesAsync();
 
-
-
+                if (contract.StartDate.HasValue && contract.EndDate.HasValue)
+                {
+                    var details = new List<ContractDetail>();
+                    var currentDate = contract.StartDate.Value;
+                    while (currentDate <= contract.EndDate.Value)
+                    {
+                        details.Add(new ContractDetail
+                        {
+                            ContractId = contract.Id,
+                            DailyCreditDate = currentDate,
+                            DailyCredit = contract.DailyCredit,
+                            Status = 0,
+                            DeleteFlag = 0
+                        });
+                        currentDate = currentDate.AddDays(1);
+                    }
+                    _context.ContractDetails.AddRange(details);
+                    await _context.SaveChangesAsync();
+                }
 
 
                 return RedirectToAction(nameof(IndexDaily));
             }
-           
+
             return View(contract);
         }
 
