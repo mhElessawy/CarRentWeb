@@ -6,7 +6,7 @@
 }
 <!-- Include Font Awesome for icons -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-<form asp-action="EndContractMonthly" class="delete-confirmation-container">
+<form asp-action="EndContractDaily" class="delete-confirmation-container">
     <div dir="rtl">
         <div class="delete-header">
             <h1 class="delete-title">إنتهاء العقد</h1>
@@ -42,7 +42,23 @@
                             <label>تاريخ إنتهاء الالعقد</label>
                             <input asp-for="ContractEndDate" type="date" value="@DateTime.Now.ToString("yyyy-MM-dd")" class="form-control" />
                         </div>
+                        <div class="detail-group">
+                            <label>المبلغ الغير مدفوع حتى الآن</label>
+                            <div class="detail-value">@ViewBag.unpaidAmount</div>
+                        </div>
 
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="detail-group form-check">
+                            <input type="hidden" name="ConvertToDebit" value="false" />
+                            <input type="checkbox" class="form-check-input" id="ConvertToDebit" name="ConvertToDebit" value="true" />
+                            <label class="form-check-label" for="ConvertToDebit">
+                                تحويل المبلغ الغير مدفوع إلى دين (عقد قديم)
+                            </label>
+                        </div>
                     </div>
                 </div>
 
@@ -62,7 +78,7 @@
                     <button type="submit" class="btn btn-danger btn-lg delete-button">
                         <i class="fas fa-trash-alt"></i> تأكيد الإغلاق
                     </button>
-                    <a asp-action="IndexMonthly" class="btn btn-outline-secondary btn-lg cancel-button">
+                    <a asp-action="IndexDaily" class="btn btn-outline-secondary btn-lg cancel-button">
                         <i class="fas fa-times"></i> إالغاء
                     </a>
                 </div>
