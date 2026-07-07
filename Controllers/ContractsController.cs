@@ -1290,11 +1290,15 @@ namespace CarRentWeb.Controllers
                                              b.DeleteFlag == 0 && b.ContractId == contract.Id)
                                        .Sum(b => b.BillPayed);
 
+            var unpaidDetails = await _context.ContractDetails
+                .Where(d => d.ContractId == contract.Id && d.DeleteFlag == 0 && d.Status == 0)
+                .Select(d => new { Date = d.DailyCreditDate, Amount = (d.DailyCredit ?? 0) + (d.CarCredit ?? 0) })
+                .ToListAsync();
+
             var today = DateOnly.FromDateTime(DateTime.Now);
-            ViewBag.unpaidAmount = _context.ContractDetails
-                .Where(d => d.ContractId == contract.Id && d.DeleteFlag == 0 &&
-                            d.Status == 0 && d.DailyCreditDate <= today)
-                .Sum(d => (d.DailyCredit ?? 0) + (d.CarCredit ?? 0));
+            ViewBag.unpaidAmount = unpaidDetails.Where(d => d.Date <= today).Sum(d => d.Amount);
+            ViewBag.unpaidDetailsJson = System.Text.Json.JsonSerializer.Serialize(unpaidDetails,
+                new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
 
             return View(contract);
         }
