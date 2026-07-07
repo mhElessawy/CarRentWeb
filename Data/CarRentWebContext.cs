@@ -328,7 +328,6 @@ public partial class CarRentWebContext : DbContext
             entity.Property(e => e.DeleteFlag).HasDefaultValue(0);
             entity.Property(e => e.DeleteReson).HasMaxLength(500);
             entity.Property(e => e.UserId).HasDefaultValue(0);
-            entity.Property(e => e.ViolationId).HasDefaultValue(0);
 
             entity.HasOne(d => d.DebitType).WithMany(p => p.DebitInfoDebitTypes)
                 .HasForeignKey(d => d.DebitTypeId)
@@ -360,7 +359,6 @@ public partial class CarRentWebContext : DbContext
             entity.Property(e => e.Hent).HasMaxLength(500);
             entity.Property(e => e.UserId).HasDefaultValue(0);
             entity.Property(e => e.UserRecievedId).HasDefaultValue(0);
-            entity.Property(e => e.ViolationId).HasDefaultValue(0);
 
             entity.HasOne(d => d.DebitInfo)
                   .WithMany(p => p.DebitPayInfos)
