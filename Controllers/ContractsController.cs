@@ -1289,11 +1289,22 @@ namespace CarRentWeb.Controllers
             ViewBag.totalPay = _context.Bills.Where(b => b.EmployeeId == contract.EmployeeId &&
                                              b.DeleteFlag == 0 && b.ContractId == contract.Id)
                                        .Sum(b => b.BillPayed);
+
+            var unpaidDetails = await _context.ContractDetails
+                .Where(d => d.ContractId == contract.Id && d.DeleteFlag == 0 && d.Status == 0)
+                .Select(d => new { Date = d.DailyCreditDate, Amount = (d.DailyCredit ?? 0) + (d.CarCredit ?? 0) })
+                .ToListAsync();
+
+            var today = DateOnly.FromDateTime(DateTime.Now);
+            ViewBag.unpaidAmount = unpaidDetails.Where(d => d.Date <= today).Sum(d => d.Amount);
+            ViewBag.unpaidDetailsJson = System.Text.Json.JsonSerializer.Serialize(unpaidDetails,
+                new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
+
             return View(contract);
         }
 
         [HttpPost]
-        public async Task<IActionResult> EndContractDailyAsync(Contract contract)
+        public async Task<IActionResult> EndContractDailyAsync(Contract contract, bool ConvertToDebit)
         {
 
             if (contract != null)
@@ -1313,11 +1324,80 @@ namespace CarRentWeb.Controllers
                 entry.Property(x => x.Status).IsModified = true;
                 entry.Property(x => x.ContractEndDate).IsModified = true;
                 entry.Property(x => x.ContractEndReson).IsModified = true;
+
+                await _context.SaveChangesAsync();
+
+                if (ConvertToDebit)
+                {
+                    await ConvertUnpaidContractToDebitAsync(contract.Id, contract.ContractEndDate);
+                }
+            }
+            else
+            {
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToAction(nameof(IndexDaily));
+
+        }
+
+        // Converts the still-unpaid daily amounts of an ended contract (up to the contract end date)
+        // into a debt (DebitInfo) of type "عقد قديم", so the balance keeps being tracked against the employee.
+        private async Task ConvertUnpaidContractToDebitAsync(int contractId, DateOnly? contractEndDate)
+        {
+            var fullContract = await _context.Contracts.FirstOrDefaultAsync(c => c.Id == contractId);
+            if (fullContract == null)
+            {
+                return;
+            }
+
+            var endDate = contractEndDate ?? DateOnly.FromDateTime(DateTime.Now);
+
+            var unpaidDetails = await _context.ContractDetails
+                .Where(d => d.ContractId == contractId && d.DeleteFlag == 0 &&
+                            d.Status == 0 && d.DailyCreditDate <= endDate)
+                .ToListAsync();
+
+            var unpaidAmount = unpaidDetails.Sum(d => (d.DailyCredit ?? 0) + (d.CarCredit ?? 0));
+            if (unpaidAmount <= 0)
+            {
+                return;
+            }
+
+            var oldContractDebitType = await _context.Deffs
+                .FirstOrDefaultAsync(d => d.DeffType == 20 && d.DeleteFlag == 0 && d.DeffName!.Contains("عقد قديم"));
+            if (oldContractDebitType == null)
+            {
+                return;
+            }
+
+            int maxDebitNo = await _context.DebitInfos.MaxAsync(b => (int?)b.DebitNo) ?? 0;
+
+            var debitInfo = new DebitInfo
+            {
+                DebitNo = maxDebitNo + 1,
+                EmpId = fullContract.EmployeeId,
+                UserId = HttpContext.Session.GetInt32("UserId"),
+                DebitTypeId = oldContractDebitType.Id,
+                DebitDate = endDate,
+                DebitDescrp = $"دين متبقي من عقد رقم {fullContract.ContractNo}",
+                DeleteFlag = 0,
+                ViolationId = 0,
+                DeleteReson = "",
+                DebitQty = unpaidAmount,
+                DebitPayed = 0,
+                DebitRemaining = unpaidAmount,
+            };
+
+            _context.Add(debitInfo);
+
+            foreach (var detail in unpaidDetails)
+            {
+                detail.Status = 4;
+                _context.Update(detail);
             }
 
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(IndexDaily));
-
         }
         #endregion
         #region "Credit"
