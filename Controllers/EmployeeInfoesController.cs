@@ -21,7 +21,7 @@ namespace CarRentWeb.Controllers
         }
 
         // GET: EmployeeInfoes
-        public async Task<IActionResult> Index(int? searchString, string nameSearch, int? companyId, int? pageNumber)
+        public async Task<IActionResult> Index(int? searchString, string nameSearch, int? companyId, int? pageNumber, string sortField, string sortOrder)
         {
             try
             {
@@ -47,21 +47,20 @@ namespace CarRentWeb.Controllers
                     companyId);
 
                 // Base query with includes
-                var query = _context.EmployeeInfos
+                IQueryable<EmployeeInfo> query = _context.EmployeeInfos
                      .FromSqlRaw($"SELECT * FROM EmployeeInfo WHERE DeleteFlag = 0 AND CompanyId IN ({companyIdsString})")
                     .Include(e => e.Company)
-                    .Where(a => a.DeleteFlag == 0)
-                    .OrderBy(e => e.EmpCode);
+                    .Where(a => a.DeleteFlag == 0);
 
                 // Apply filters
                 if (searchString.HasValue)
                 {
-                    query = (IOrderedQueryable<EmployeeInfo>)query.Where(e => e.EmpCode == searchString);
+                    query = query.Where(e => e.EmpCode == searchString);
                 }
 
                 if (!string.IsNullOrEmpty(nameSearch))
                 {
-                    query = (IOrderedQueryable<EmployeeInfo>)query.Where(e =>
+                    query = query.Where(e =>
                         e.FullNameAr!.Contains(nameSearch) ||
                         e.FullNameEn!.Contains(nameSearch) ||
                         e.LastNameAr!.Contains(nameSearch) ||
@@ -70,13 +69,27 @@ namespace CarRentWeb.Controllers
 
                 if (companyId.HasValue)
                 {
-                    query = (IOrderedQueryable<EmployeeInfo>)query.Where(e => e.CompanyId == companyId.Value);
+                    query = query.Where(e => e.CompanyId == companyId.Value);
                 }
 
-                // Store current search values for the view
+                // Apply sorting
+                bool isDescending = sortOrder == "desc";
+                query = sortField switch
+                {
+                    "FullNameAr" => isDescending ? query.OrderByDescending(e => e.FullNameAr) : query.OrderBy(e => e.FullNameAr),
+                    "CivilId" => isDescending ? query.OrderByDescending(e => e.CivilId) : query.OrderBy(e => e.CivilId),
+                    "MobiileNo" => isDescending ? query.OrderByDescending(e => e.MobiileNo) : query.OrderBy(e => e.MobiileNo),
+                    "CompanyName" => isDescending ? query.OrderByDescending(e => e.Company!.CompNameAr) : query.OrderBy(e => e.Company!.CompNameAr),
+                    "PaymentDay" => isDescending ? query.OrderByDescending(e => e.PaymentDay) : query.OrderBy(e => e.PaymentDay),
+                    _ => isDescending ? query.OrderByDescending(e => e.EmpCode) : query.OrderBy(e => e.EmpCode),
+                };
+
+                // Store current search/sort values for the view
                 ViewData["CurrentFilter"] = searchString;
                 ViewData["NameFilter"] = nameSearch;
                 ViewData["CompanyFilter"] = companyId;
+                ViewData["CurrentSort"] = isDescending ? "desc" : "asc";
+                ViewData["CurrentField"] = string.IsNullOrEmpty(sortField) ? "EmpCode" : sortField;
 
                 // Pagination
                 int pageSize = 50; // Set your page size
