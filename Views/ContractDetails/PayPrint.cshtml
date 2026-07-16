@@ -62,6 +62,10 @@
                         <div class="info-value">@(Model.Employee!.EmpCode)</div>
                         <div class="info-label">اسم الموظف:</div>
                         <div class="info-value">@(Model.Employee?.FullNameAr ?? "N/A")</div>
+                        <div class="info-label">الرقم المدني:</div>
+                        <div class="info-value">@(Model.Employee?.CivilId ?? "N/A")</div>
+                        <div class="info-label">الأجرة اليومية:</div>
+                        <div class="info-value">@(Model.Contract?.DailyCredit?.ToString() ?? "N/A")</div>
                         <div class="info-label">اسم المستخدم:</div>
                         <div class="info-value">@(Model.User?.UserFullName ?? "N/A")</div>
                         <div class="info-label">باقي الأقساط:</div>
