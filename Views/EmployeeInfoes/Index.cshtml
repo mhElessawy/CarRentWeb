@@ -6,6 +6,11 @@
     ViewData["Title"] = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var user = HttpContextAccessor.HttpContext!.Session.GetObjectFromJson<PasswordDatum>("CurrentUser");
+    var currentSort = ViewData["CurrentSort"] as string ?? "asc";
+    var currentField = ViewData["CurrentField"] as string ?? "EmpCode";
+
+    string SortIcon(string field) => currentField == field ? (currentSort == "asc" ? "▲" : "▼") : "";
+    string NextOrder(string field) => (currentField == field && currentSort == "asc") ? "desc" : "asc";
 }
 
 <style>
@@ -53,6 +58,23 @@
                 transform: translateY(-2px);
                 box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             }
+
+    .bordered-table th a.sort-link {
+        color: inherit;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        justify-content: center;
+    }
+
+        .bordered-table th a.sort-link:hover {
+            text-decoration: underline;
+        }
+
+    .sort-icon {
+        font-size: 0.7em;
+    }
 
     /* Action buttons styling */
     .action-links {
@@ -391,6 +413,8 @@
                 </div>
 
                 <div class="form-actions">
+                    <input type="hidden" name="sortField" value="@currentField" />
+                    <input type="hidden" name="sortOrder" value="@currentSort" />
                     <input type="submit" value="بحث" class="btn btn-primary" />
                     <a asp-action="Index" class="btn btn-secondary">إعادة تعيين</a>
                 </div>
@@ -398,17 +422,50 @@
         </form>
     </div>
 
+    @{
+        var sortRouteValues = new Dictionary<string, string>
+        {
+            ["searchString"] = ViewData["CurrentFilter"]?.ToString() ?? "",
+            ["nameSearch"] = ViewData["NameFilter"]?.ToString() ?? "",
+            ["companyId"] = ViewData["CompanyFilter"]?.ToString() ?? "",
+        };
+    }
+
     <div class="table-responsive">
         <table class="bordered-table" dir="rtl">
             <thead>
                 <tr>
                     <th>#</th>
-                    <th>كود الموظف</th>
-                    <th>اسم الموظف</th>
-                    <th>الرقم المدني</th>
-                    <th>رقم الهاتف</th>
-                    <th>اسم الشركة</th>
-                    <th>يوم الدفع</th>
+                    <th>
+                        <a class="sort-link" asp-action="Index" asp-route-sortField="EmpCode" asp-route-sortOrder="@NextOrder("EmpCode")" asp-all-route-data="sortRouteValues">
+                            كود الموظف <span class="sort-icon">@SortIcon("EmpCode")</span>
+                        </a>
+                    </th>
+                    <th>
+                        <a class="sort-link" asp-action="Index" asp-route-sortField="FullNameAr" asp-route-sortOrder="@NextOrder("FullNameAr")" asp-all-route-data="sortRouteValues">
+                            اسم الموظف <span class="sort-icon">@SortIcon("FullNameAr")</span>
+                        </a>
+                    </th>
+                    <th>
+                        <a class="sort-link" asp-action="Index" asp-route-sortField="CivilId" asp-route-sortOrder="@NextOrder("CivilId")" asp-all-route-data="sortRouteValues">
+                            الرقم المدني <span class="sort-icon">@SortIcon("CivilId")</span>
+                        </a>
+                    </th>
+                    <th>
+                        <a class="sort-link" asp-action="Index" asp-route-sortField="MobiileNo" asp-route-sortOrder="@NextOrder("MobiileNo")" asp-all-route-data="sortRouteValues">
+                            رقم الهاتف <span class="sort-icon">@SortIcon("MobiileNo")</span>
+                        </a>
+                    </th>
+                    <th>
+                        <a class="sort-link" asp-action="Index" asp-route-sortField="CompanyName" asp-route-sortOrder="@NextOrder("CompanyName")" asp-all-route-data="sortRouteValues">
+                            اسم الشركة <span class="sort-icon">@SortIcon("CompanyName")</span>
+                        </a>
+                    </th>
+                    <th>
+                        <a class="sort-link" asp-action="Index" asp-route-sortField="PaymentDay" asp-route-sortOrder="@NextOrder("PaymentDay")" asp-all-route-data="sortRouteValues">
+                            يوم الدفع <span class="sort-icon">@SortIcon("PaymentDay")</span>
+                        </a>
+                    </th>
                     <th>الإجراءات</th>
                 </tr>
             </thead>
@@ -472,6 +529,8 @@
            asp-route-searchString="@ViewData["CurrentFilter"]"
            asp-route-nameSearch="@ViewData["NameFilter"]"
            asp-route-companyId="@ViewData["CompanyFilter"]"
+           asp-route-sortField="@currentField"
+           asp-route-sortOrder="@currentSort"
            class="btn btn-default @prevDisabled">
             السابق
         </a>
@@ -483,6 +542,8 @@
            asp-route-searchString="@ViewData["CurrentFilter"]"
            asp-route-nameSearch="@ViewData["NameFilter"]"
            asp-route-companyId="@ViewData["CompanyFilter"]"
+           asp-route-sortField="@currentField"
+           asp-route-sortOrder="@currentSort"
            class="btn btn-default @nextDisabled">
             التالي
         </a>
