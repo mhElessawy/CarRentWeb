@@ -16,6 +16,7 @@
         <div class="card-body">
             <form asp-action="CreateDaily" class="row g-3">
                 <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                <input type="hidden" id="ContractId" value="@ViewBag.ContractId" />
 
                 <!-- Personal Information Section -->
                 <div class="col-md-12">
@@ -149,32 +150,58 @@
         const toDateInput = document.getElementById('ToDate');
         const billPayedInput = document.getElementById('BillPayed');
         const billCostBerDay = document.getElementById('CostPerDay');
+        const contractIdInput = document.getElementById('ContractId');
 
-        if (fromDateInput.value && noOfDaysInput.value) {
-            // 1. Calculate ToDate by adding days
-            const fromDate = new Date(fromDateInput.value);
-            const noOfDays = parseInt(noOfDaysInput.value ) || 0;
-            const toDate = new Date(fromDate);
-
-            // Add the number of days to the date
-            toDate.setDate(toDate.getDate() + noOfDays -1);
-
-            toDateInput.value = toDate.toISOString().split('T')[0];
-
-            // 2. Calculate Total Cost (using CostPerDay as per day)
-            const costPerDay = parseFloat(billCostBerDay.value) || 0;
-            const totalCost = noOfDays * costPerDay;
-            billPayedInput.value = totalCost;
-            console.log("Total Cost Calculated:", totalCost);
-        } else {
+        if (!fromDateInput.value || !noOfDaysInput.value) {
             console.error("Missing required inputs (FromDate or NoOfDays)");
+            return;
         }
+
+        // 1. Calculate ToDate by adding days
+        const fromDate = new Date(fromDateInput.value);
+        const noOfDays = parseInt(noOfDaysInput.value) || 0;
+        const toDate = new Date(fromDate);
+
+        // Add the number of days to the date
+        toDate.setDate(toDate.getDate() + noOfDays - 1);
+
+        toDateInput.value = toDate.toISOString().split('T')[0];
+
+        // 2. Calculate Total Cost from the actual ContractDetails.DailyCredit rows,
+        // since the daily rate can change mid-contract (discounts).
+        const contractId = contractIdInput ? contractIdInput.value : null;
+        if (!contractId || noOfDays <= 0) {
+            billPayedInput.value = 0;
+            return;
+        }
+
+        $.ajax({
+            url: '@Url.Action("GetPaymentDetails", "ContractDetails")',
+            type: 'GET',
+            data: {
+                contractId: contractId,
+                months: noOfDays
+            },
+            success: function (response) {
+                if (response.success) {
+                    const totalCost = (parseFloat(response.totalDailyCredit) || 0) + (parseFloat(response.totalCarCredit) || 0);
+                    billPayedInput.value = totalCost;
+                    billCostBerDay.value = (totalCost / noOfDays).toFixed(2);
+                    console.log("Total Cost Calculated:", totalCost);
+                } else {
+                    console.error("Server error:", response.message);
+                    billPayedInput.value = 0;
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("AJAX error:", error);
+            }
+        });
     }
 
     // Add event listeners
     document.getElementById("FromDate").addEventListener("change", calculateToDateAndCost);
     document.getElementById("NoOfDays").addEventListener("input", calculateToDateAndCost);
-    document.getElementById("CostPerDay").addEventListener("change", calculateToDateAndCost);
 
     // Initialize the calculation when the page loads
     window.addEventListener('load', calculateToDateAndCost);

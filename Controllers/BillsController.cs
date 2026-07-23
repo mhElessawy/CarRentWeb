@@ -370,6 +370,7 @@ namespace CarRentWeb.Controllers
 
             ViewBag.EmployeeId = contract?.Employee?.FullNameAr ?? "Not available";
             ViewBag.EmpId = contract!.EmployeeId;
+            ViewBag.ContractId = contract.Id;
 
             ViewBag.dailyCost = contract.DailyCredit;
 
@@ -432,13 +433,6 @@ namespace CarRentWeb.Controllers
 
                 bill.BillHent = "إيجار يومي";
 
-
-                _context.Add(bill);
-
-                await _context.SaveChangesAsync();
-
-                int billId = _context.Bills.Max(a => Convert.ToInt32(a.Id));
-
                 var existingDetail = await _context.ContractDetails
                 .Include(c => c.Contract)
                 .Where(c => c.Contract!.Id == contractid && (c.Status == 0 || c.Status == 2))
@@ -467,6 +461,15 @@ namespace CarRentWeb.Controllers
                 .OrderBy(c => c.Id)
                 .Take(nNoOfDays)
                 .ToListAsync();
+
+                // المبلغ الفعلي بيتحسب من ContractDetails.DailyCredit لكل يوم لأنه ممكن يتغير بسبب التخفيض
+                bill.BillPayed = existingDetail.Sum(d => (d.DailyCredit ?? 0) + (d.CarCredit ?? 0));
+
+                _context.Add(bill);
+
+                await _context.SaveChangesAsync();
+
+                int billId = _context.Bills.Max(a => Convert.ToInt32(a.Id));
 
                 for (int i = 0; i < existingDetail.Count; i++)
                 {
