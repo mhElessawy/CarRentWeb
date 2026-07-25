@@ -1273,5 +1273,355 @@ namespace CarRentWeb.Controllers
             return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 $"تقرير_التحصيل_{DateTime.Now:yyyyMMdd}.xlsx");
         }
+
+        public async Task<IActionResult> AccountStatement(int? EmpCodeString, string? EmpSearch, int? CarCodeString, string? CarSearch, int? companyId, DateTime? FromDateSearch, DateTime? ToDateSearch)
+        {
+            TempData.Keep();
+            TempData["UserCompanyData"] = HttpContext.Session.GetString("UserCompanyData");
+
+            var userCompanyData = TempData["UserCompanyData"]?.ToString();
+            var companyIds = userCompanyData.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
+
+            var companiesList = companyIds.Any()
+                ? await _context.CompanyInfos
+                    .FromSqlRaw($"SELECT * FROM CompanyInfo WHERE DeleteFlag = 0 AND Id IN ({companyIdsString})")
+                    .OrderBy(c => c.CompNameAr)
+                    .ToListAsync()
+                : new List<CompanyInfo>();
+
+            ViewBag.Companies = new SelectList(companiesList, "Id", "CompNameAr", companyId);
+
+            var fromDate = FromDateSearch.HasValue ? DateOnly.FromDateTime(FromDateSearch.Value) : DateOnly.FromDateTime(DateTime.Today.AddMonths(-1));
+            var toDate = ToDateSearch.HasValue ? DateOnly.FromDateTime(ToDateSearch.Value) : DateOnly.FromDateTime(DateTime.Today);
+
+            ViewData["EmpCodeFilter"] = EmpCodeString;
+            ViewData["EmpFilter"] = EmpSearch;
+            ViewData["CarCodeFilter"] = CarCodeString;
+            ViewData["CarFilter"] = CarSearch;
+            ViewData["CompanyFilter"] = companyId;
+            ViewData["FromDateFilter"] = fromDate.ToString("yyyy-MM-dd");
+            ViewData["ToDateFilter"] = toDate.ToString("yyyy-MM-dd");
+
+            bool hasSearch = EmpCodeString.HasValue || !string.IsNullOrEmpty(EmpSearch) || CarCodeString.HasValue || !string.IsNullOrEmpty(CarSearch);
+            if (!hasSearch)
+                return View(new AccountStatementViewModel());
+
+            var viewModel = await BuildAccountStatementAsync(EmpCodeString, EmpSearch, CarCodeString, CarSearch, companyId, companyIdsString, fromDate, toDate);
+
+            return View(viewModel);
+        }
+
+        public async Task<IActionResult> AccountStatementExcel(int? EmpCodeString, string? EmpSearch, int? CarCodeString, string? CarSearch, int? companyId, DateTime? FromDateSearch, DateTime? ToDateSearch)
+        {
+            TempData.Keep();
+            TempData["UserCompanyData"] = HttpContext.Session.GetString("UserCompanyData");
+            var userCompanyData = TempData["UserCompanyData"]?.ToString();
+            var companyIds = userCompanyData!.Split(',').Where(x => int.TryParse(x.Trim(), out _)).Select(x => int.Parse(x.Trim())).ToList();
+            var companyIdsString = companyIds.Any() ? string.Join(",", companyIds) : "0";
+
+            var fromDate = FromDateSearch.HasValue ? DateOnly.FromDateTime(FromDateSearch.Value) : DateOnly.FromDateTime(DateTime.Today.AddMonths(-1));
+            var toDate = ToDateSearch.HasValue ? DateOnly.FromDateTime(ToDateSearch.Value) : DateOnly.FromDateTime(DateTime.Today);
+
+            var viewModel = await BuildAccountStatementAsync(EmpCodeString, EmpSearch, CarCodeString, CarSearch, companyId, companyIdsString, fromDate, toDate);
+
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add("كشف الحساب");
+            ws.RightToLeft = true;
+
+            ws.Cell(1, 1).Value = "كشف حساب السائق";
+            ws.Cell(1, 1).Style.Font.Bold = true;
+            ws.Cell(1, 1).Style.Font.FontSize = 14;
+            ws.Cell(1, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            ws.Range(1, 1, 1, 11).Merge();
+
+            ws.Cell(2, 1).Value = $"من {fromDate:yyyy/MM/dd} إلى {toDate:yyyy/MM/dd}";
+            ws.Cell(2, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            ws.Range(2, 1, 2, 11).Merge();
+
+            int headerRow = 4;
+            string[] headers = { "#", "رقم السائق", "اسم السائق", "التاريخ", "الإيجار", "الدين", "دفع الإيجار", "دفع الدين", "الشركة", "الرصيد السابق", "الرصيد الحالي" };
+            for (int col = 1; col <= headers.Length; col++)
+            {
+                var cell = ws.Cell(headerRow, col);
+                cell.Value = headers[col - 1];
+                cell.Style.Font.Bold = true;
+                cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#1a1a2e");
+                cell.Style.Font.FontColor = XLColor.White;
+                cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+            }
+
+            int row = headerRow + 1;
+            int num = 1;
+            foreach (var item in viewModel.Rows)
+            {
+                ws.Cell(row, 1).Value = num++;
+                ws.Cell(row, 2).Value = item.EmpCode;
+                ws.Cell(row, 3).Value = item.EmployeeName;
+                ws.Cell(row, 4).Value = item.TxnDate.ToString("yyyy/MM/dd");
+                ws.Cell(row, 5).Value = item.Rent;
+                ws.Cell(row, 6).Value = item.Debt;
+                ws.Cell(row, 7).Value = item.RentPaid;
+                ws.Cell(row, 8).Value = item.DebtPaid;
+                ws.Cell(row, 9).Value = item.CompanyName;
+                ws.Cell(row, 10).Value = item.PreviousBalance;
+                ws.Cell(row, 11).Value = item.CurrentBalance;
+
+                for (int col = 1; col <= 11; col++)
+                {
+                    ws.Cell(row, col).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                    ws.Cell(row, col).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                }
+
+                if (row % 2 == 0)
+                    ws.Range(row, 1, row, 11).Style.Fill.BackgroundColor = XLColor.FromHtml("#f8f9fa");
+
+                row++;
+            }
+
+            ws.Cell(row, 1).Value = "الإجمالي";
+            ws.Range(row, 1, row, 4).Merge();
+            ws.Cell(row, 1).Style.Font.Bold = true;
+            ws.Cell(row, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            ws.Cell(row, 5).Value = viewModel.TotalRentInPeriod;
+            ws.Cell(row, 6).Value = viewModel.TotalDebtInPeriod;
+            ws.Cell(row, 7).Value = viewModel.TotalRentPaidInPeriod;
+            ws.Cell(row, 8).Value = viewModel.TotalDebtPaidInPeriod;
+            for (int col = 1; col <= 11; col++)
+            {
+                ws.Cell(row, col).Style.Fill.BackgroundColor = XLColor.FromHtml("#f0f4f8");
+                ws.Cell(row, col).Style.Font.Bold = true;
+                ws.Cell(row, col).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                ws.Cell(row, col).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            }
+
+            ws.Columns().AdjustToContents();
+
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            stream.Position = 0;
+
+            string fileName = $"AccountStatement_{DateTime.Today:yyyyMMdd}.xlsx";
+            return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
+
+        private async Task<AccountStatementViewModel> BuildAccountStatementAsync(
+            int? empCodeString, string? empSearch, int? carCodeString, string? carSearch,
+            int? companyId, string companyIdsString, DateOnly fromDate, DateOnly toDate)
+        {
+            var viewModel = new AccountStatementViewModel { HasSearched = true };
+
+            List<int> employeeIds;
+
+            if (carCodeString.HasValue || !string.IsNullOrEmpty(carSearch))
+            {
+                var carQuery = _context.CarInfos
+                    .FromSqlRaw($"SELECT * FROM CarInfo WHERE DeleteFlag = 0 AND CompanyId IN ({companyIdsString})");
+
+                if (companyId.HasValue)
+                    carQuery = carQuery.Where(c => c.CompanyId == companyId.Value);
+                if (carCodeString.HasValue)
+                    carQuery = carQuery.Where(c => c.CarCode == carCodeString.Value);
+                if (!string.IsNullOrEmpty(carSearch))
+                    carQuery = carQuery.Where(c => c.CarNo!.Contains(carSearch));
+
+                var carIds = await carQuery.Select(c => c.Id).ToListAsync();
+
+                var empFromCarQuery = _context.Contracts
+                    .Where(c => c.DeleteFlag == 0 && c.CarId.HasValue && carIds.Contains(c.CarId.Value));
+
+                if (empCodeString.HasValue)
+                    empFromCarQuery = empFromCarQuery.Where(c => c.Employee!.EmpCode == empCodeString.Value);
+                if (!string.IsNullOrEmpty(empSearch))
+                    empFromCarQuery = empFromCarQuery.Where(c => c.Employee!.FullNameAr!.Contains(empSearch));
+
+                employeeIds = await empFromCarQuery
+                    .Where(c => c.EmployeeId.HasValue)
+                    .Select(c => c.EmployeeId!.Value)
+                    .Distinct()
+                    .ToListAsync();
+            }
+            else
+            {
+                var empQuery = _context.EmployeeInfos
+                    .FromSqlRaw($"SELECT * FROM EmployeeInfo WHERE DeleteFlag = 0 AND CompanyId IN ({companyIdsString})");
+
+                if (companyId.HasValue)
+                    empQuery = empQuery.Where(e => e.CompanyId == companyId.Value);
+                if (empCodeString.HasValue)
+                    empQuery = empQuery.Where(e => e.EmpCode == empCodeString.Value);
+                if (!string.IsNullOrEmpty(empSearch))
+                    empQuery = empQuery.Where(e => e.FullNameAr!.Contains(empSearch));
+
+                employeeIds = await empQuery.Select(e => e.Id).ToListAsync();
+            }
+
+            if (!employeeIds.Any())
+                return viewModel;
+
+            var employees = await _context.EmployeeInfos
+                .Include(e => e.Company)
+                .Where(e => employeeIds.Contains(e.Id))
+                .ToListAsync();
+
+            if (employees.Count == 1)
+            {
+                viewModel.EmpCode = employees[0].EmpCode;
+                viewModel.EmployeeName = employees[0].FullNameAr;
+                viewModel.MobileNo = employees[0].MobiileNo;
+                viewModel.CompanyName = employees[0].Company?.CompNameAr;
+            }
+
+            var empLookup = employees.ToDictionary(e => e.Id, e => e);
+
+            // Contracts + rent schedule (full history, drives the "contract details" summary section)
+            var contracts = await _context.Contracts
+                .Include(c => c.Car)
+                .Where(c => c.DeleteFlag == 0 && c.EmployeeId.HasValue && employeeIds.Contains(c.EmployeeId.Value))
+                .OrderByDescending(c => c.ContractDate)
+                .ToListAsync();
+
+            var contractIds = contracts.Select(c => c.Id).ToList();
+            var contractEmpMap = contracts.ToDictionary(c => c.Id, c => c.EmployeeId ?? 0);
+
+            var contractDetailsAll = await _context.ContractDetails
+                .Where(cd => cd.DeleteFlag == 0 && cd.ContractId.HasValue && contractIds.Contains(cd.ContractId.Value))
+                .ToListAsync();
+
+            foreach (var c in contracts)
+            {
+                var details = contractDetailsAll.Where(cd => cd.ContractId == c.Id).ToList();
+                var total = details.Sum(cd => (cd.DailyCredit ?? 0) + (cd.CarCredit ?? 0));
+                var paid = details.Where(cd => cd.Status == 3).Sum(cd => (cd.DailyCredit ?? 0) + (cd.CarCredit ?? 0));
+
+                viewModel.Contracts.Add(new AccountStatementContractItem
+                {
+                    ContractNo = c.ContractNo,
+                    StartDate = c.StartDate,
+                    EndDate = c.EndDate,
+                    CarNo = c.Car?.CarNo,
+                    DailyCredit = c.DailyCredit,
+                    TotalCost = c.TotalCost,
+                    Status = c.Status,
+                    TotalRent = total,
+                    PaidRent = paid
+                });
+            }
+
+            // Debts (full history, drives the "contract details" summary section)
+            var debitInfosAll = await _context.DebitInfos
+                .Where(d => d.DeleteFlag == 0 && d.EmpId.HasValue && employeeIds.Contains(d.EmpId.Value))
+                .ToListAsync();
+
+            viewModel.TotalDebt = debitInfosAll.Sum(d => d.DebitQty ?? 0);
+            viewModel.PaidDebt = debitInfosAll.Sum(d => d.DebitPayed ?? 0);
+            viewModel.RemainingDebt = debitInfosAll.Sum(d => d.DebitRemaining ?? 0);
+
+            var debitInfoEmpMap = debitInfosAll.ToDictionary(d => d.Id, d => d.EmpId ?? 0);
+            var debitInfoIds = debitInfosAll.Select(d => d.Id).ToList();
+
+            // Rent payments (daily-rental bills + monthly-rental credit bills)
+            var bills = await _context.Bills
+                .Where(b => b.DeleteFlag == 0 && b.EmployeeId.HasValue && employeeIds.Contains(b.EmployeeId.Value))
+                .ToListAsync();
+
+            var creditBills = await _context.CreditBills
+                .Where(b => b.DeleteFlag == 0 && b.EmployeeId.HasValue && employeeIds.Contains(b.EmployeeId.Value))
+                .ToListAsync();
+
+            // Debt payments
+            var debitPayInfosAll = await _context.DebitPayInfos
+                .Where(dp => dp.DeleteFlag == 0 && dp.DebitInfoId.HasValue && debitInfoIds.Contains(dp.DebitInfoId.Value))
+                .ToListAsync();
+
+            // ── Build a per-employee, per-day ledger (rent charge / debt charge / rent paid / debt paid) ──
+            var txnMap = new Dictionary<int, Dictionary<DateOnly, (decimal rent, decimal debt, decimal rentPaid, decimal debtPaid)>>();
+
+            void AddTxn(int empId, DateOnly date, decimal rent = 0, decimal debt = 0, decimal rentPaid = 0, decimal debtPaid = 0)
+            {
+                if (empId == 0) return;
+                if (!txnMap.TryGetValue(empId, out var dateMap))
+                {
+                    dateMap = new Dictionary<DateOnly, (decimal, decimal, decimal, decimal)>();
+                    txnMap[empId] = dateMap;
+                }
+                dateMap.TryGetValue(date, out var v);
+                dateMap[date] = (v.Item1 + rent, v.Item2 + debt, v.Item3 + rentPaid, v.Item4 + debtPaid);
+            }
+
+            foreach (var cd in contractDetailsAll)
+            {
+                if (!cd.DailyCreditDate.HasValue) continue;
+                var empId = contractEmpMap.TryGetValue(cd.ContractId ?? 0, out var eid) ? eid : 0;
+                AddTxn(empId, cd.DailyCreditDate.Value, rent: (cd.DailyCredit ?? 0) + (cd.CarCredit ?? 0));
+            }
+
+            foreach (var d in debitInfosAll)
+            {
+                if (!d.DebitDate.HasValue) continue;
+                AddTxn(d.EmpId ?? 0, d.DebitDate.Value, debt: d.DebitQty ?? 0);
+            }
+
+            foreach (var b in bills)
+            {
+                if (!b.BillDate.HasValue) continue;
+                AddTxn(b.EmployeeId ?? 0, b.BillDate.Value, rentPaid: b.BillPayed ?? 0);
+            }
+
+            foreach (var b in creditBills)
+            {
+                if (!b.CreditBillDate.HasValue) continue;
+                AddTxn(b.EmployeeId ?? 0, b.CreditBillDate.Value, rentPaid: b.CreditBillPayed ?? 0);
+            }
+
+            foreach (var dp in debitPayInfosAll)
+            {
+                if (!dp.DebitPayDate.HasValue) continue;
+                var empId = debitInfoEmpMap.TryGetValue(dp.DebitInfoId ?? 0, out var eid) ? eid : 0;
+                AddTxn(empId, dp.DebitPayDate.Value, debtPaid: dp.DebitPayQty ?? 0);
+            }
+
+            foreach (var empId in txnMap.Keys.OrderBy(id => empLookup.TryGetValue(id, out var e) ? e.EmpCode ?? 0 : 0))
+            {
+                var emp = empLookup.TryGetValue(empId, out var e2) ? e2 : null;
+                var empCode = emp?.EmpCode ?? 0;
+                var empName = emp?.FullNameAr ?? "";
+                var compName = emp?.Company?.CompNameAr ?? "";
+
+                var dateMap = txnMap[empId];
+
+                var openingBalance = dateMap
+                    .Where(kv => kv.Key < fromDate)
+                    .Sum(kv => kv.Value.rent + kv.Value.debt - kv.Value.rentPaid - kv.Value.debtPaid);
+
+                var runningBalance = openingBalance;
+
+                var datesInRange = dateMap.Keys.Where(d => d >= fromDate && d <= toDate).OrderBy(d => d).ToList();
+
+                foreach (var date in datesInRange)
+                {
+                    var v = dateMap[date];
+                    var previousBalance = runningBalance;
+                    runningBalance += v.rent + v.debt - v.rentPaid - v.debtPaid;
+
+                    viewModel.Rows.Add(new AccountStatementRow
+                    {
+                        EmpCode = empCode,
+                        EmployeeName = empName,
+                        CompanyName = compName,
+                        TxnDate = date,
+                        Rent = v.rent,
+                        Debt = v.debt,
+                        RentPaid = v.rentPaid,
+                        DebtPaid = v.debtPaid,
+                        PreviousBalance = previousBalance,
+                        CurrentBalance = runningBalance
+                    });
+                }
+            }
+
+            return viewModel;
+        }
     }
 }
