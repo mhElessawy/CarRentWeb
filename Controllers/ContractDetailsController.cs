@@ -1522,12 +1522,17 @@ namespace CarRentWeb.Controllers
             var debitInfoIds = debitInfosAll.Select(d => d.Id).ToList();
 
             // Rent payments (daily-rental bills + monthly-rental credit bills)
+            // Scoped to the same (non-deleted) contracts shown in the "تفاصيل العقود" section above,
+            // so payments from an older/ended/deleted contract for the same driver don't bleed into
+            // this driver's balance when there is no matching charge to offset them.
             var bills = await _context.Bills
-                .Where(b => b.DeleteFlag == 0 && b.EmployeeId.HasValue && employeeIds.Contains(b.EmployeeId.Value))
+                .Where(b => b.DeleteFlag == 0 && b.EmployeeId.HasValue && employeeIds.Contains(b.EmployeeId.Value)
+                         && b.ContractId.HasValue && contractIds.Contains(b.ContractId.Value))
                 .ToListAsync();
 
             var creditBills = await _context.CreditBills
-                .Where(b => b.DeleteFlag == 0 && b.EmployeeId.HasValue && employeeIds.Contains(b.EmployeeId.Value))
+                .Where(b => b.DeleteFlag == 0 && b.EmployeeId.HasValue && employeeIds.Contains(b.EmployeeId.Value)
+                         && b.ContractId.HasValue && contractIds.Contains(b.ContractId.Value))
                 .ToListAsync();
 
             // Debt payments
