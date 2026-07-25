@@ -51,13 +51,13 @@ namespace CarRentWeb.Controllers
             if (companyIds.Any())
             {
                 ViewBag.Companies = new SelectList(
-                            await _context.CompanyInfos
-                                .FromSqlRaw($"SELECT * FROM CompanyInfo WHERE DeleteFlag = 0 AND Id IN ({companyIdsString})")
-                                .OrderBy(c => c.CompNameAr)
-                                .ToListAsync(),
-                            "Id",
-                            "CompNameAr",
-                            companyId);
+                await _context.CompanyInfos
+                .FromSqlRaw($"SELECT * FROM CompanyInfo WHERE DeleteFlag = 0 AND Id IN ({companyIdsString})")
+                .OrderBy(c => c.CompNameAr)
+                .ToListAsync(),
+                "Id",
+                "CompNameAr",
+                companyId);
             }
             else
             {
@@ -65,31 +65,31 @@ namespace CarRentWeb.Controllers
             }
 
             var query = _context.Bills
-                .FromSqlRaw($"Select * from Bill where EmployeeId In ( Select Id From EmployeeInfo where CompanyId  IN ({companyIdsString}))")
-                .Include(c => c.Employee)
-                .Include(c => c.Contract)
-                .Include(c => c.Contract!.Car).Where(a => a.DeleteFlag == 0)
-                .OrderByDescending(c => c.Id);
+            .FromSqlRaw($"Select * from Bill where EmployeeId In ( Select Id From EmployeeInfo where CompanyId IN ({companyIdsString}))")
+            .Include(c => c.Employee)
+            .Include(c => c.Contract)
+            .Include(c => c.Contract!.Car).Where(a => a.DeleteFlag == 0)
+            .OrderByDescending(c => c.Id);
 
             //.Select(car => new
             //{
-            //    Car = car,
-            //    PaidCredits = _context.ContractDetails
-            //    .Where(cd => cd.Contract!.CarId == car.Id && cd.Status == 3)
-            //    .Sum(cd => (decimal?)cd.CarCredit) ?? 0,
-            //    RemainingCredits = _context.ContractDetails
-            //    .Where(cd => cd.Contract!.CarId == car.Id && cd.Status == 0)
-            //    .Sum(cd => (decimal?)cd.CarCredit) ?? 0,
+            // Car = car,
+            // PaidCredits = _context.ContractDetails
+            // .Where(cd => cd.Contract!.CarId == car.Id && cd.Status == 3)
+            // .Sum(cd => (decimal?)cd.CarCredit) ?? 0,
+            // RemainingCredits = _context.ContractDetails
+            // .Where(cd => cd.Contract!.CarId == car.Id && cd.Status == 0)
+            // .Sum(cd => (decimal?)cd.CarCredit) ?? 0,
             //});
 
 
             ViewBag.UserId = new SelectList(
-                         await _context.PasswordData
-                            .OrderBy(c => c.UserFullName)
-                            .ToListAsync(),
-                        "Id",
-                        "UserFullName",
-                        UserId);
+            await _context.PasswordData
+            .OrderBy(c => c.UserFullName)
+            .ToListAsync(),
+            "Id",
+            "UserFullName",
+            UserId);
 
             if (!string.IsNullOrEmpty(CarNoSearch))
             {
@@ -199,21 +199,21 @@ namespace CarRentWeb.Controllers
         {
 
             ViewBag.Companies = new SelectList(
-               await _context.CompanyInfos
-                   .Where(c => c.DeleteFlag == 0)
-                   .OrderBy(c => c.CompNameAr)
-                   .ToListAsync(),
-               "Id",
-               "CompNameAr",
-               companyId);
+            await _context.CompanyInfos
+            .Where(c => c.DeleteFlag == 0)
+            .OrderBy(c => c.CompNameAr)
+            .ToListAsync(),
+            "Id",
+            "CompNameAr",
+            companyId);
 
 
 
             var query = _context.Bills
-                .Include(c => c.Employee)
-                .Include(c => c.Contract)
-                .Include(c => c.User)
-                .Where(a => a.Contract!.ContractType == 0);
+            .Include(c => c.Employee)
+            .Include(c => c.Contract)
+            .Include(c => c.User)
+            .Where(a => a.Contract!.ContractType == 0);
 
             if (!string.IsNullOrEmpty(CarNoSearch))
             {
@@ -300,9 +300,9 @@ namespace CarRentWeb.Controllers
         {
             // Query your database to get the last bill number for this employee
             var lastBillNumber = _context.Bills
-                .Where(b => b.EmployeeId == employeeId)
-                .OrderByDescending(b => b.Id)
-                .FirstOrDefault();
+            .Where(b => b.EmployeeId == employeeId)
+            .OrderByDescending(b => b.Id)
+            .FirstOrDefault();
 
             var billCost = _context.Contracts.Where(a => a.EmployeeId == employeeId && a.DeleteFlag == 0 && a.Status == 0).ToList();
 
@@ -322,13 +322,13 @@ namespace CarRentWeb.Controllers
         {
             // Query your database to get the last bill number for this employee
             var lastBillNumber = _context.Bills
-                .Where(b => b.EmployeeId == employeeId)
-                .OrderByDescending(b => b.Id)
-                .FirstOrDefault();
+            .Where(b => b.EmployeeId == employeeId)
+            .OrderByDescending(b => b.Id)
+            .FirstOrDefault();
 
             var billCost = _context.Contracts
-                .Where(a => a.EmployeeId == employeeId && a.DeleteFlag == 0 && a.Status == 0)
-                .FirstOrDefault(); // Use FirstOrDefault instead of ToList since we only need the first record
+            .Where(a => a.EmployeeId == employeeId && a.DeleteFlag == 0 && a.Status == 0)
+            .FirstOrDefault(); // Use FirstOrDefault instead of ToList since we only need the first record
 
             if (lastBillNumber != null)
             {
@@ -370,13 +370,14 @@ namespace CarRentWeb.Controllers
 
             ViewBag.EmployeeId = contract?.Employee?.FullNameAr ?? "Not available";
             ViewBag.EmpId = contract!.EmployeeId;
+            ViewBag.ContractId = contract.Id;
 
             ViewBag.dailyCost = contract.DailyCredit;
 
             var lastBillNumber = _context.Bills
-                            .Where(b => b.ContractId == contract!.Id)
-                            .OrderByDescending(b => b.Id)
-                            .FirstOrDefault();
+            .Where(b => b.ContractId == contract!.Id)
+            .OrderByDescending(b => b.Id)
+            .FirstOrDefault();
 
             ViewBag.LastBill = lastBillNumber;
             if (lastBillNumber == null)
@@ -423,8 +424,8 @@ namespace CarRentWeb.Controllers
 
                 bill.BillTime = TimeOnly.FromDateTime(DateTime.Now);
                 var contractid = _context.Contracts.Where(a => a.EmployeeId == bill.EmployeeId && a.DeleteFlag == 0 && a.Status == 0)
-                      .Select(a => a.Id)
-                      .FirstOrDefault(); // or .SingleOrDefault() if you expect exactly one
+                .Select(a => a.Id)
+                .FirstOrDefault(); // or .SingleOrDefault() if you expect exactly one
 
                 bill.ContractId = contractid;
 
@@ -432,41 +433,43 @@ namespace CarRentWeb.Controllers
 
                 bill.BillHent = "إيجار يومي";
 
+                var existingDetail = await _context.ContractDetails
+                .Include(c => c.Contract)
+                .Where(c => c.Contract!.Id == contractid && (c.Status == 0 || c.Status == 2))
+                .Where(c =>
+                // إذا كان فيه Status = 3
+                _context.ContractDetails
+                .Where(last => last.ContractId == contractid && last.Status == 3)
+                .OrderByDescending(last => last.Id)
+                .Select(last => last.DailyCreditDate)
+                .FirstOrDefault() != null
+                ?
+                // نجيب السجلات اللي بعد آخر Status = 3
+                c.DailyCreditDate > _context.ContractDetails
+                .Where(last => last.ContractId == contractid && last.Status == 3)
+                .OrderByDescending(last => last.Id)
+                .Select(last => last.DailyCreditDate)
+                .FirstOrDefault()
+                :
+                // إذا مكنش فيه Status = 3، نجيب أول سجل فقط
+                c.DailyCreditDate >= _context.ContractDetails
+                .Where(first => first.ContractId == contractid && (first.Status == 0 || first.Status == 2))
+                .OrderBy(first => first.DailyCreditDate)
+                .Select(first => first.DailyCreditDate)
+                .FirstOrDefault()
+                )
+                .OrderBy(c => c.Id)
+                .Take(nNoOfDays)
+                .ToListAsync();
+
+                // المبلغ الفعلي بيتحسب من ContractDetails.DailyCredit لكل يوم لأنه ممكن يتغير بسبب التخفيض
+                bill.BillPayed = existingDetail.Sum(d => (d.DailyCredit ?? 0) + (d.CarCredit ?? 0));
 
                 _context.Add(bill);
 
                 await _context.SaveChangesAsync();
 
                 int billId = _context.Bills.Max(a => Convert.ToInt32(a.Id));
-
-                var existingDetail = await _context.ContractDetails
-                .Include(c => c.Contract)
-                .Where(c => c.Contract!.Id == contractid && (c.Status == 0 || c.Status == 2))
-                .Where(c =>
-                    // إذا كان فيه Status = 3
-                    _context.ContractDetails
-                        .Where(last => last.ContractId == contractid && last.Status == 3)
-                        .OrderByDescending(last => last.Id)
-                        .Select(last => last.DailyCreditDate)
-                        .FirstOrDefault() != null
-                    ?
-                        // نجيب السجلات اللي بعد آخر Status = 3
-                        c.DailyCreditDate > _context.ContractDetails
-                            .Where(last => last.ContractId == contractid && last.Status == 3)
-                            .OrderByDescending(last => last.Id)
-                            .Select(last => last.DailyCreditDate)
-                            .FirstOrDefault()
-                    :
-                        // إذا مكنش فيه Status = 3، نجيب أول سجل فقط
-                        c.DailyCreditDate >= _context.ContractDetails
-                            .Where(first => first.ContractId == contractid && (first.Status == 0 || first.Status == 2))
-                            .OrderBy(first => first.DailyCreditDate)
-                            .Select(first => first.DailyCreditDate)
-                            .FirstOrDefault()
-                )
-                .OrderBy(c => c.Id)
-                .Take(nNoOfDays)
-                .ToListAsync();
 
                 for (int i = 0; i < existingDetail.Count; i++)
                 {
@@ -491,15 +494,15 @@ namespace CarRentWeb.Controllers
                 if (!string.IsNullOrWhiteSpace(phone))
                 {
                     await _whatsAppService.SendInvoiceMessageAsync(
-                        phone,
-                        employee?.FullNameAr ?? "",
-                        bill.BillNo,
-                        bill.BillPayed,
-                        bill.FromDate,
-                        bill.ToDate,
-                        bill.NoOfDays,
-                        bill.BillDate,
-                        "يومي");
+                    phone,
+                    employee?.FullNameAr ?? "",
+                    bill.BillNo,
+                    bill.BillPayed,
+                    bill.FromDate,
+                    bill.ToDate,
+                    bill.NoOfDays,
+                    bill.BillDate,
+                    "يومي");
                 }
 
 
@@ -517,7 +520,7 @@ namespace CarRentWeb.Controllers
             }
 
             var bill = await _context.Bills
-                .FirstOrDefaultAsync(m => m.Id == id);
+            .FirstOrDefaultAsync(m => m.Id == id);
             if (bill == null)
             {
                 return NotFound();
@@ -537,7 +540,7 @@ namespace CarRentWeb.Controllers
             }
 
             var bill = await _context.Bills
-                .FirstOrDefaultAsync(m => m.Id == id);
+            .FirstOrDefaultAsync(m => m.Id == id);
             if (bill == null)
             {
                 return NotFound();
@@ -572,19 +575,19 @@ namespace CarRentWeb.Controllers
         {
 
             ViewBag.Companies = new SelectList(
-               await _context.CompanyInfos
-                   .Where(c => c.DeleteFlag == 0)
-                   .OrderBy(c => c.CompNameAr)
-                   .ToListAsync(),
-               "Id",
-               "CompNameAr",
-               companyId);
+            await _context.CompanyInfos
+            .Where(c => c.DeleteFlag == 0)
+            .OrderBy(c => c.CompNameAr)
+            .ToListAsync(),
+            "Id",
+            "CompNameAr",
+            companyId);
 
             var query = _context.Bills
-                .Include(c => c.Employee)
-                .Include(c => c.Contract)
-                .Include(c => c.User)
-                .Where(a => a.Contract!.ContractType == 1);
+            .Include(c => c.Employee)
+            .Include(c => c.Contract)
+            .Include(c => c.User)
+            .Where(a => a.Contract!.ContractType == 1);
 
             if (!string.IsNullOrEmpty(CarNoSearch))
             {
@@ -677,9 +680,9 @@ namespace CarRentWeb.Controllers
             ViewBag.maxBillNo = maxBillNo + 1;
 
             var employeesWithContracts = _context.EmployeeInfos.Where(employee =>
-                                         _context.Contracts.Any(contract => contract.EmployeeId == employee.Id && contract.DeleteFlag == 0 && contract.Status == 0 && contract.ContractType == 1))
-                                        .OrderBy(a => a.FullNameAr)
-                                        .ToList();
+            _context.Contracts.Any(contract => contract.EmployeeId == employee.Id && contract.DeleteFlag == 0 && contract.Status == 0 && contract.ContractType == 1))
+            .OrderBy(a => a.FullNameAr)
+            .ToList();
 
             var bank = _context.Deffs.Where(a => a.DeffType == 9).ToList();
 
@@ -713,8 +716,8 @@ namespace CarRentWeb.Controllers
 
                 bill.BillTime = TimeOnly.FromDateTime(DateTime.Now);
                 var contractid = _context.Contracts.Where(a => a.EmployeeId == bill.EmployeeId && a.DeleteFlag == 0 && a.Status == 0)
-                      .Select(a => a.Id)
-                      .FirstOrDefault(); // or .SingleOrDefault() if you expect exactly one
+                .Select(a => a.Id)
+                .FirstOrDefault(); // or .SingleOrDefault() if you expect exactly one
                 bill.ContractId = contractid;
                 _context.Add(bill);
                 await _context.SaveChangesAsync();
@@ -725,15 +728,15 @@ namespace CarRentWeb.Controllers
                 if (!string.IsNullOrWhiteSpace(phone))
                 {
                     await _whatsAppService.SendInvoiceMessageAsync(
-                        phone,
-                        employee?.FullNameAr ?? "",
-                        bill.BillNo,
-                        bill.BillPayed,
-                        bill.FromDate,
-                        bill.ToDate,
-                        bill.NoOfDays,
-                        bill.BillDate,
-                        "شهري");
+                    phone,
+                    employee?.FullNameAr ?? "",
+                    bill.BillNo,
+                    bill.BillPayed,
+                    bill.FromDate,
+                    bill.ToDate,
+                    bill.NoOfDays,
+                    bill.BillDate,
+                    "شهري");
                 }
 
                 return RedirectToAction(nameof(IndexMonthly));
@@ -751,7 +754,7 @@ namespace CarRentWeb.Controllers
             }
 
             var bill = await _context.Bills
-                .FirstOrDefaultAsync(m => m.Id == id);
+            .FirstOrDefaultAsync(m => m.Id == id);
             if (bill == null)
             {
                 return NotFound();
@@ -770,14 +773,14 @@ namespace CarRentWeb.Controllers
             }
 
             var bill = await _context.Bills.Include(e => e.Employee).Include(c => c.Contract)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            .FirstOrDefaultAsync(m => m.Id == id);
             if (bill == null)
             {
                 return NotFound();
             }
 
             var contraactDetails = _context.ContractDetails.Where(e => e.ContractId == bill.ContractId && e.Status == 3
-                                                                    && e.DailyCreditDate > bill.ToDate);
+            && e.DailyCreditDate > bill.ToDate);
             if (!contraactDetails.Any())
             {
                 ViewBag.CanDelete = true;
@@ -814,7 +817,7 @@ namespace CarRentWeb.Controllers
             if (contractDetails.Any())
             {
                 await contractDetails.ExecuteUpdateAsync(setters =>
-                    setters.SetProperty(c => c.Status, 0));
+                setters.SetProperty(c => c.Status, 0));
                 await _context.SaveChangesAsync();
             }
             return RedirectToAction(nameof(Index));
@@ -832,7 +835,7 @@ namespace CarRentWeb.Controllers
             }
 
             var bill = await _context.Bills
-                .FirstOrDefaultAsync(m => m.Id == id);
+            .FirstOrDefaultAsync(m => m.Id == id);
             if (bill == null)
             {
                 return NotFound();
@@ -861,7 +864,7 @@ namespace CarRentWeb.Controllers
             return _context.Bills.Any(e => e.Id == id);
         }
         public IActionResult ExportToExcel(
-     string? CarNoSearch, int? EmpNoSearch, string? ContractNoSearch, int? companyId, int? pageNumber, DateTime? FromDateSearch, DateTime? ToDateSearch, string? EmpNameSearch, int? UserId)
+        string? CarNoSearch, int? EmpNoSearch, string? ContractNoSearch, int? companyId, int? pageNumber, DateTime? FromDateSearch, DateTime? ToDateSearch, string? EmpNameSearch, int? UserId)
         {
             try
             {
@@ -878,10 +881,10 @@ namespace CarRentWeb.Controllers
                     // Add headers
                     var headers = new string[]
                     {
-                "رقم الفاتورة", "رقم العقد", "رقم السيارة", "رقم السائق",
-                "الرقم المدني", "اسم السائق", "تاريخ الفاتورة", "الوقت",
-                "من تاريخ", "إلى تاريخ", "عدد الأيام", "المبلغ",
-                "نوع العقد", "ملاحظات"
+ "رقم الفاتورة", "رقم العقد", "رقم السيارة", "رقم السائق",
+ "الرقم المدني", "اسم السائق", "تاريخ الفاتورة", "الوقت",
+ "من تاريخ", "إلى تاريخ", "عدد الأيام", "المبلغ",
+ "نوع العقد", "ملاحظات"
                     };
 
                     for (int i = 0; i < headers.Length; i++)
@@ -928,9 +931,9 @@ namespace CarRentWeb.Controllers
 
                     // This will trigger the browser's "Save As" dialog
                     return File(
-                        fileStream: stream,
-                        contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        fileDownloadName: fileName);
+                    fileStream: stream,
+                    contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    fileDownloadName: fileName);
                 }
             }
             catch (Exception)
@@ -942,12 +945,12 @@ namespace CarRentWeb.Controllers
 
         // Helper method to get filtered data (reuse your existing filtering logic)
         private IQueryable<Bill> GetFilteredBills(
-           string? CarNoSearch, int? EmpNoSearch, string? ContractNoSearch, int? companyId, int? pageNumber, DateTime? FromDateSearch, DateTime? ToDateSearch, string? EmpNameSearch, int? UserId)
+        string? CarNoSearch, int? EmpNoSearch, string? ContractNoSearch, int? companyId, int? pageNumber, DateTime? FromDateSearch, DateTime? ToDateSearch, string? EmpNameSearch, int? UserId)
         {
             var query = _context.Bills
-             .Include(c => c.Employee)
-             .Include(c => c.Contract)
-             .Include(c => c.Contract!.Car).Where(a => a.DeleteFlag == 0).OrderByDescending(c => c.Id);
+            .Include(c => c.Employee)
+            .Include(c => c.Contract)
+            .Include(c => c.Contract!.Car).Where(a => a.DeleteFlag == 0).OrderByDescending(c => c.Id);
 
 
             if (!string.IsNullOrEmpty(CarNoSearch))

@@ -1611,6 +1611,19 @@ namespace CarRentWeb.Controllers
             contract.RealDiscountDate = RealDiscountDate;
             contract.DiscountAmount = DiscountAmount;
 
+            if (RealDiscountDate.HasValue && DiscountAmount.HasValue)
+            {
+                var contractDetailsToUpdate = _context.ContractDetails
+                    .Where(cd => cd.ContractId == id && cd.DeleteFlag == 0 && cd.Status == 0
+                              && cd.DailyCreditDate >= RealDiscountDate.Value)
+                    .ToList();
+
+                foreach (var detail in contractDetailsToUpdate)
+                {
+                    detail.DailyCredit = DiscountAmount.Value;
+                }
+            }
+
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(IndexDaily));
         }
