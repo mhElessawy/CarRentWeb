@@ -1337,7 +1337,9 @@ namespace CarRentWeb.Controllers
 
                         if (!toDate.HasValue)
                         {
-                            var contractEnd = contracts.Max(c => c.EndDate);
+                            // نعتمد على تاريخ نهاية التعاقد الفعلي (ContractEndDate) عند إغلاق العقد،
+                            // وإلا تاريخ النهاية المجدول (EndDate) كحل بديل
+                            var contractEnd = contracts.Max(c => c.ContractEndDate ?? c.EndDate);
                             toDate = (contractEnd.HasValue && contractEnd.Value < today) ? contractEnd.Value : today;
                         }
                     }
