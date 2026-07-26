@@ -1385,6 +1385,10 @@ namespace CarRentWeb.Controllers
                             && p.DebitPayDate <= toDate)
                         .ToListAsync();
 
+                    int empCode = employee.EmpCode ?? 0;
+                    string employeeName = employee.FullNameAr ?? "";
+                    string companyName = employee.Company?.CompNameAr ?? "";
+
                     var items = new List<AccountStatementItem>();
 
                     foreach (var c in charges)
@@ -1394,9 +1398,11 @@ namespace CarRentWeb.Controllers
 
                         items.Add(new AccountStatementItem
                         {
+                            EmpCode = empCode,
+                            EmployeeName = employeeName,
+                            CompanyName = companyName,
                             Date = c.DailyCreditDate!.Value,
-                            Description = $"مستحقات عقد رقم {c.Contract?.ContractNo} - سيارة {c.Contract?.Car?.CarNo}",
-                            Debit = amount
+                            Rent = amount
                         });
                     }
 
@@ -1404,9 +1410,11 @@ namespace CarRentWeb.Controllers
                     {
                         items.Add(new AccountStatementItem
                         {
+                            EmpCode = empCode,
+                            EmployeeName = employeeName,
+                            CompanyName = companyName,
                             Date = b.BillDate!.Value,
-                            Description = $"سداد فاتورة رقم {b.BillNo} ({b.BillHent})",
-                            Credit = b.BillPayed ?? 0
+                            RentPay = b.BillPayed ?? 0
                         });
                     }
 
@@ -1414,9 +1422,11 @@ namespace CarRentWeb.Controllers
                     {
                         items.Add(new AccountStatementItem
                         {
+                            EmpCode = empCode,
+                            EmployeeName = employeeName,
+                            CompanyName = companyName,
                             Date = d.DebitDate!.Value,
-                            Description = $"{d.DebitType?.DeffName ?? "خصم"} - {d.DebitDescrp}",
-                            Debit = d.DebitQty ?? 0
+                            Debt = d.DebitQty ?? 0
                         });
                     }
 
@@ -1424,9 +1434,11 @@ namespace CarRentWeb.Controllers
                     {
                         items.Add(new AccountStatementItem
                         {
+                            EmpCode = empCode,
+                            EmployeeName = employeeName,
+                            CompanyName = companyName,
                             Date = p.DebitPayDate!.Value,
-                            Description = $"سداد خصم رقم {p.DebitPayNo}",
-                            Credit = p.DebitPayQty ?? 0
+                            DebtPay = p.DebitPayQty ?? 0
                         });
                     }
 
@@ -1435,15 +1447,16 @@ namespace CarRentWeb.Controllers
                     decimal balance = 0;
                     foreach (var item in items)
                     {
-                        balance += item.Debit - item.Credit;
-                        item.Balance = balance;
+                        item.PreviousBalance = balance;
+                        balance += item.Rent + item.Debt - item.RentPay - item.DebtPay;
+                        item.CurrentBalance = balance;
                     }
 
                     viewModel.HasEmployee = true;
-                    viewModel.EmpCode = employee.EmpCode ?? 0;
-                    viewModel.EmployeeName = employee.FullNameAr ?? "";
+                    viewModel.EmpCode = empCode;
+                    viewModel.EmployeeName = employeeName;
                     viewModel.MobileNo = employee.MobiileNo ?? "";
-                    viewModel.CompanyName = employee.Company?.CompNameAr ?? "";
+                    viewModel.CompanyName = companyName;
                     viewModel.Items = items;
                 }
             }

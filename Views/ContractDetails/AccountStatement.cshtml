@@ -102,64 +102,16 @@
             color: #fff;
         }
 
-    /* Employee Info */
-    .emp-info-bar {
-        background: #f0f4f8;
-        border: 1px solid #dfe6ec;
+    /* Statement Title Bar */
+    .statement-title-bar {
+        background: #1a1a2e;
+        color: #fff;
         border-radius: 8px;
         padding: 12px 18px;
         margin-bottom: 18px;
-        display: flex;
-        gap: 28px;
-        flex-wrap: wrap;
-        direction: rtl;
-        font-size: 0.9rem;
-    }
-
-        .emp-info-bar b {
-            color: #1a1a2e;
-        }
-
-    /* Summary Cards */
-    .summary-cards {
-        display: flex;
-        gap: 16px;
-        margin-bottom: 18px;
-        flex-wrap: wrap;
-    }
-
-    .summary-card {
-        flex: 1;
-        min-width: 180px;
-        background: #fff;
-        border: 1px solid #e0e0e0;
-        border-radius: 10px;
-        padding: 16px 20px;
         text-align: center;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    }
-
-        .summary-card .card-label {
-            font-size: 0.82rem;
-            color: #777;
-            margin-bottom: 6px;
-        }
-
-        .summary-card .card-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
-
-    .card-value.debit {
-        color: #c0392b;
-    }
-
-    .card-value.credit {
-        color: #27ae60;
-    }
-
-    .card-value.balance {
-        color: #1a1a2e;
+        font-weight: 700;
+        font-size: 0.95rem;
     }
 
     /* Table */
@@ -278,38 +230,24 @@
     }
     else
     {
-        <div class="emp-info-bar">
-            <span>كود الموظف: <b>@Model.EmpCode</b></span>
-            <span>اسم الموظف: <b>@Model.EmployeeName</b></span>
-            <span>الشركة: <b>@Model.CompanyName</b></span>
-            <span>الهاتف: <b>@Model.MobileNo</b></span>
-            <span>الفترة: <b>@(Model.FromDate?.ToString("yyyy/MM/dd")) &nbsp;إلى&nbsp; @(Model.ToDate?.ToString("yyyy/MM/dd"))</b></span>
-        </div>
-
-        <div class="summary-cards">
-            <div class="summary-card">
-                <div class="card-label">إجمالي المستحقات (مدين)</div>
-                <div class="card-value debit">@Model.TotalDebit.ToString("N2")</div>
-            </div>
-            <div class="summary-card">
-                <div class="card-label">إجمالي المسدد (دائن)</div>
-                <div class="card-value credit">@Model.TotalCredit.ToString("N2")</div>
-            </div>
-            <div class="summary-card">
-                <div class="card-label">الرصيد النهائي</div>
-                <div class="card-value balance">@Model.ClosingBalance.ToString("N2")</div>
-            </div>
+        <div class="statement-title-bar">
+            <span>كشف الحركة خلال الفترة من @(Model.FromDate?.ToString("yyyy-MM-dd")) إلى @(Model.ToDate?.ToString("yyyy-MM-dd"))</span>
         </div>
 
         <table class="report-table">
             <thead>
                 <tr>
                     <th>#</th>
+                    <th>رقم السائق</th>
+                    <th>اسم السائق</th>
                     <th>التاريخ</th>
-                    <th>البيان</th>
-                    <th>مدين</th>
-                    <th>دائن</th>
-                    <th>الرصيد</th>
+                    <th>الإيجار</th>
+                    <th>الدين</th>
+                    <th>دفع الإيجار</th>
+                    <th>دفع الدين</th>
+                    <th>الشركة</th>
+                    <th>الرصيد السابق</th>
+                    <th>الرصيد الحالي</th>
                 </tr>
             </thead>
             <tbody>
@@ -320,23 +258,32 @@
                     {
                         <tr>
                             <td>@(row++)</td>
-                            <td>@item.Date.ToString("yyyy/MM/dd")</td>
-                            <td class="desc-cell">@item.Description</td>
-                            <td class="@(item.Debit != 0 ? "amount-debit" : "")">@(item.Debit != 0 ? item.Debit.ToString("N2") : "")</td>
-                            <td class="@(item.Credit != 0 ? "amount-credit" : "")">@(item.Credit != 0 ? item.Credit.ToString("N2") : "")</td>
-                            <td>@item.Balance.ToString("N2")</td>
+                            <td>@item.EmpCode</td>
+                            <td>@item.EmployeeName</td>
+                            <td>@item.Date.ToString("yyyy-MM-dd")</td>
+                            <td class="@(item.Rent != 0 ? "amount-debit" : "")">@(item.Rent != 0 ? item.Rent.ToString("N2") : "")</td>
+                            <td class="@(item.Debt != 0 ? "amount-debit" : "")">@(item.Debt != 0 ? item.Debt.ToString("N2") : "")</td>
+                            <td class="@(item.RentPay != 0 ? "amount-credit" : "")">@(item.RentPay != 0 ? item.RentPay.ToString("N2") : "")</td>
+                            <td class="@(item.DebtPay != 0 ? "amount-credit" : "")">@(item.DebtPay != 0 ? item.DebtPay.ToString("N2") : "")</td>
+                            <td>@item.CompanyName</td>
+                            <td>@item.PreviousBalance.ToString("N2")</td>
+                            <td>@item.CurrentBalance.ToString("N2")</td>
                         </tr>
                     }
                     <tr class="totals-row">
-                        <td colspan="3" style="text-align:right; padding-right:12px;">الإجمالي</td>
-                        <td class="amount-debit">@Model.TotalDebit.ToString("N2")</td>
-                        <td class="amount-credit">@Model.TotalCredit.ToString("N2")</td>
+                        <td colspan="4" style="text-align:right; padding-right:12px;">الإجمالي</td>
+                        <td class="amount-debit">@Model.TotalRent.ToString("N2")</td>
+                        <td class="amount-debit">@Model.TotalDebt.ToString("N2")</td>
+                        <td class="amount-credit">@Model.TotalRentPay.ToString("N2")</td>
+                        <td class="amount-credit">@Model.TotalDebtPay.ToString("N2")</td>
+                        <td></td>
+                        <td></td>
                         <td>@Model.ClosingBalance.ToString("N2")</td>
                     </tr>
                 }
                 else
                 {
-                    <tr><td colspan="6" style="text-align:center; padding:16px; color:#999;">لا توجد حركات خلال هذه الفترة</td></tr>
+                    <tr><td colspan="11" style="text-align:center; padding:16px; color:#999;">لا توجد حركات خلال هذه الفترة</td></tr>
                 }
             </tbody>
         </table>
