@@ -1,0 +1,346 @@
+@model CarRentWeb.Models.MyModel.AccountStatementViewModel
+
+@{
+    ViewData["Title"] = "كشف حساب الموظف";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .report-header {
+        text-align: right;
+        margin-bottom: 6px;
+    }
+
+        .report-header h1 {
+            color: #1a1a2e;
+            font-weight: 800;
+            font-size: 1.8rem;
+            border-bottom: 3px solid #3498db;
+            display: inline-block;
+            padding-bottom: 4px;
+        }
+
+    .report-date {
+        color: #555;
+        font-size: 0.85rem;
+        text-align: right;
+        margin-bottom: 15px;
+    }
+
+    /* Filter Bar */
+    .filter-bar {
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 12px 18px;
+        margin-bottom: 18px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        direction: rtl;
+    }
+
+        .filter-bar label {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.83rem;
+            white-space: nowrap;
+        }
+
+        .filter-bar input, .filter-bar select {
+            padding: 6px 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 0.83rem;
+            width: 130px;
+        }
+
+        .filter-bar select {
+            width: 160px;
+        }
+
+        .filter-bar input[type="date"] {
+            width: 145px;
+        }
+
+    .btn-search {
+        background: #3498db;
+        color: #fff;
+        border: none;
+        padding: 7px 18px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+        .btn-search:hover {
+            background: #2980b9;
+        }
+
+    .btn-reset {
+        background: #6c757d;
+        color: #fff;
+        border: none;
+        padding: 7px 18px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+        .btn-reset:hover {
+            background: #5a6268;
+            color: #fff;
+        }
+
+    /* Employee Info */
+    .emp-info-bar {
+        background: #f0f4f8;
+        border: 1px solid #dfe6ec;
+        border-radius: 8px;
+        padding: 12px 18px;
+        margin-bottom: 18px;
+        display: flex;
+        gap: 28px;
+        flex-wrap: wrap;
+        direction: rtl;
+        font-size: 0.9rem;
+    }
+
+        .emp-info-bar b {
+            color: #1a1a2e;
+        }
+
+    /* Summary Cards */
+    .summary-cards {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+    }
+
+    .summary-card {
+        flex: 1;
+        min-width: 180px;
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 16px 20px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+        .summary-card .card-label {
+            font-size: 0.82rem;
+            color: #777;
+            margin-bottom: 6px;
+        }
+
+        .summary-card .card-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+    .card-value.debit {
+        color: #c0392b;
+    }
+
+    .card-value.credit {
+        color: #27ae60;
+    }
+
+    .card-value.balance {
+        color: #1a1a2e;
+    }
+
+    /* Table */
+    .report-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.82rem;
+        margin-bottom: 24px;
+    }
+
+        .report-table thead tr {
+            background: #1a1a2e;
+            color: #fff;
+            text-align: center;
+        }
+
+        .report-table th, .report-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #e0e0e0;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+    .report-table td.desc-cell {
+        text-align: right;
+        white-space: normal;
+    }
+
+    .report-table tbody tr:nth-of-type(even) {
+        background: #f8f9fa;
+    }
+
+    .report-table tbody tr:hover {
+        background: #eaf4fb;
+    }
+
+    .amount-debit {
+        color: #c0392b;
+        font-weight: 600;
+    }
+
+    .amount-credit {
+        color: #27ae60;
+        font-weight: 600;
+    }
+
+    .totals-row {
+        font-weight: 700;
+        background: #f0f4f8 !important;
+        border-top: 2px solid #333;
+    }
+
+    .btn-print {
+        background: #28a745;
+        color: #fff;
+        border: none;
+        padding: 9px 22px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-top: 10px;
+    }
+
+        .btn-print:hover {
+            background: #218838;
+        }
+
+    @@media print {
+        .filter-bar, .btn-print {
+            display: none !important;
+        }
+    }
+</style>
+
+<div dir="rtl">
+    <div class="report-header"><h1>كشف حساب الموظف</h1></div>
+    <div class="report-date">التاريخ: @DateTime.Today.ToString("yyyy/MM/dd")</div>
+
+    <!-- Filters -->
+    <form asp-action="AccountStatement" method="get">
+        <div class="filter-bar">
+            <label>رقم الموظف:</label>
+            <input type="number" name="EmpCodeString" value="@ViewData["EmpCodeFilter"]" placeholder="رقم الموظف" />
+
+            <label>اسم الموظف:</label>
+            <input type="text" name="EmpSearch" value="@ViewData["EmpFilter"]" placeholder="اسم الموظف" />
+
+            <label>كود السيارة:</label>
+            <input type="number" name="CarCodeString" value="@ViewData["CarCodeFilter"]" placeholder="كود السيارة" />
+
+            <label>رقم السيارة:</label>
+            <input type="text" name="CarSearch" value="@ViewData["CarFilter"]" placeholder="رقم السيارة" />
+
+            <label>الشركة:</label>
+            <select name="companyId" asp-items="ViewBag.Companies">
+                <option value="">-- جميع الشركات --</option>
+            </select>
+
+            <label>من:</label>
+            <input type="date" name="FromDateSearch" value="@ViewData["FromDateFilter"]" />
+
+            <label>إلى:</label>
+            <input type="date" name="ToDateSearch" value="@ViewData["ToDateFilter"]" />
+
+            <button type="submit" class="btn-search">بحث</button>
+            <a asp-action="AccountStatement" class="btn-reset">إعادة تعيين</a>
+        </div>
+    </form>
+
+    @if (!Model.HasEmployee)
+    {
+        <div style="text-align:center; padding:30px; color:#999; background:#fff; border:1px solid #e0e0e0; border-radius:8px;">
+            الرجاء إدخال كود الموظف أو اسمه لعرض كشف الحساب
+        </div>
+    }
+    else
+    {
+        <div class="emp-info-bar">
+            <span>كود الموظف: <b>@Model.EmpCode</b></span>
+            <span>اسم الموظف: <b>@Model.EmployeeName</b></span>
+            <span>الشركة: <b>@Model.CompanyName</b></span>
+            <span>الهاتف: <b>@Model.MobileNo</b></span>
+            <span>الفترة: <b>@(Model.FromDate?.ToString("yyyy/MM/dd")) &nbsp;إلى&nbsp; @(Model.ToDate?.ToString("yyyy/MM/dd"))</b></span>
+        </div>
+
+        <div class="summary-cards">
+            <div class="summary-card">
+                <div class="card-label">إجمالي المستحقات (مدين)</div>
+                <div class="card-value debit">@Model.TotalDebit.ToString("N2")</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-label">إجمالي المسدد (دائن)</div>
+                <div class="card-value credit">@Model.TotalCredit.ToString("N2")</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-label">الرصيد النهائي</div>
+                <div class="card-value balance">@Model.ClosingBalance.ToString("N2")</div>
+            </div>
+        </div>
+
+        <table class="report-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>التاريخ</th>
+                    <th>البيان</th>
+                    <th>مدين</th>
+                    <th>دائن</th>
+                    <th>الرصيد</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Items.Any())
+                {
+                    int row = 1;
+                    @foreach (var item in Model.Items)
+                    {
+                        <tr>
+                            <td>@(row++)</td>
+                            <td>@item.Date.ToString("yyyy/MM/dd")</td>
+                            <td class="desc-cell">@item.Description</td>
+                            <td class="@(item.Debit != 0 ? "amount-debit" : "")">@(item.Debit != 0 ? item.Debit.ToString("N2") : "")</td>
+                            <td class="@(item.Credit != 0 ? "amount-credit" : "")">@(item.Credit != 0 ? item.Credit.ToString("N2") : "")</td>
+                            <td>@item.Balance.ToString("N2")</td>
+                        </tr>
+                    }
+                    <tr class="totals-row">
+                        <td colspan="3" style="text-align:right; padding-right:12px;">الإجمالي</td>
+                        <td class="amount-debit">@Model.TotalDebit.ToString("N2")</td>
+                        <td class="amount-credit">@Model.TotalCredit.ToString("N2")</td>
+                        <td>@Model.ClosingBalance.ToString("N2")</td>
+                    </tr>
+                }
+                else
+                {
+                    <tr><td colspan="6" style="text-align:center; padding:16px; color:#999;">لا توجد حركات خلال هذه الفترة</td></tr>
+                }
+            </tbody>
+        </table>
+
+        <button onclick="window.print()" class="btn-print">طباعة</button>
+    }
+</div>
