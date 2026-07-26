@@ -1,0 +1,439 @@
+﻿@model CarRentWeb.Models.MyModel.AccountStatementViewModel
+
+@{
+    ViewData["Title"] = "كشف الحساب";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    string fromDate = ViewData["FromDateFilter"]?.ToString() ?? "";
+    string toDate = ViewData["ToDateFilter"]?.ToString() ?? "";
+}
+
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .report-header {
+        text-align: right;
+        margin-bottom: 6px;
+    }
+
+        .report-header h1 {
+            color: #1a1a2e;
+            font-weight: 800;
+            font-size: 1.8rem;
+            border-bottom: 3px solid #3498db;
+            display: inline-block;
+            padding-bottom: 4px;
+        }
+
+    .report-date {
+        color: #555;
+        font-size: 0.85rem;
+        text-align: right;
+        margin-bottom: 15px;
+    }
+
+    .filter-bar {
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 12px 18px;
+        margin-bottom: 18px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        direction: rtl;
+    }
+
+        .filter-bar label {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.83rem;
+            white-space: nowrap;
+        }
+
+        .filter-bar input, .filter-bar select {
+            padding: 6px 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 0.83rem;
+            width: 130px;
+        }
+
+        .filter-bar select {
+            width: 160px;
+        }
+
+        .filter-bar input[type="date"] {
+            width: 145px;
+        }
+
+    .btn-search {
+        background: #3498db;
+        color: #fff;
+        border: none;
+        padding: 7px 18px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+        .btn-search:hover {
+            background: #2980b9;
+        }
+
+    .btn-reset {
+        background: #6c757d;
+        color: #fff;
+        border: none;
+        padding: 7px 18px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+        .btn-reset:hover {
+            background: #5a6268;
+            color: #fff;
+        }
+
+    /* Summary Cards */
+    .summary-cards {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+    }
+
+    .summary-card {
+        flex: 1;
+        min-width: 170px;
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 16px 20px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+        .summary-card .card-label {
+            font-size: 0.82rem;
+            color: #777;
+            margin-bottom: 6px;
+        }
+
+        .summary-card .card-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+    .card-value.rent-total {
+        color: #2980b9;
+    }
+
+    .card-value.rent-paid {
+        color: #27ae60;
+    }
+
+    .card-value.rent-remaining {
+        color: #c0392b;
+    }
+
+    .card-value.debt-total {
+        color: #8e44ad;
+    }
+
+    .card-value.debt-paid {
+        color: #27ae60;
+    }
+
+    .card-value.debt-remaining {
+        color: #d35400;
+    }
+
+    .section-title {
+        font-size: 1rem;
+        font-weight: 700;
+        padding: 8px 14px;
+        border-radius: 6px 6px 0 0;
+        margin-bottom: 0;
+        color: #fff;
+        background: #1a1a2e;
+    }
+
+    .contracts-table, .report-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.82rem;
+        margin-bottom: 24px;
+    }
+
+        .contracts-table thead tr, .report-table thead tr {
+            background: #1a1a2e;
+            color: #fff;
+            text-align: center;
+        }
+
+        .contracts-table th, .contracts-table td,
+        .report-table th, .report-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #e0e0e0;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .report-table tbody tr:nth-of-type(even), .contracts-table tbody tr:nth-of-type(even) {
+            background: #f8f9fa;
+        }
+
+        .report-table tbody tr:hover {
+            background: #eaf4fb;
+        }
+
+    .totals-row {
+        font-weight: 700;
+        background: #f0f4f8 !important;
+        border-top: 2px solid #333;
+    }
+
+    .btn-print {
+        background: #28a745;
+        color: #fff;
+        border: none;
+        padding: 9px 22px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-top: 10px;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+        .btn-print:hover {
+            background: #218838;
+            color: #fff;
+        }
+
+    .empty-hint {
+        text-align: center;
+        padding: 24px;
+        color: #999;
+    }
+
+    @@media print {
+        .filter-bar, .btn-print {
+            display: none !important;
+        }
+    }
+</style>
+
+<div dir="rtl">
+    <div class="report-header"><h1>كشف الحساب</h1></div>
+    <div class="report-date">التاريخ: @DateTime.Today.ToString("yyyy/MM/dd")</div>
+
+    <!-- Filters -->
+    <form asp-action="AccountStatement" method="get">
+        <div class="filter-bar">
+            <label>كود السائق:</label>
+            <input type="number" name="EmpCodeString" value="@ViewData["EmpCodeFilter"]" placeholder="كود السائق" />
+
+            <label>اسم السائق:</label>
+            <input type="text" name="EmpSearch" value="@ViewData["EmpFilter"]" placeholder="اسم السائق" />
+
+            <label>كود السيارة:</label>
+            <input type="number" name="CarCodeString" value="@ViewData["CarCodeFilter"]" placeholder="كود السيارة" />
+
+            <label>رقم السيارة:</label>
+            <input type="text" name="CarSearch" value="@ViewData["CarFilter"]" placeholder="رقم السيارة" />
+
+            <label>الشركة:</label>
+            <select name="companyId" asp-items="ViewBag.Companies">
+                <option value="">-- جميع الشركات --</option>
+            </select>
+
+            <label>من:</label>
+            <input type="date" name="FromDateSearch" value="@ViewData["FromDateFilter"]" />
+
+            <label>إلى:</label>
+            <input type="date" name="ToDateSearch" value="@ViewData["ToDateFilter"]" />
+
+            <button type="submit" class="btn-search">بحث</button>
+            <a asp-action="AccountStatement" class="btn-reset">إعادة تعيين</a>
+        </div>
+    </form>
+
+    @if (!Model.HasSearched)
+    {
+        <div class="empty-hint">من فضلك اختر السائق (بالكود أو الاسم) أو السيارة (بالكود أو الرقم) لعرض كشف الحساب</div>
+    }
+    else if (!Model.Contracts.Any() && !Model.Rows.Any() && Model.TotalDebt == 0)
+    {
+        <div class="empty-hint">لا توجد بيانات مطابقة لبحثك</div>
+    }
+    else
+    {
+        <!-- Driver Info -->
+        <div class="summary-cards">
+            <div class="summary-card">
+                <div class="card-label">كود السائق</div>
+                <div class="card-value">@(Model.EmpCode?.ToString() ?? "-")</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-label">اسم السائق</div>
+                <div class="card-value">@(Model.EmployeeName ?? "-")</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-label">الشركة</div>
+                <div class="card-value">@(Model.CompanyName ?? "-")</div>
+            </div>
+        </div>
+
+        <!-- Contract Summary Cards -->
+        <div class="summary-cards">
+            <div class="summary-card">
+                <div class="card-label">إجمالي الإيجار</div>
+                <div class="card-value rent-total">@Model.TotalRent.ToString("N2")</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-label">المدفوع من الإيجار</div>
+                <div class="card-value rent-paid">@Model.PaidRent.ToString("N2")</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-label">المتبقي من الإيجار</div>
+                <div class="card-value rent-remaining">@Model.RemainingRent.ToString("N2")</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-label">إجمالي الدين</div>
+                <div class="card-value debt-total">@Model.TotalDebt.ToString("N2")</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-label">المدفوع من الدين</div>
+                <div class="card-value debt-paid">@Model.PaidDebt.ToString("N2")</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-label">المتبقي من الدين</div>
+                <div class="card-value debt-remaining">@Model.RemainingDebt.ToString("N2")</div>
+            </div>
+        </div>
+
+        <!-- Contracts Details -->
+        <div class="section-title">تفاصيل العقود</div>
+        <table class="contracts-table">
+            <thead>
+                <tr>
+                    <th>رقم العقد</th>
+                    <th>رقم السيارة</th>
+                    <th>تاريخ البداية</th>
+                    <th>تاريخ النهاية</th>
+                    <th>القيمة اليومية</th>
+                    <th>إجمالي العقد</th>
+                    <th>إجمالي الإيجار</th>
+                    <th>المدفوع</th>
+                    <th>المتبقي</th>
+                    <th>الحالة</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Contracts.Any())
+                {
+                    @foreach (var c in Model.Contracts)
+                    {
+                        <tr>
+                            <td>@c.ContractNo</td>
+                            <td>@c.CarNo</td>
+                            <td>@c.StartDate?.ToString("yyyy/MM/dd")</td>
+                            <td>@c.EndDate?.ToString("yyyy/MM/dd")</td>
+                            <td>@c.DailyCredit?.ToString("N2")</td>
+                            <td>@c.TotalCost?.ToString("N2")</td>
+                            <td>@c.TotalRent.ToString("N2")</td>
+                            <td style="color:#27ae60; font-weight:600;">@c.PaidRent.ToString("N2")</td>
+                            <td style="color:#c0392b; font-weight:600;">@c.RemainingRent.ToString("N2")</td>
+                            <td>@(c.Status == 0 ? "ساري" : "منتهي")</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="10" class="empty-hint">لا توجد عقود</td></tr>
+                }
+            </tbody>
+        </table>
+
+        <!-- Ledger -->
+        <div class="section-title">كشف الحركة خلال الفترة من @fromDate إلى @toDate</div>
+        <table class="report-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>رقم السائق</th>
+                    <th>اسم السائق</th>
+                    <th>التاريخ</th>
+                    <th>الإيجار</th>
+                    <th>الدين</th>
+                    <th>دفع الإيجار</th>
+                    <th>دفع الدين</th>
+                    <th>الشركة</th>
+                    <th>الرصيد السابق</th>
+                    <th>الرصيد الحالي</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Rows.Any())
+                {
+                    int row = 1;
+                    @foreach (var item in Model.Rows)
+                    {
+                        <tr>
+                            <td>@(row++)</td>
+                            <td>@item.EmpCode</td>
+                            <td>@item.EmployeeName</td>
+                            <td>@item.TxnDate.ToString("yyyy/MM/dd")</td>
+                            <td>@(item.Rent != 0 ? item.Rent.ToString("N2") : "")</td>
+                            <td>@(item.Debt != 0 ? item.Debt.ToString("N2") : "")</td>
+                            <td style="color:#27ae60;">@(item.RentPaid != 0 ? item.RentPaid.ToString("N2") : "")</td>
+                            <td style="color:#27ae60;">@(item.DebtPaid != 0 ? item.DebtPaid.ToString("N2") : "")</td>
+                            <td>@item.CompanyName</td>
+                            <td>@item.PreviousBalance.ToString("N2")</td>
+                            <td style="font-weight:600;">@item.CurrentBalance.ToString("N2")</td>
+                        </tr>
+                    }
+                    <tr class="totals-row">
+                        <td colspan="4" style="text-align:right; padding-right:12px;">المجموع خلال الفترة</td>
+                        <td>@Model.TotalRentInPeriod.ToString("N2")</td>
+                        <td>@Model.TotalDebtInPeriod.ToString("N2")</td>
+                        <td>@Model.TotalRentPaidInPeriod.ToString("N2")</td>
+                        <td>@Model.TotalDebtPaidInPeriod.ToString("N2")</td>
+                        <td colspan="3"></td>
+                    </tr>
+                }
+                else
+                {
+                    <tr><td colspan="11" class="empty-hint">لا توجد حركة خلال هذه الفترة</td></tr>
+                }
+            </tbody>
+        </table>
+
+        <button onclick="window.print()" class="btn-print">طباعة</button>
+
+        <a asp-action="AccountStatementExcel"
+           asp-controller="ContractDetails"
+           asp-route-EmpCodeString="@ViewData["EmpCodeFilter"]"
+           asp-route-EmpSearch="@ViewData["EmpFilter"]"
+           asp-route-CarCodeString="@ViewData["CarCodeFilter"]"
+           asp-route-CarSearch="@ViewData["CarFilter"]"
+           asp-route-companyId="@ViewData["CompanyFilter"]"
+           asp-route-FromDateSearch="@ViewData["FromDateFilter"]"
+           asp-route-ToDateSearch="@ViewData["ToDateFilter"]"
+           class="btn-print" style="background:#1d6f42;">
+            <i class="fas fa-file-excel"></i> تصدير إيكسل
+        </a>
+    }
+</div>
