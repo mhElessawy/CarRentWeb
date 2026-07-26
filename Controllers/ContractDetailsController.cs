@@ -1442,7 +1442,21 @@ namespace CarRentWeb.Controllers
                         });
                     }
 
-                    items = items.OrderBy(i => i.Date).ToList();
+                    items = items
+                        .GroupBy(i => i.Date)
+                        .OrderBy(g => g.Key)
+                        .Select(g => new AccountStatementItem
+                        {
+                            EmpCode = empCode,
+                            EmployeeName = employeeName,
+                            CompanyName = companyName,
+                            Date = g.Key,
+                            Rent = g.Sum(i => i.Rent),
+                            Debt = g.Sum(i => i.Debt),
+                            RentPay = g.Sum(i => i.RentPay),
+                            DebtPay = g.Sum(i => i.DebtPay)
+                        })
+                        .ToList();
 
                     decimal balance = 0;
                     foreach (var item in items)
