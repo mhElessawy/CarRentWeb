@@ -1343,10 +1343,17 @@ namespace CarRentWeb.Controllers
                 TempData["ErrorMessage"] = ex.Message;
                 return RedirectToAction(nameof(EndContractDaily), new { id = contract.Id });
             }
-            catch (DbUpdateException)
+            catch (DbUpdateException ex)
             {
                 await transaction.RollbackAsync();
-                TempData["ErrorMessage"] = "تعذر إغلاق العقد بسبب خطأ في بيانات نوع الدين \"عقد قديم\". برجاء التأكد من الشاشة الخاصة بأنواع الديون ثم إعادة المحاولة.";
+                var innerMessage = ex.InnerException?.Message ?? ex.Message;
+                TempData["ErrorMessage"] = $"تعذر إغلاق العقد بسبب خطأ في بيانات نوع الدين \"عقد قديم\". برجاء التأكد من الشاشة الخاصة بأنواع الديون ثم إعادة المحاولة. (تفاصيل: {innerMessage})";
+                return RedirectToAction(nameof(EndContractDaily), new { id = contract.Id });
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                TempData["ErrorMessage"] = $"حدث خطأ غير متوقع أثناء إغلاق العقد: {ex.Message}";
                 return RedirectToAction(nameof(EndContractDaily), new { id = contract.Id });
             }
 
