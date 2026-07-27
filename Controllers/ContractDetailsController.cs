@@ -1475,10 +1475,10 @@ namespace CarRentWeb.Controllers
 
             var empLookup = employees.ToDictionary(e => e.Id, e => e);
 
-            // Contracts + rent schedule (full history, drives the "contract details" summary section)
+            // Contracts + rent schedule (currently open contract only, drives the "contract details" summary section)
             var contracts = await _context.Contracts
                 .Include(c => c.Car)
-                .Where(c => c.DeleteFlag == 0 && c.EmployeeId.HasValue && employeeIds.Contains(c.EmployeeId.Value))
+                .Where(c => c.DeleteFlag == 0 && c.Status == 0 && c.EmployeeId.HasValue && employeeIds.Contains(c.EmployeeId.Value))
                 .OrderByDescending(c => c.ContractDate)
                 .ToListAsync();
 
