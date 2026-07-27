@@ -1355,7 +1355,11 @@ namespace CarRentWeb.Controllers
         // Unpaid daily details generated for dates after the contract end date no longer apply, so they are deleted.
         private async Task ConvertUnpaidContractToDebitAsync(int contractId, DateOnly? contractEndDate)
         {
-            var fullContract = await _context.Contracts.FirstOrDefaultAsync(c => c.Id == contractId);
+            // AsNoTracking is required here: the caller already attached a partial Contract
+            // (only Id/Status/ContractEndDate/ContractEndReson set) to the change tracker for
+            // this same Id, so a normal tracked query would return that stale in-memory instance
+            // instead of reading the real row (leaving EmployeeId/ContractNo/etc. null).
+            var fullContract = await _context.Contracts.AsNoTracking().FirstOrDefaultAsync(c => c.Id == contractId);
             if (fullContract == null)
             {
                 return;
