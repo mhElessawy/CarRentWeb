@@ -1343,6 +1343,7 @@ namespace CarRentWeb.Controllers
 
         // Automatically converts the still-unpaid daily amounts of an ended contract (up to the contract end date)
         // into a debt (DebitInfo) of type "عقد قديم", so the balance keeps being tracked against the employee.
+        // Unpaid daily details generated for dates after the contract end date no longer apply, so they are deleted.
         private async Task ConvertUnpaidContractToDebitAsync(int contractId, DateOnly? contractEndDate)
         {
             var fullContract = await _context.Contracts.FirstOrDefaultAsync(c => c.Id == contractId);
@@ -1359,35 +1360,43 @@ namespace CarRentWeb.Controllers
                 .ToListAsync();
 
             var unpaidAmount = unpaidDetails.Sum(d => (d.DailyCredit ?? 0) + (d.CarCredit ?? 0));
-            if (unpaidAmount <= 0)
+            if (unpaidAmount > 0)
             {
-                return;
+                int maxDebitNo = await _context.DebitInfos.MaxAsync(b => (int?)b.DebitNo) ?? 0;
+
+                var debitInfo = new DebitInfo
+                {
+                    DebitNo = maxDebitNo + 1,
+                    EmpId = fullContract.EmployeeId,
+                    UserId = HttpContext.Session.GetInt32("UserId"),
+                    DebitTypeId = OldContractDebitTypeId,
+                    DebitDate = endDate,
+                    DebitDescrp = $"عقد قديم رقم {fullContract.ContractNo}",
+                    DeleteFlag = 0,
+                    ViolationId = 0,
+                    DeleteReson = "",
+                    DebitQty = unpaidAmount,
+                    DebitPayed = 0,
+                    DebitRemaining = unpaidAmount,
+                };
+
+                _context.Add(debitInfo);
+
+                foreach (var detail in unpaidDetails)
+                {
+                    detail.Status = 4;
+                    _context.Update(detail);
+                }
             }
 
-            int maxDebitNo = await _context.DebitInfos.MaxAsync(b => (int?)b.DebitNo) ?? 0;
+            var futureUnpaidDetails = await _context.ContractDetails
+                .Where(d => d.ContractId == contractId && d.DeleteFlag == 0 &&
+                            d.Status == 0 && d.DailyCreditDate > endDate)
+                .ToListAsync();
 
-            var debitInfo = new DebitInfo
+            if (futureUnpaidDetails.Count > 0)
             {
-                DebitNo = maxDebitNo + 1,
-                EmpId = fullContract.EmployeeId,
-                UserId = HttpContext.Session.GetInt32("UserId"),
-                DebitTypeId = OldContractDebitTypeId,
-                DebitDate = endDate,
-                DebitDescrp = $"عقد قديم رقم {fullContract.ContractNo}",
-                DeleteFlag = 0,
-                ViolationId = 0,
-                DeleteReson = "",
-                DebitQty = unpaidAmount,
-                DebitPayed = 0,
-                DebitRemaining = unpaidAmount,
-            };
-
-            _context.Add(debitInfo);
-
-            foreach (var detail in unpaidDetails)
-            {
-                detail.Status = 4;
-                _context.Update(detail);
+                _context.ContractDetails.RemoveRange(futureUnpaidDetails);
             }
 
             await _context.SaveChangesAsync();
