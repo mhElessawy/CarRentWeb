@@ -1304,7 +1304,7 @@ namespace CarRentWeb.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> EndContractDailyAsync(Contract contract, bool ConvertToDebit)
+        public async Task<IActionResult> EndContractDailyAsync(Contract contract)
         {
 
             if (contract != null)
@@ -1327,10 +1327,7 @@ namespace CarRentWeb.Controllers
 
                 await _context.SaveChangesAsync();
 
-                if (ConvertToDebit)
-                {
-                    await ConvertUnpaidContractToDebitAsync(contract.Id, contract.ContractEndDate);
-                }
+                await ConvertUnpaidContractToDebitAsync(contract.Id, contract.ContractEndDate);
             }
             else
             {
@@ -1341,7 +1338,7 @@ namespace CarRentWeb.Controllers
 
         }
 
-        // Converts the still-unpaid daily amounts of an ended contract (up to the contract end date)
+        // Automatically converts the still-unpaid daily amounts of an ended contract (up to the contract end date)
         // into a debt (DebitInfo) of type "عقد قديم", so the balance keeps being tracked against the employee.
         private async Task ConvertUnpaidContractToDebitAsync(int contractId, DateOnly? contractEndDate)
         {
@@ -1380,7 +1377,7 @@ namespace CarRentWeb.Controllers
                 UserId = HttpContext.Session.GetInt32("UserId"),
                 DebitTypeId = oldContractDebitType.Id,
                 DebitDate = endDate,
-                DebitDescrp = $"دين متبقي من عقد رقم {fullContract.ContractNo}",
+                DebitDescrp = $"عقد قديم رقم {fullContract.ContractNo}",
                 DeleteFlag = 0,
                 ViolationId = 0,
                 DeleteReson = "",
