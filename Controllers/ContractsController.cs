@@ -1338,6 +1338,9 @@ namespace CarRentWeb.Controllers
 
         }
 
+        // Deffs.Id of the "عقد قديم" (old contract) debt type.
+        private const int OldContractDebitTypeId = 226;
+
         // Automatically converts the still-unpaid daily amounts of an ended contract (up to the contract end date)
         // into a debt (DebitInfo) of type "عقد قديم", so the balance keeps being tracked against the employee.
         private async Task ConvertUnpaidContractToDebitAsync(int contractId, DateOnly? contractEndDate)
@@ -1361,13 +1364,6 @@ namespace CarRentWeb.Controllers
                 return;
             }
 
-            var oldContractDebitType = await _context.Deffs
-                .FirstOrDefaultAsync(d => d.DeffType == 20 && d.DeleteFlag == 0 && d.DeffName!.Contains("عقد قديم"));
-            if (oldContractDebitType == null)
-            {
-                return;
-            }
-
             int maxDebitNo = await _context.DebitInfos.MaxAsync(b => (int?)b.DebitNo) ?? 0;
 
             var debitInfo = new DebitInfo
@@ -1375,7 +1371,7 @@ namespace CarRentWeb.Controllers
                 DebitNo = maxDebitNo + 1,
                 EmpId = fullContract.EmployeeId,
                 UserId = HttpContext.Session.GetInt32("UserId"),
-                DebitTypeId = oldContractDebitType.Id,
+                DebitTypeId = OldContractDebitTypeId,
                 DebitDate = endDate,
                 DebitDescrp = $"عقد قديم رقم {fullContract.ContractNo}",
                 DeleteFlag = 0,
