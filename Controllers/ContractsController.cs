@@ -1306,8 +1306,14 @@ namespace CarRentWeb.Controllers
         [HttpPost]
         public async Task<IActionResult> EndContractDailyAsync(Contract contract)
         {
+            if (contract == null)
+            {
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(IndexDaily));
+            }
 
-            if (contract != null)
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
                 var contractToUpdate = new Contract
                 {
@@ -1328,18 +1334,19 @@ namespace CarRentWeb.Controllers
                 await _context.SaveChangesAsync();
 
                 await ConvertUnpaidContractToDebitAsync(contract.Id, contract.ContractEndDate);
+
+                await transaction.CommitAsync();
             }
-            else
+            catch (InvalidOperationException ex)
             {
-                await _context.SaveChangesAsync();
+                await transaction.RollbackAsync();
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction(nameof(EndContractDaily), new { id = contract.Id });
             }
 
             return RedirectToAction(nameof(IndexDaily));
 
         }
-
-        // Deffs.Id of the "عقد قديم" (old contract) debt type.
-        private const int OldContractDebitTypeId = 226;
 
         // Automatically converts the still-unpaid daily amounts of an ended contract (up to the contract end date)
         // into a debt (DebitInfo) of type "عقد قديم", so the balance keeps being tracked against the employee.
@@ -1362,6 +1369,14 @@ namespace CarRentWeb.Controllers
             var unpaidAmount = unpaidDetails.Sum(d => (d.DailyCredit ?? 0) + (d.CarCredit ?? 0));
             if (unpaidAmount > 0)
             {
+                var oldContractDebitType = await _context.Deffs
+                    .FirstOrDefaultAsync(d => d.DeffType == 20 && d.DeleteFlag == 0 && d.DeffName!.Contains("عقد قديم"));
+                if (oldContractDebitType == null)
+                {
+                    throw new InvalidOperationException(
+                        "لازم تنشئ نوع دين اسمه \"عقد قديم\" من شاشة أنواع الديون قبل إغلاق العقد.");
+                }
+
                 int maxDebitNo = await _context.DebitInfos.MaxAsync(b => (int?)b.DebitNo) ?? 0;
 
                 var debitInfo = new DebitInfo
@@ -1369,7 +1384,7 @@ namespace CarRentWeb.Controllers
                     DebitNo = maxDebitNo + 1,
                     EmpId = fullContract.EmployeeId,
                     UserId = HttpContext.Session.GetInt32("UserId"),
-                    DebitTypeId = OldContractDebitTypeId,
+                    DebitTypeId = oldContractDebitType.Id,
                     DebitDate = endDate,
                     DebitDescrp = $"عقد قديم رقم {fullContract.ContractNo}",
                     DeleteFlag = 0,
