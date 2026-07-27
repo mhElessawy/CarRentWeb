@@ -1587,6 +1587,14 @@ namespace CarRentWeb.Controllers
                 AddTxn(empId, dp.DebitPayDate.Value, debtPaid: dp.DebitPayQty ?? 0);
             }
 
+            // Show the full contract history from its start date, even if that's before the
+            // requested "from" date, instead of folding those early transactions into a single
+            // opening-balance figure.
+            var earliestContractStartByEmp = contracts
+                .Where(c => c.EmployeeId.HasValue && c.StartDate.HasValue)
+                .GroupBy(c => c.EmployeeId!.Value)
+                .ToDictionary(g => g.Key, g => g.Min(c => c.StartDate!.Value));
+
             foreach (var empId in txnMap.Keys.OrderBy(id => empLookup.TryGetValue(id, out var e) ? e.EmpCode ?? 0 : 0))
             {
                 var emp = empLookup.TryGetValue(empId, out var e2) ? e2 : null;
@@ -1596,13 +1604,19 @@ namespace CarRentWeb.Controllers
 
                 var dateMap = txnMap[empId];
 
+                var effectiveFromDate = fromDate;
+                if (earliestContractStartByEmp.TryGetValue(empId, out var contractStart) && contractStart < effectiveFromDate)
+                {
+                    effectiveFromDate = contractStart;
+                }
+
                 var openingBalance = dateMap
-                    .Where(kv => kv.Key < fromDate)
+                    .Where(kv => kv.Key < effectiveFromDate)
                     .Sum(kv => kv.Value.rent + kv.Value.debt - kv.Value.rentPaid - kv.Value.debtPaid);
 
                 var runningBalance = openingBalance;
 
-                var datesInRange = dateMap.Keys.Where(d => d >= fromDate && d <= toDate).OrderBy(d => d).ToList();
+                var datesInRange = dateMap.Keys.Where(d => d >= effectiveFromDate && d <= toDate).OrderBy(d => d).ToList();
 
                 foreach (var date in datesInRange)
                 {
