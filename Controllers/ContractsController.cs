@@ -1343,6 +1343,12 @@ namespace CarRentWeb.Controllers
                 TempData["ErrorMessage"] = ex.Message;
                 return RedirectToAction(nameof(EndContractDaily), new { id = contract.Id });
             }
+            catch (DbUpdateException)
+            {
+                await transaction.RollbackAsync();
+                TempData["ErrorMessage"] = "تعذر إغلاق العقد بسبب خطأ في بيانات نوع الدين \"عقد قديم\". برجاء التأكد من الشاشة الخاصة بأنواع الديون ثم إعادة المحاولة.";
+                return RedirectToAction(nameof(EndContractDaily), new { id = contract.Id });
+            }
 
             return RedirectToAction(nameof(IndexDaily));
 
@@ -1369,8 +1375,10 @@ namespace CarRentWeb.Controllers
             var unpaidAmount = unpaidDetails.Sum(d => (d.DailyCredit ?? 0) + (d.CarCredit ?? 0));
             if (unpaidAmount > 0)
             {
-                var oldContractDebitType = await _context.Deffs
-                    .FirstOrDefaultAsync(d => d.DeffType == 20 && d.DeleteFlag == 0 && d.DeffName!.Contains("عقد قديم"));
+                // Try the known "عقد قديم" Deff.Id first, and fall back to a name-based lookup
+                // in case that specific row was recreated with a different Id.
+                var oldContractDebitType = await _context.Deffs.FirstOrDefaultAsync(d => d.Id == 226 && d.DeleteFlag == 0)
+                    ?? await _context.Deffs.FirstOrDefaultAsync(d => d.DeffType == 20 && d.DeleteFlag == 0 && d.DeffName!.Contains("عقد قديم"));
                 if (oldContractDebitType == null)
                 {
                     throw new InvalidOperationException(
