@@ -1392,7 +1392,7 @@ namespace CarRentWeb.Controllers
                     DebitDate = endDate,
                     DebitDescrp = $"عقد قديم رقم {fullContract.ContractNo}",
                     DeleteFlag = 0,
-                    ViolationId = 0,
+                    ViolationId = null,
                     DeleteReson = "",
                     DebitQty = unpaidAmount,
                     DebitPayed = 0,
