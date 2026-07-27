@@ -1312,49 +1312,38 @@ namespace CarRentWeb.Controllers
                 return RedirectToAction(nameof(IndexDaily));
             }
 
-            using var transaction = await _context.Database.BeginTransactionAsync();
+            var contractToUpdate = new Contract
+            {
+                Id = contract.Id,
+                Status = 1,
+                ContractEndDate = contract.ContractEndDate,
+                ContractEndReson = contract.ContractEndReson
+            };
+
+            _context.Attach(contractToUpdate);
+
+            // Mark all the fields you want to update as modified
+            var entry = _context.Entry(contractToUpdate);
+            entry.Property(x => x.Status).IsModified = true;
+            entry.Property(x => x.ContractEndDate).IsModified = true;
+            entry.Property(x => x.ContractEndReson).IsModified = true;
+
+            await _context.SaveChangesAsync();
+
+            // The contract is now closed regardless of what happens below - debt conversion
+            // is a best-effort follow-up step that must never block the closure itself.
             try
             {
-                var contractToUpdate = new Contract
-                {
-                    Id = contract.Id,
-                    Status = 1,
-                    ContractEndDate = contract.ContractEndDate,
-                    ContractEndReson = contract.ContractEndReson
-                };
-
-                _context.Attach(contractToUpdate);
-
-                // Mark all the fields you want to update as modified
-                var entry = _context.Entry(contractToUpdate);
-                entry.Property(x => x.Status).IsModified = true;
-                entry.Property(x => x.ContractEndDate).IsModified = true;
-                entry.Property(x => x.ContractEndReson).IsModified = true;
-
-                await _context.SaveChangesAsync();
-
                 await ConvertUnpaidContractToDebitAsync(contract.Id, contract.ContractEndDate);
-
-                await transaction.CommitAsync();
-            }
-            catch (InvalidOperationException ex)
-            {
-                await transaction.RollbackAsync();
-                TempData["ErrorMessage"] = ex.Message;
-                return RedirectToAction(nameof(EndContractDaily), new { id = contract.Id });
             }
             catch (DbUpdateException ex)
             {
-                await transaction.RollbackAsync();
                 var innerMessage = ex.InnerException?.Message ?? ex.Message;
-                TempData["ErrorMessage"] = $"تعذر إغلاق العقد بسبب خطأ في بيانات نوع الدين \"عقد قديم\". برجاء التأكد من الشاشة الخاصة بأنواع الديون ثم إعادة المحاولة. (تفاصيل: {innerMessage})";
-                return RedirectToAction(nameof(EndContractDaily), new { id = contract.Id });
+                TempData["ErrorMessage"] = $"تم إغلاق العقد، لكن تعذر تحويل المبلغ الغير مدفوع إلى دين \"عقد قديم\" بسبب خطأ في البيانات. برجاء التأكد من الشاشة الخاصة بأنواع الديون. (تفاصيل: {innerMessage})";
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync();
-                TempData["ErrorMessage"] = $"حدث خطأ غير متوقع أثناء إغلاق العقد: {ex.Message}";
-                return RedirectToAction(nameof(EndContractDaily), new { id = contract.Id });
+                TempData["ErrorMessage"] = $"تم إغلاق العقد، لكن حدث خطأ غير متوقع أثناء تحويل المبلغ الغير مدفوع إلى دين: {ex.Message}";
             }
 
             return RedirectToAction(nameof(IndexDaily));
