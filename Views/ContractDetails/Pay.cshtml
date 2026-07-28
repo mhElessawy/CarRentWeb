@@ -118,6 +118,63 @@
                     </div>
                 </div>
             </div>
+
+            <div class="row mt-4" dir="rtl">
+                <div class="col-md-12">
+                    <div class="info-section">
+                        <h5>الديون على السائق</h5>
+
+                        @if (ViewBag.DebtPayError != null)
+                        {
+                            <div class="alert alert-danger">@ViewBag.DebtPayError</div>
+                        }
+
+                        @{
+                            var debits = ViewBag.Debits as List<CarRentWeb.Models.DebitInfo>;
+                        }
+                        @if (debits == null || !debits.Any())
+                        {
+                            <p class="text-muted">لا توجد ديون مستحقة على هذا السائق</p>
+                        }
+                        else
+                        {
+                            <table class="table table-bordered table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>رقم الدين</th>
+                                        <th>التاريخ</th>
+                                        <th>النوع</th>
+                                        <th>السبب</th>
+                                        <th>المبلغ</th>
+                                        <th>المدفوع</th>
+                                        <th>الباقي</th>
+                                        <th>المبلغ المراد دفعه</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var debit in debits)
+                                    {
+                                        <tr>
+                                            <td>@debit.DebitNo</td>
+                                            <td>@debit.DebitDate</td>
+                                            <td>@debit.DebitType?.DeffName</td>
+                                            <td>@debit.DebitDescrp</td>
+                                            <td>@debit.DebitQty</td>
+                                            <td>@debit.DebitPayed</td>
+                                            <td class="debit-remaining" data-remaining="@debit.DebitRemaining">@debit.DebitRemaining</td>
+                                            <td>
+                                                <input type="number" step="0.01" min="0" class="form-control debit-pay-input"
+                                                       name="DebitPayments[@debit.Id]" />
+                                                <span class="text-danger small debit-pay-error"></span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                    </div>
+                </div>
+            </div>
         </div>
 
     </div>
@@ -237,6 +294,25 @@
         latePayInput.addEventListener('blur', function() {
             if (this.value === '') {
                 this.value = 0;
+            }
+        });
+    });
+</script>
+
+<script>
+    document.querySelectorAll('.debit-pay-input').forEach(function (input) {
+        input.addEventListener('input', function () {
+            var row = this.closest('tr');
+            var remaining = parseFloat(row.querySelector('.debit-remaining').dataset.remaining) || 0;
+            var amount = parseFloat(this.value) || 0;
+            var errorSpan = row.querySelector('.debit-pay-error');
+
+            if (amount > remaining) {
+                errorSpan.textContent = 'المبلغ المراد دفعه يجب أن يكون أقل من أو يساوي الباقي';
+                this.classList.add('is-invalid');
+            } else {
+                errorSpan.textContent = '';
+                this.classList.remove('is-invalid');
             }
         });
     });
