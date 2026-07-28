@@ -397,11 +397,13 @@ namespace CarRentWeb.Controllers
 
             //ViewBag.EmployeeId = new SelectList(employeesWithContracts, "Id", "FullNameAr");
 
-            ViewBag.Debits = await _context.DebitInfos
+            ViewBag.Debits = (await _context.DebitInfos
                 .Include(d => d.DebitType)
-                .Where(d => d.EmpId == contract.EmployeeId && d.DeleteFlag == 0 && d.DebitRemaining > 0)
+                .Where(d => d.EmpId == contract.EmployeeId && d.DeleteFlag != 1)
+                .ToListAsync())
+                .Where(d => (d.DebitRemaining ?? ((d.DebitQty ?? 0) - (d.DebitPayed ?? 0))) > 0)
                 .OrderBy(d => d.DebitDate)
-                .ToListAsync();
+                .ToList();
 
             ViewBag.DebtPayError = TempData["DebtPayError"];
 
@@ -442,13 +444,14 @@ namespace CarRentWeb.Controllers
                 {
                     var debitIds = DebitPayments.Where(p => p.Value > 0).Select(p => p.Key).ToList();
                     var debitsToPay = await _context.DebitInfos
-                        .Where(d => debitIds.Contains(d.Id) && d.EmpId == bill.EmployeeId && d.DeleteFlag == 0)
+                        .Where(d => debitIds.Contains(d.Id) && d.EmpId == bill.EmployeeId && d.DeleteFlag != 1)
                         .ToListAsync();
 
                     foreach (var kvp in DebitPayments.Where(p => p.Value > 0))
                     {
                         var debit = debitsToPay.FirstOrDefault(d => d.Id == kvp.Key);
-                        if (debit == null || kvp.Value > (debit.DebitRemaining ?? 0))
+                        decimal debitRemaining = debit?.DebitRemaining ?? ((debit?.DebitQty ?? 0) - (debit?.DebitPayed ?? 0));
+                        if (debit == null || kvp.Value > debitRemaining)
                         {
                             TempData["DebtPayError"] = "المبلغ المدفوع من أحد الديون أكبر من المتبقي عليه";
                             return RedirectToAction(nameof(CreateDaily), new { id = contractid });
