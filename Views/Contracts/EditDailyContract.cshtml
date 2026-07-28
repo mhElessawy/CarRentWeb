@@ -1,216 +1,115 @@
 ﻿@model  CarRentWeb.Models.Contract
 
 @{
-    ViewData["Title"] = "تعديل العقد";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+ ViewData["Title"] = "Delete";
+ Layout = "~/Views/Shared/_Layout.cshtml";
 }
+<!-- Include Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<form asp-action="EndContractDaily" class="delete-confirmation-container">
+ <div dir="rtl">
+ <div class="delete-header">
+ <h1 class="delete-title">إنتهاء العقد</h1>
+ <div class="delete-warning alert alert-danger">
+ <i class="fas fa-exclamation-triangle"></i>
+ <strong>تحذير:</strong> سوف يتم إنتهاء العقد هل أنت متأكد .
+ </div>
+ @if (TempData["ErrorMessage"] != null)
+ {
+ <div class="alert alert-danger alert-dismissible fade show">
+ @TempData["ErrorMessage"]
+ <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+ </div>
+ }
+ </div>
+ <div class="company-details-card">
+ <div class="card-header">
+ <h4>تفاصيل بيانات العقد</h4>
+ </div>
+ <div class="card-body">
+ <div class="row">
+ <div class="col-md-3">
+ <div class="detail-group">
+ <label>رقم العقد</label>
+ <div class="detail-value">@Html.DisplayFor(model => model.ContractNo)</div>
+ </div>
+ <div class="detail-group">
+ <label>اسم السواق </label>
+ <div class="detail-value">@Html.DisplayFor(model => model.Employee!.FullNameAr)</div>
+ </div>
+ <div class="detail-group">
+ <label>رقم السيارة</label>
+ <div class="detail-value">@Html.DisplayFor(model => model.Car!.CarCode)</div>
+ </div>
+ <div class="detail-group">
+ <label>المبلغ المدفوع</label>
+ <span>@ViewBag.totalPay</span>
+ </div>
+ <div class="detail-group">
+ <label>تاريخ إنتهاء الالعقد</label>
+ <input asp-for="ContractEndDate" type="date" value="@DateTime.Now.ToString("yyyy-MM-dd")" class="form-control" />
+ </div>
+ <div class="detail-group">
+ <label>المبلغ الغير مدفوع حتى تاريخ إنتهاء العقد</label>
+ <div class="detail-value" id="unpaidAmountDisplay">@ViewBag.unpaidAmount</div>
+ </div>
 
-<style>
-    .edit-card {
-        max-width: 600px;
-        margin: 30px auto;
-        border: 1px solid #dee2e6;
-        border-radius: 10px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        overflow: hidden;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
+ </div>
+ </div>
 
-    .edit-card-header {
-        background-color: #2c3e50;
-        color: #fff;
-        padding: 14px 20px;
-        font-size: 1.1rem;
-        font-weight: 700;
-    }
+ <div class="row">
+ <div class="col-md-6">
+ <div class="detail-group">
+ <div class="alert alert-info mb-0">
+ <i class="fas fa-info-circle"></i>
+ سيتم تلقائياً تحويل المبلغ الغير مدفوع إلى دين (عقد قديم) عند تأكيد الإغلاق.
+ </div>
+ </div>
+ </div>
+ </div>
 
-    .edit-card-body {
-        padding: 24px;
-        background: #fff;
-    }
+ <div class="row">
+ <div class="col-md-6">
+ <div class="detail-group">
+ <label>السبب</label>
+ <input asp-for="ContractEndReson" value="" class="form-control" />
+ </<div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="delete-actions">
 
-    .info-row {
-        display: flex;
-        justify-content: space-between;
-        padding: 6px 0;
-        border-bottom: 1px solid #f0f0f0;
-        font-size: 0.9rem;
-    }
-
-    .info-label {
-        font-weight: 600;
-        color: #555;
-    }
-
-    .info-value {
-        color: #2c3e50;
-    }
-
-    .divider {
-        border: none;
-        border-top: 2px solid #e9ecef;
-        margin: 20px 0;
-    }
-
-    .form-group-row {
-        margin-bottom: 18px;
-    }
-
-    .form-group-row label {
-        display: block;
-        font-weight: 600;
-        color: #2c3e50;
-        margin-bottom: 6px;
-        font-size: 0.92rem;
-    }
-
-    .form-group-row select,
-    .form-group-row input[type="date"] {
-        width: 100%;
-        padding: 8px 12px;
-        border: 1px solid #ced4da;
-        border-radius: 5px;
-        font-size: 0.9rem;
-        transition: border-color 0.15s ease;
-    }
-
-    .form-group-row select:focus,
-    .form-group-row input[type="date"]:focus {
-        border-color: #3498db;
-        outline: none;
-        box-shadow: 0 0 0 3px rgba(52,152,219,0.15);
-    }
-
-    #discountDateRow {
-        display: none;
-    }
-
-    .btn-save {
-        background-color: #27ae60;
-        color: white;
-        border: none;
-        padding: 9px 24px;
-        border-radius: 5px;
-        font-size: 0.9rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: background-color 0.2s;
-    }
-
-    .btn-save:hover {
-        background-color: #219a52;
-    }
-
-    .btn-cancel {
-        background-color: #6c757d;
-        color: white;
-        border: none;
-        padding: 9px 24px;
-        border-radius: 5px;
-        font-size: 0.9rem;
-        font-weight: 600;
-        text-decoration: none;
-        display: inline-block;
-        transition: background-color 0.2s;
-    }
-
-    .btn-cancel:hover {
-        background-color: #5a6268;
-        color: white;
-    }
-
-    .btn-row {
-        display: flex;
-        gap: 12px;
-        justify-content: flex-end;
-        margin-top: 10px;
-    }
-</style>
-
-<div dir="rtl">
-    <h2 style="color:#2c3e50; font-weight:700; margin-bottom:20px; padding-bottom:8px; border-bottom:2px solid #3498db;">
-        تعديل نوع العقد وتاريخ التخفيض
-    </h2>
-
-    <div class="edit-card">
-        <div class="edit-card-header">
-            <i class="fas fa-file-contract"></i> بيانات العقد
-        </div>
-        <div class="edit-card-body">
-            <div class="info-row">
-                <span class="info-label">رقم العقد</span>
-                <span class="info-value">@Model.ContractNo</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">اسم الموظف</span>
-                <span class="info-value">@Model.Employee?.FullNameAr</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">كود السيارة</span>
-                <span class="info-value">@Model.Car?.CarCode</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">بداية العقد</span>
-                <span class="info-value">@Model.StartDate</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">نهاية العقد</span>
-                <span class="info-value">@Model.EndDate</span>
-            </div>
-
-            <hr class="divider" />
-
-            <form method="post" asp-action="EditDailyContract" asp-route-id="@Model.Id">
-                @Html.AntiForgeryToken()
-
-                <div class="form-group-row">
-                    <label for="RentalType">نوع التأجير</label>
-                    @{
-                        var rentalType = Model.RentalType ?? 0;
-                    }
-                    <select name="RentalType" id="RentalType" onchange="toggleDiscountDate(this.value)">
-                        <option value="0" selected="@(rentalType == 0 ? "selected" : null)">عادي</option>
-                        <option value="1" selected="@(rentalType == 1 ? "selected" : null)">تخفيض ثم تملك</option>
-                        <option value="2" selected="@(rentalType == 2 ? "selected" : null)">مخفض ملكية سائق</option>
-                        <option value="3" selected="@(rentalType == 3 ? "selected" : null)">مخفض ملكية شركة</option>
-                    </select>
-                </div>
-
-                <div id="discountDateRow">
-                    <div class="form-group-row">
-                        <label for="DiscountDate">تاريخ التخفيض الافتراضي</label>
-                        <input type="date" name="DiscountDate" id="DiscountDate"
-                               value="@(Model.DiscountDate.HasValue ? Model.DiscountDate.Value.ToString("yyyy-MM-dd") : "")" />
-                    </div>
-                    <div class="form-group-row">
-                        <label for="RealDiscountDate">تاريخ التخفيض الحقيقي</label>
-                        <input type="date" name="RealDiscountDate" id="RealDiscountDate"
-                               value="@(Model.RealDiscountDate.HasValue ? Model.RealDiscountDate.Value.ToString("yyyy-MM-dd") : "")" />
-                    </div>
-                    <div class="form-group-row">
-                        <label for="DiscountAmount">مبلغ التخفيض</label>
-                        <input type="number" name="DiscountAmount" id="DiscountAmount"
-                               step="0.01" min="0"
-                               value="@(Model.DiscountAmount.HasValue ? Model.DiscountAmount.Value.ToString("F2") : "")"
-                               style="width:100%;padding:8px 12px;border:1px solid #ced4da;border-radius:5px;font-size:0.9rem;" />
-                    </div>
-                </div>
-
-                <div class="btn-row">
-                    <a asp-action="IndexDaily" class="btn-cancel"><i class="fas fa-times"></i> إلغاء</a>
-                    <button type="submit" class="btn-save"><i class="fas fa-save"></i> حفظ</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+ <input type="hidden" asp-for="Id" />
+ <button type="submit" class="btn btn-danger btn-lg delete-button">
+ <i class="fas fa-trash-alt"></i> تأكيد الإغلاق
+ </button>
+ <a asp-action="IndexDaily" class="btn btn-outline-secondary btn-lg cancel-button">
+ <i class="fas fa-times"></i> إالغاء
+ </a>
+ </div>
+ </div>
+</form>
 
 <script>
-    function toggleDiscountDate(val) {
-        var row = document.getElementById('discountDateRow');
-        row.style.display = (val != '0') ? 'block' : 'none';
-    }
+ (function () {
+ var unpaidDetails = @Html.Raw(ViewBag.unpaidDetailsJson ?? "[]");
+ var dateInput = document.getElementById("ContractEndDate");
+ var display = document.getElementById("unpaidAmountDisplay");
 
-    // Run on page load
-    toggleDiscountDate(document.getElementById('RentalType').value);
+ function recalc() {
+ if (!dateInput.value) {
+ return;
+ }
+ var total = unpaidDetails
+ .filter(function (d) { return d.date && d.date <= dateInput.value; })
+ .reduce(function (sum, d) { return sum + d.amount; }, 0);
+ display.textContent = total.toFixed(3);
+ }
+
+ if (dateInput) {
+ dateInput.addEventListener("change", recalc);
+ recalc();
+ }
+ })();
 </script>
