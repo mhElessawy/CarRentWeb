@@ -17,7 +17,6 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient<WhatsAppService>();
 
-
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession();
 
