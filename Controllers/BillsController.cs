@@ -395,15 +395,24 @@ namespace CarRentWeb.Controllers
 
             ViewBag.BankId = new SelectList(bank, "Id", "DeffName");
 
-            //ViewBag.EmployeeId = new SelectList(employeesWithContracts, "Id", "FullNameAr"); 
+            //ViewBag.EmployeeId = new SelectList(employeesWithContracts, "Id", "FullNameAr");
 
+            ViewBag.Debits = (await _context.DebitInfos
+                .Include(d => d.DebitType)
+                .Where(d => d.EmpId == contract.EmployeeId && d.DeleteFlag != 1)
+                .ToListAsync())
+                .Where(d => (d.DebitRemaining ?? ((d.DebitQty ?? 0) - (d.DebitPayed ?? 0))) > 0)
+                .OrderBy(d => d.DebitDate)
+                .ToList();
+
+            ViewBag.DebtPayError = TempData["DebtPayError"];
 
             return View();
 
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateDaily(Bill bill)
+        public async Task<IActionResult> CreateDaily(Bill bill, Dictionary<int, decimal?>? DebitPayments)
         {
             if (ModelState.IsValid)
             {
@@ -428,6 +437,33 @@ namespace CarRentWeb.Controllers
                 .FirstOrDefault(); // or .SingleOrDefault() if you expect exactly one
 
                 bill.ContractId = contractid;
+
+                // معالجة سداد الديون المدخلة من نفس صفحة الدفع
+                var debitPaymentsToApply = new List<(DebitInfo Debit, decimal Amount)>();
+                var enteredDebitPayments = (DebitPayments ?? new Dictionary<int, decimal?>())
+                    .Where(p => (p.Value ?? 0) > 0)
+                    .ToList();
+                if (enteredDebitPayments.Any())
+                {
+                    var debitIds = enteredDebitPayments.Select(p => p.Key).ToList();
+                    var debitsToPay = await _context.DebitInfos
+                        .Where(d => debitIds.Contains(d.Id) && d.EmpId == bill.EmployeeId && d.DeleteFlag != 1)
+                        .ToListAsync();
+
+                    foreach (var kvp in enteredDebitPayments)
+                    {
+                        var debit = debitsToPay.FirstOrDefault(d => d.Id == kvp.Key);
+                        decimal amount = kvp.Value ?? 0;
+                        decimal debitRemaining = debit?.DebitRemaining ?? ((debit?.DebitQty ?? 0) - (debit?.DebitPayed ?? 0));
+                        if (debit == null || amount > debitRemaining)
+                        {
+                            TempData["DebtPayError"] = "المبلغ المدفوع من أحد الديون أكبر من المتبقي عليه";
+                            return RedirectToAction(nameof(CreateDaily), new { id = contractid });
+                        }
+
+                        debitPaymentsToApply.Add((debit, amount));
+                    }
+                }
 
                 int nNoOfDays = (int)bill.NoOfDays;
 
@@ -488,6 +524,34 @@ namespace CarRentWeb.Controllers
 
                 await _context.SaveChangesAsync();
 
+                if (debitPaymentsToApply.Any())
+                {
+                    int? maxDebitPayNo = (int?)_context.DebitPayInfos.Max(a => (int?)a.DebitPayNo);
+                    int nextDebitPayNo = (maxDebitPayNo ?? 0) + 1;
+                    int? userId = HttpContext.Session.GetInt32("UserId");
+
+                    foreach (var (debit, amount) in debitPaymentsToApply)
+                    {
+                        debit.UserId = userId;
+                        debit.DebitPayed = (debit.DebitPayed ?? 0) + amount;
+                        debit.DebitRemaining = debit.DebitQty - debit.DebitPayed;
+
+                        _context.DebitPayInfos.Add(new DebitPayInfo
+                        {
+                            DebitPayNo = nextDebitPayNo++,
+                            DebitPayDate = DateOnly.FromDateTime(DateTime.Now),
+                            DebitPayQty = amount,
+                            DeleteFlag = 0,
+                            ViolationId = null,
+                            UserId = userId,
+                            UserRecievedId = userId,
+                            DebitInfoId = debit.Id,
+                        });
+                    }
+
+                    await _context.SaveChangesAsync();
+                }
+
                 // إرسال رسالة واتساب للعميل
                 var employee = await _context.EmployeeInfos.FindAsync(bill.EmployeeId);
                 var phone = employee?.MobiileNo ?? employee?.TelNo;
@@ -509,7 +573,15 @@ namespace CarRentWeb.Controllers
                 return RedirectToAction(nameof(IndexDaily));
             }
 
-            return View(bill);
+            // العودة لشاشة الدفع نفسها (وليس عرض جزئي بدون بيانات) لو فشل التحقق من صحة البيانات المدخلة،
+            // لتجنب أخطاء runtime عند عرض الشاشة بدون تهيئة كل بيانات ViewBag اللازمة لها.
+            var redirectContractId = _context.Contracts
+                .Where(a => a.EmployeeId == bill.EmployeeId && a.DeleteFlag == 0 && a.Status == 0)
+                .Select(a => a.Id)
+                .FirstOrDefault();
+
+            TempData["DebtPayError"] = "حدث خطأ أثناء حفظ البيانات، من فضلك تأكد من صحة القيم المدخلة وحاول مرة أخرى";
+            return RedirectToAction(nameof(CreateDaily), new { id = redirectContractId });
         }
 
         public async Task<IActionResult> DetailsDaily(int? id)

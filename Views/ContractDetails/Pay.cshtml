@@ -1,4 +1,4 @@
-﻿@using CarRentWeb.Models.MyModel
+﻿﻿@using CarRentWeb.Models.MyModel
 @model CarRentWeb.Models.ContractDetail
 @inject IHttpContextAccessor HttpContextAccessor
 @{
@@ -62,12 +62,12 @@
                 <div class="col-md-6">
                     <div class="info-section">
                         <h5>بيانات الدفع</h5>
-                    
+
                         <div class="info-item">
                             <label>مبلغ الإيجار</label>
                             <span id="dailyCredit">@Html.DisplayFor(model => model.DailyCredit)</span>
                         </div>
-                      
+
                         <div class="info-item">
                             <label>مبلغ القسط</label>
                             <span id="carCredit">@Html.DisplayFor(model => model.CarCredit)</span>
@@ -79,7 +79,7 @@
                                 <label>مبلغ الغرامه</label>
 
                                 <input type="number" id="latePay" name="latePay" value="@(ViewBag.LatePay ?? 0)" />
-                               
+
                                 @Html.Hidden("latePayId", ViewBag.LatePayId as int?)
                             </div>
                         }
@@ -94,7 +94,7 @@
 
                             </div>
                         }
-                        
+
 
 
 
@@ -105,8 +105,8 @@
                             <label>المبلغ الإجمالي</label>
                             <span id="totalAmount">0</span>
                         </div>
-                        
-                       
+
+
                         <input type="hidden" asp-for="DailyCredit" />
                         <input type="hidden" asp-for="CarCredit" />
                         <input type="hidden" asp-for="ContractId" />
@@ -214,7 +214,7 @@
         // Initialize on load
         monthsInput.trigger('change');
     });
-     
+
 </script>
 
 <script>
