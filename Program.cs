@@ -1,4 +1,4 @@
-using CarRentWeb.Data;
+ using CarRentWeb.Data;
 using CarRentWeb.Service;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +16,6 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.Requ
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient<WhatsAppService>();
-
 
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession();
