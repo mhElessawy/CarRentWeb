@@ -412,7 +412,7 @@ namespace CarRentWeb.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateDaily(Bill bill, Dictionary<int, decimal>? DebitPayments)
+        public async Task<IActionResult> CreateDaily(Bill bill, Dictionary<int, decimal?>? DebitPayments)
         {
             if (ModelState.IsValid)
             {
@@ -440,24 +440,28 @@ namespace CarRentWeb.Controllers
 
                 // معالجة سداد الديون المدخلة من نفس صفحة الدفع
                 var debitPaymentsToApply = new List<(DebitInfo Debit, decimal Amount)>();
-                if (DebitPayments != null && DebitPayments.Any(p => p.Value > 0))
+                var enteredDebitPayments = (DebitPayments ?? new Dictionary<int, decimal?>())
+                    .Where(p => (p.Value ?? 0) > 0)
+                    .ToList();
+                if (enteredDebitPayments.Any())
                 {
-                    var debitIds = DebitPayments.Where(p => p.Value > 0).Select(p => p.Key).ToList();
+                    var debitIds = enteredDebitPayments.Select(p => p.Key).ToList();
                     var debitsToPay = await _context.DebitInfos
                         .Where(d => debitIds.Contains(d.Id) && d.EmpId == bill.EmployeeId && d.DeleteFlag != 1)
                         .ToListAsync();
 
-                    foreach (var kvp in DebitPayments.Where(p => p.Value > 0))
+                    foreach (var kvp in enteredDebitPayments)
                     {
                         var debit = debitsToPay.FirstOrDefault(d => d.Id == kvp.Key);
+                        decimal amount = kvp.Value ?? 0;
                         decimal debitRemaining = debit?.DebitRemaining ?? ((debit?.DebitQty ?? 0) - (debit?.DebitPayed ?? 0));
-                        if (debit == null || kvp.Value > debitRemaining)
+                        if (debit == null || amount > debitRemaining)
                         {
                             TempData["DebtPayError"] = "المبلغ المدفوع من أحد الديون أكبر من المتبقي عليه";
                             return RedirectToAction(nameof(CreateDaily), new { id = contractid });
                         }
 
-                        debitPaymentsToApply.Add((debit, kvp.Value));
+                        debitPaymentsToApply.Add((debit, amount));
                     }
                 }
 
@@ -569,7 +573,15 @@ namespace CarRentWeb.Controllers
                 return RedirectToAction(nameof(IndexDaily));
             }
 
-            return View(bill);
+            // العودة لشاشة الدفع نفسها (وليس عرض جزئي بدون بيانات) لو فشل التحقق من صحة البيانات المدخلة،
+            // لتجنب أخطاء runtime عند عرض الشاشة بدون تهيئة كل بيانات ViewBag اللازمة لها.
+            var redirectContractId = _context.Contracts
+                .Where(a => a.EmployeeId == bill.EmployeeId && a.DeleteFlag == 0 && a.Status == 0)
+                .Select(a => a.Id)
+                .FirstOrDefault();
+
+            TempData["DebtPayError"] = "حدث خطأ أثناء حفظ البيانات، من فضلك تأكد من صحة القيم المدخلة وحاول مرة أخرى";
+            return RedirectToAction(nameof(CreateDaily), new { id = redirectContractId });
         }
 
         public async Task<IActionResult> DetailsDaily(int? id)
