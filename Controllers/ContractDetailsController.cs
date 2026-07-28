@@ -343,18 +343,11 @@ namespace CarRentWeb.Controllers
 
             // Only calculate late pay if daysDifference is positive (payment is late)
 
-            ViewBag.Debits = await _context.DebitInfos
-                .Include(d => d.DebitType)
-                .Where(d => d.EmpId == contractDetail.Contract!.EmployeeId && d.DeleteFlag == 0 && d.DebitRemaining > 0)
-                .OrderBy(d => d.DebitDate)
-                .ToListAsync();
-
-            ViewBag.DebtPayError = TempData["DebtPayError"];
 
             return View(contractDetail);
         }
         [HttpPost]
-        public async Task<IActionResult> Pay(int? id, ContractDetail contractDetails, double latePay, int NoOfMonth, int latePayId, Dictionary<int, decimal>? DebitPayments)
+        public async Task<IActionResult> Pay(int? id, ContractDetail contractDetails, double latePay, int NoOfMonth, int latePayId)
         {
             if (id == null)
             {
@@ -364,32 +357,7 @@ namespace CarRentWeb.Controllers
             {
                 try
                 {
-                    // معالجة سداد الديون المدخلة من نفس شاشة التحصيل
-                    var debitPaymentsToApply = new List<(DebitInfo Debit, decimal Amount)>();
-                    if (DebitPayments != null && DebitPayments.Any(p => p.Value > 0))
-                    {
-                        int contractEmployeeId = await _context.Contracts
-                            .Where(c => c.Id == contractDetails.ContractId)
-                            .Select(c => c.EmployeeId ?? 0)
-                            .FirstOrDefaultAsync();
 
-                        var debitIds = DebitPayments.Where(p => p.Value > 0).Select(p => p.Key).ToList();
-                        var debitsToPay = await _context.DebitInfos
-                            .Where(d => debitIds.Contains(d.Id) && d.EmpId == contractEmployeeId && d.DeleteFlag == 0)
-                            .ToListAsync();
-
-                        foreach (var kvp in DebitPayments.Where(p => p.Value > 0))
-                        {
-                            var debit = debitsToPay.FirstOrDefault(d => d.Id == kvp.Key);
-                            if (debit == null || kvp.Value > (debit.DebitRemaining ?? 0))
-                            {
-                                TempData["DebtPayError"] = "المبلغ المدفوع من أحد الديون أكبر من المتبقي عليه";
-                                return RedirectToAction(nameof(Pay), new { id = id });
-                            }
-
-                            debitPaymentsToApply.Add((debit, kvp.Value));
-                        }
-                    }
 
                     var existingDetail = await _context.ContractDetails
                         .Include(c => c.Contract)
@@ -535,34 +503,6 @@ namespace CarRentWeb.Controllers
                         await _context.SaveChangesAsync();
 
                     }
-
-                    if (debitPaymentsToApply.Any())
-                    {
-                        int nextDebitPayNo = (await _context.DebitPayInfos.MaxAsync(b => (int?)b.DebitPayNo) ?? 0) + 1;
-                        int? userId = HttpContext.Session.GetInt32("UserId");
-
-                        foreach (var (debit, amount) in debitPaymentsToApply)
-                        {
-                            debit.UserId = userId;
-                            debit.DebitPayed = (debit.DebitPayed ?? 0) + amount;
-                            debit.DebitRemaining = debit.DebitQty - debit.DebitPayed;
-
-                            _context.DebitPayInfos.Add(new DebitPayInfo
-                            {
-                                DebitPayNo = nextDebitPayNo++,
-                                DebitPayDate = DateOnly.FromDateTime(DateTime.Now),
-                                DebitPayQty = amount,
-                                DeleteFlag = 0,
-                                ViolationId = null,
-                                UserId = userId,
-                                UserRecievedId = userId,
-                                DebitInfoId = debit.Id,
-                            });
-                        }
-
-                        await _context.SaveChangesAsync();
-                    }
-
                     return RedirectToAction("PayPrint", "ContractDetails", new { Id = billId });
 
                     // return RedirectToAction(nameof(Index));
