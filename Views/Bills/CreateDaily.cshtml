@@ -117,6 +117,9 @@
  @{
  var debits = ViewBag.Debits as List<CarRentWeb.Models.DebitInfo>;
  }
+ <!-- يمنع ASP.NET Core من محاولة ربط أي حقل تاني في الفورم (زي BillNo) كمفتاح لل Dictionary
+      لما ميكونش فيه أي عنصر DebitPayments[..] في الفورم أصلاً (مفيش ديون) -->
+ <input type="hidden" name="DebitPayments" value="" />
  @if (debits == null || !debits.Any())
  {
  <div class="col-md-12">
